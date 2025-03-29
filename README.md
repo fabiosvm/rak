@@ -18,8 +18,10 @@ This project uses [CMake](https://cmake.org) to build, and to facilitate this, a
 Use `rak` to run the REPL:
 
 ```
-build/rak
+./build/rak
 ```
+
+> **Note:** The REPL just prints the tokens that it recognizes.
 
 ## Cleaning
 

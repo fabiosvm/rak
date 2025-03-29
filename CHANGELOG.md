@@ -10,7 +10,4 @@ and adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- Initial project structure  
-- Core source files and headers  
-- Build and clean scripts  
-- Documentation files (README, LICENSE, CHANGELOG)
+- REPL recogniting tokens
