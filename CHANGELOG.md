@@ -10,4 +10,4 @@ and adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- REPL recogniting tokens
+- Initial implementation of the compiler with syntax checking in the REPL (no code execution yet).

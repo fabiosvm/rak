@@ -21,7 +21,7 @@ Use `rak` to run the REPL:
 ./build/rak
 ```
 
-> **Note:** The REPL just prints the tokens that it recognizes.
+> **Note:** The REPL just checks the syntax of the input code. It does not execute it.
 
 ## Cleaning
 

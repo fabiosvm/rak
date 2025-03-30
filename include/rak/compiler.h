@@ -11,6 +11,15 @@
 #ifndef RAK_COMPILER_H
 #define RAK_COMPILER_H
 
-#include <stddef.h>
+#include "lexer.h"
+
+typedef struct
+{
+  RakLexer lex;
+} RakCompiler;
+
+void rak_compiler_init(RakCompiler *comp, RakError *err);
+void rak_compiler_compile_chunk(RakCompiler *comp, char *source, RakError *err);
+void rak_compiler_eompile_expr(RakCompiler *comp, char *source, RakError *err);
 
 #endif // RAK_COMPILER_H

@@ -9,6 +9,7 @@
 //
 
 #include "rak/lexer.h"
+#include <assert.h>
 #include <ctype.h>
 #include <string.h>
 
@@ -160,51 +161,27 @@ static inline void unexpected_character_error(RakError *err, char c, int ln, int
   rak_error_set(err, "unexpected character '%c' at %d:%d", c, ln, col);
 }
 
-const char *rak_token_kind_name(RakTokenKind kind)
+const char *rak_token_kind_to_cstr(RakTokenKind kind)
 {
-  char *name = "Eof";
+  char *cstr = NULL;
   switch (kind)
   {
-  case RAK_TOKEN_KIND_EOF:
-    break;
-  case RAK_TOKEN_KIND_SEMICOLON:
-    name = "Semicolon";
-    break;
-  case RAK_TOKEN_KIND_LPAREN:
-    name = "LParen";
-    break;
-  case RAK_TOKEN_KIND_RPAREN:
-    name = "RParen";
-    break;
-  case RAK_TOKEN_KIND_PLUS:
-    name = "Plus";
-    break;
-  case RAK_TOKEN_KIND_MINUS:
-    name = "Minus";
-    break;
-  case RAK_TOKEN_KIND_STAR:
-    name = "Star";
-    break;
-  case RAK_TOKEN_KIND_SLASH:
-    name = "Slash";
-    break;
-  case RAK_TOKEN_KIND_PERCENT:
-    name = "Percent";
-    break;
-  case RAK_TOKEN_KIND_INTEGER:
-    name = "Integer";
-    break;
-  case RAK_TOKEN_KIND_NUMBER:
-    name = "Number";
-    break;
-  case RAK_TOKEN_KIND_NIL_KW:
-    name = "Nil";
-    break;
-  case RAK_TOKEN_KIND_IDENT:
-    name = "Ident";
-    break;
+  case RAK_TOKEN_KIND_EOF:       cstr = "eof";        break;
+  case RAK_TOKEN_KIND_SEMICOLON: cstr = "';'";        break;
+  case RAK_TOKEN_KIND_LPAREN:    cstr = "'('";        break;
+  case RAK_TOKEN_KIND_RPAREN:    cstr = "')'";        break;
+  case RAK_TOKEN_KIND_PLUS:      cstr = "'+'";        break;
+  case RAK_TOKEN_KIND_MINUS:     cstr = "'-'";        break;
+  case RAK_TOKEN_KIND_STAR:      cstr = "'*'";        break;
+  case RAK_TOKEN_KIND_SLASH:     cstr = "'/'";        break;
+  case RAK_TOKEN_KIND_PERCENT:   cstr = "'%'";        break;
+  case RAK_TOKEN_KIND_INTEGER:   cstr = "integer";    break;
+  case RAK_TOKEN_KIND_NUMBER:    cstr = "number";     break;
+  case RAK_TOKEN_KIND_NIL_KW:    cstr = "nil";        break;
+  case RAK_TOKEN_KIND_IDENT:     cstr = "identifier"; break;
   }
-  return name;
+  assert(cstr);
+  return cstr;
 }
 
 void rak_lexer_init(RakLexer *lex, char *source, RakError *err)

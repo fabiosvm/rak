@@ -48,7 +48,7 @@ typedef struct
   RakToken  token;
 } RakLexer;
 
-const char *rak_token_kind_name(RakTokenKind kind);
+const char *rak_token_kind_to_cstr(RakTokenKind kind);
 void rak_lexer_init(RakLexer *lex, char *source, RakError *err);
 void rak_lexer_next(RakLexer *lex, RakError *err);
 
