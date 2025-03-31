@@ -24,6 +24,7 @@ static inline bool match_number(RakLexer *lex, RakError *err);
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind);
 static inline bool match_ident(RakLexer *lex);
 static inline RakToken token(RakLexer *lex, RakTokenKind kind, int len, char *chars);
+static inline RakToken token_with_value(RakLexer *lex, RakTokenKind kind, int len, char *chars, RakValue val);
 static inline void unexpected_character_error(RakError *err, char c, int ln, int col);
 
 static inline void skip_whitespace(RakLexer *lex)
@@ -54,7 +55,7 @@ static inline void next_chars(RakLexer *lex, int len)
 static inline bool match_char(RakLexer *lex, char c, RakTokenKind kind)
 {
   if (current_char(lex) != c) return false;
-  lex->token = token(lex, kind, 1, lex->curr);
+  lex->tok = token(lex, kind, 1, lex->curr);
   next_char(lex);
   return true;
 }
@@ -66,7 +67,6 @@ static inline bool match_number(RakLexer *lex, RakError *err)
   int len = 1;
   while (isdigit(char_at(lex, len)))
     ++len;
-  RakTokenKind kind = RAK_TOKEN_KIND_INTEGER;
   if (char_at(lex, len) == '.')
   {
     ++len;
@@ -80,7 +80,6 @@ static inline bool match_number(RakLexer *lex, RakError *err)
     ++len;
     while (isdigit(char_at(lex, len)))
       ++len;
-    kind = RAK_TOKEN_KIND_NUMBER;
   }
   if (char_at(lex, len) == 'e' || char_at(lex, len) == 'E')
   {
@@ -105,7 +104,9 @@ static inline bool match_number(RakLexer *lex, RakError *err)
     unexpected_character_error(err, c, lex->ln, col);
     return false;
   }
-  lex->token = token(lex, kind, len, lex->curr);
+  RakValue val = rak_number_value_from_cstr(len, lex->curr, err);
+  if (!rak_is_ok(err)) return false;
+  lex->tok = token_with_value(lex, RAK_TOKEN_KIND_NUMBER, len, lex->curr, val);
   next_chars(lex, len);
   return true;
 }
@@ -117,7 +118,7 @@ static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kin
    || (isalnum(char_at(lex, len)))
    || (char_at(lex, len) == '_'))
     return false;
-  lex->token = token(lex, kind, len, lex->curr);
+  lex->tok = token(lex, kind, len, lex->curr);
   next_chars(lex, len);
   return true;
 }
@@ -129,7 +130,7 @@ static inline bool match_ident(RakLexer *lex)
   int len = 1;
   while (isalnum(char_at(lex, len)) || char_at(lex, len) == '_')
     ++len;
-  lex->token = token(lex, RAK_TOKEN_KIND_IDENT, len, lex->curr);
+  lex->tok = token(lex, RAK_TOKEN_KIND_IDENT, len, lex->curr);
   next_chars(lex, len);
   return true;
 }
@@ -143,6 +144,13 @@ static inline RakToken token(RakLexer *lex, RakTokenKind kind, int len, char *ch
     .len = len,
     .chars = chars
   };
+}
+
+static inline RakToken token_with_value(RakLexer *lex, RakTokenKind kind, int len, char *chars, RakValue val)
+{
+  RakToken tok = token(lex, kind, len, chars);
+  tok.val = val;
+  return tok;
 }
 
 static inline void unexpected_character_error(RakError *err, char c, int ln, int col)
@@ -175,7 +183,6 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   case RAK_TOKEN_KIND_STAR:      cstr = "'*'";        break;
   case RAK_TOKEN_KIND_SLASH:     cstr = "'/'";        break;
   case RAK_TOKEN_KIND_PERCENT:   cstr = "'%'";        break;
-  case RAK_TOKEN_KIND_INTEGER:   cstr = "integer";    break;
   case RAK_TOKEN_KIND_NUMBER:    cstr = "number";     break;
   case RAK_TOKEN_KIND_NIL_KW:    cstr = "nil";        break;
   case RAK_TOKEN_KIND_IDENT:     cstr = "identifier"; break;

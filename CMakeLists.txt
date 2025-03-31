@@ -25,6 +25,7 @@ add_executable("${PROJECT_NAME}"
   "src/main.c"
   "src/memory.c"
   "src/string.c"
+  "src/value.c"
   "src/vm.c"
 )
 

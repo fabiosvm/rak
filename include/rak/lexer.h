@@ -11,7 +11,7 @@
 #ifndef RAK_LEXER_H
 #define RAK_LEXER_H
 
-#include "error.h"
+#include "value.h"
 
 typedef enum
 {
@@ -24,7 +24,6 @@ typedef enum
   RAK_TOKEN_KIND_STAR,
   RAK_TOKEN_KIND_SLASH,
   RAK_TOKEN_KIND_PERCENT,
-  RAK_TOKEN_KIND_INTEGER,
   RAK_TOKEN_KIND_NUMBER,
   RAK_TOKEN_KIND_NIL_KW,
   RAK_TOKEN_KIND_IDENT
@@ -37,6 +36,7 @@ typedef struct
   int           col;
   int           len;
   char         *chars;
+  RakValue      val;
 } RakToken;
 
 typedef struct
@@ -45,7 +45,7 @@ typedef struct
   char     *curr;
   int       ln;
   int       col;
-  RakToken  token;
+  RakToken  tok;
 } RakLexer;
 
 const char *rak_token_kind_to_cstr(RakTokenKind kind);

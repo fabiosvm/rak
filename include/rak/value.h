@@ -12,6 +12,23 @@
 #define RAK_VALUE_H
 
 #include <stdint.h>
+#include "error.h"
+
+#define RAK_FALG_FALSY (1 << 0)
+
+#define RAK_NUMBER_EPSILON (1e-6)
+#define RAK_INTEGER_MIN    (-9007199254740992LL)
+#define RAK_INTEGER_MAX    (9007199254740992LL)
+
+#define rak_nil_value()     ((RakValue) { .type = RAK_TYPE_NIL, .flags = RAK_FALG_FALSY })
+#define rak_number_value(n) ((RakValue) { .type = RAK_TYPE_NUMBER, .flags = 0, .opaque.f64 = (n) })
+
+#define rak_as_number(v)  ((v).opaque.f64)
+#define rak_as_integer(v) ((int64_t) rak_as_number(v))
+
+#define rak_is_nil(v)     ((v).type == RAK_TYPE_NIL)
+#define rak_is_number(v)  ((v).type == RAK_TYPE_NUMBER)
+#define rak_is_integer(v) (rak_as_number(v) == rak_as_integer(v))
 
 typedef enum
 {
@@ -19,13 +36,18 @@ typedef enum
   RAK_TYPE_NUMBER
 } RakType;
 
+typedef union
+{
+  double f64;
+} RakOpaque;
+
 typedef struct
 {
-  RakType type;
-  union 
-  {
-    double f64;
-  } as;
+  RakType   type;
+  int       flags;
+  RakOpaque opaque;
 } RakValue;
+
+RakValue rak_number_value_from_cstr(int len, const char *cstr, RakError *err);
 
 #endif // RAK_VALUE_H

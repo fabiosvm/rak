@@ -10,7 +10,7 @@
 
 #include "rak/compiler.h"
 
-#define match(c, t) ((c)->lex.token.kind == (t))
+#define match(c, t) ((c)->lex.tok.kind == (t))
 
 #define next(c, e) \
   do { \
@@ -21,8 +21,8 @@
 #define consume(c, t, e) \
   do { \
     if (!match((c), (t))) { \
-      RakToken token = (c)->lex.token; \
-      expected_token_error((e), (t), token); \
+      RakToken tok = (c)->lex.tok; \
+      expected_token_error((e), (t), tok); \
       return; \
     } \
     next((c), (e)); \
@@ -34,30 +34,30 @@ static inline void compile_expr(RakCompiler *comp, RakError *err);
 static inline void compile_mul_expr(RakCompiler *comp, RakError *err);
 static inline void compile_unary_expr(RakCompiler *comp, RakError *err);
 static inline void compile_prim_expr(RakCompiler *comp, RakError *err);
-static inline void unexpected_token_error(RakError *err, RakToken token);
-static inline void expected_token_error(RakError *err, RakTokenKind kind, RakToken token);
+static inline void unexpected_token_error(RakError *err, RakToken tok);
+static inline void expected_token_error(RakError *err, RakTokenKind kind, RakToken tok);
 
-static inline void unexpected_token_error(RakError *err, RakToken token)
+static inline void unexpected_token_error(RakError *err, RakToken tok)
 {
-  if (token.kind == RAK_TOKEN_KIND_EOF)
+  if (tok.kind == RAK_TOKEN_KIND_EOF)
   {
-    rak_error_set(err, "unexpected end of file at %d:%d", token.ln, token.col);
+    rak_error_set(err, "unexpected end of file at %d:%d", tok.ln, tok.col);
     return;
   }
-  rak_error_set(err, "unexpected token '%.*s' at %d:%d", token.len, token.chars,
-    token.ln, token.col);
+  rak_error_set(err, "unexpected token '%.*s' at %d:%d", tok.len, tok.chars,
+    tok.ln, tok.col);
 }
 
-static inline void expected_token_error(RakError *err, RakTokenKind kind, RakToken token)
+static inline void expected_token_error(RakError *err, RakTokenKind kind, RakToken tok)
 {
-  if (token.kind == RAK_TOKEN_KIND_EOF)
+  if (tok.kind == RAK_TOKEN_KIND_EOF)
   {
     rak_error_set(err, "expected %s, but got end of file at %d:%d",
-      rak_token_kind_to_cstr(kind), token.ln, token.col);
+      rak_token_kind_to_cstr(kind), tok.ln, tok.col);
     return;
   }
   rak_error_set(err, "expected %s, but got '%.*s' at %d:%d",
-    rak_token_kind_to_cstr(kind), token.len, token.chars, token.ln, token.col);
+    rak_token_kind_to_cstr(kind), tok.len, tok.chars, tok.ln, tok.col);
 }
 
 static inline void compile_chunk(RakCompiler *comp, RakError *err)
@@ -150,8 +150,7 @@ static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
     next(comp, err);
     return;
   }
-  if (match(comp, RAK_TOKEN_KIND_INTEGER)
-   || match(comp, RAK_TOKEN_KIND_NUMBER))
+  if (match(comp, RAK_TOKEN_KIND_NUMBER))
   {
     next(comp, err);
     return;
@@ -164,7 +163,7 @@ static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
     consume(comp, RAK_TOKEN_KIND_RPAREN, err);
     return;
   }
-  unexpected_token_error(err, comp->lex.token);
+  unexpected_token_error(err, comp->lex.tok);
 }
 
 void rak_compiler_init(RakCompiler *comp, RakError *err)
