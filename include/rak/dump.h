@@ -11,6 +11,8 @@
 #ifndef RAK_DUMP_H
 #define RAK_DUMP_H
 
-#include <stddef.h>
+#include "chunk.h"
+
+void rak_dump_chunk(RakChunk *chunk);
 
 #endif // RAK_DUMP_H

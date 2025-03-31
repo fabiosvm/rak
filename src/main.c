@@ -45,6 +45,7 @@ static inline void init(void)
 static inline void deinit(void)
 {
   rak_string_deinit(&source);
+  rak_compiler_deinit(&comp);
 }
 
 static inline void repl(void)
@@ -71,8 +72,12 @@ static inline void compile(void)
 {
   err = rak_ok();
   rak_compiler_compile_chunk(&comp, rak_string_chars(&source), &err);
-  if (rak_is_ok(&err)) return;
-  rak_error_print(&err);
+  if (!rak_is_ok(&err))
+  {
+    rak_error_print(&err);
+    return;
+  }
+  rak_dump_chunk(&comp.chunk);
 }
 
 int main(void)

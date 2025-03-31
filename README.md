@@ -21,7 +21,7 @@ Use `rak` to run the REPL:
 ./build/rak
 ```
 
-> **Note:** The REPL just checks the syntax of the input code. It does not execute it.
+> **Note:** The REPL only compiles code to bytecode and prints it; it does not execute the bytecode.
 
 ## Cleaning
 

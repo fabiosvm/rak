@@ -10,4 +10,4 @@ and adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- Initial implementation of the compiler with syntax checking in the REPL (no code execution yet).
+- Initial compiler with syntax checking and bytecode compilation in the REPL (output only, no execution).

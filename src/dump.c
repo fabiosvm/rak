@@ -9,3 +9,39 @@
 //
 
 #include "rak/dump.h"
+#include <stdio.h>
+
+void rak_dump_chunk(RakChunk *chunk)
+{
+  printf("%d constant(s)\n", chunk->consts.len);
+  int n = chunk->instrs.len;
+  printf("%d instruction(s)\n", n);
+  uint32_t *instrs = chunk->instrs.data;
+  for (int i = 0; i < n; ++i)
+  {
+    uint32_t instr = instrs[i];
+    RakOpcode op = rak_instr_opcode(instr);
+    printf("[%04d] ", i);
+    switch (op)
+    {
+    case RAK_OP_NIL:
+    case RAK_OP_POP:
+    case RAK_OP_ADD:
+    case RAK_OP_SUB:
+    case RAK_OP_MUL:
+    case RAK_OP_DIV:
+    case RAK_OP_MOD:
+    case RAK_OP_NEG:
+    case RAK_OP_HALT:
+      printf("%-15s\n", rak_opcode_to_cstr(op));
+      break;
+    case RAK_OP_CONST:
+      {
+        uint8_t a = rak_instr_a(instr);
+        printf("%-15s %-5d\n", rak_opcode_to_cstr(op), a);
+      }
+      break;
+    }
+  }
+  printf("\n");
+}
