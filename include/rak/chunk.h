@@ -26,21 +26,21 @@
 #define rak_instr_c(i)      ((uint8_t) (((i) >> 24) & 0xff))
 #define rak_instr_ab(i)     ((uint16_t) (((i) >> 8) & 0xffff))
 
-#define rak_nil_instr()    rak_instr_fmt0(RAK_OP_NIL)
-#define rak_const_instr(i) rak_instr_fmt1(RAK_OP_CONST, (i))
-#define rak_pop_instr()    rak_instr_fmt0(RAK_OP_POP)
-#define rak_add_instr()    rak_instr_fmt0(RAK_OP_ADD)
-#define rak_sub_instr()    rak_instr_fmt0(RAK_OP_SUB)
-#define rak_mul_instr()    rak_instr_fmt0(RAK_OP_MUL)
-#define rak_div_instr()    rak_instr_fmt0(RAK_OP_DIV)
-#define rak_mod_instr()    rak_instr_fmt0(RAK_OP_MOD)
-#define rak_neg_instr()    rak_instr_fmt0(RAK_OP_NEG)
-#define rak_halt_instr()   rak_instr_fmt0(RAK_OP_HALT)
+#define rak_push_nil_instr()    rak_instr_fmt0(RAK_OP_PUSH_NIL)
+#define rak_load_const_instr(i) rak_instr_fmt1(RAK_OP_LOAD_CONST, (i))
+#define rak_pop_instr()         rak_instr_fmt0(RAK_OP_POP)
+#define rak_add_instr()         rak_instr_fmt0(RAK_OP_ADD)
+#define rak_sub_instr()         rak_instr_fmt0(RAK_OP_SUB)
+#define rak_mul_instr()         rak_instr_fmt0(RAK_OP_MUL)
+#define rak_div_instr()         rak_instr_fmt0(RAK_OP_DIV)
+#define rak_mod_instr()         rak_instr_fmt0(RAK_OP_MOD)
+#define rak_neg_instr()         rak_instr_fmt0(RAK_OP_NEG)
+#define rak_halt_instr()        rak_instr_fmt0(RAK_OP_HALT)
 
 typedef enum
 {
-  RAK_OP_NIL,
-  RAK_OP_CONST,
+  RAK_OP_PUSH_NIL,
+  RAK_OP_LOAD_CONST,
   RAK_OP_POP,
   RAK_OP_ADD,
   RAK_OP_SUB,

@@ -21,8 +21,6 @@ Use `rak` to run the REPL:
 ./build/rak
 ```
 
-> **Note:** The REPL only compiles code to bytecode and prints it; it does not execute the bytecode.
-
 ## Cleaning
 
 To clean the build files, run the clean script:

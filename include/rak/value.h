@@ -49,5 +49,6 @@ typedef struct
 } RakValue;
 
 RakValue rak_number_value_from_cstr(int len, const char *cstr, RakError *err);
+void rak_value_print(RakValue val);
 
 #endif // RAK_VALUE_H

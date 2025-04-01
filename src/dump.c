@@ -24,7 +24,7 @@ void rak_dump_chunk(RakChunk *chunk)
     printf("[%04d] ", i);
     switch (op)
     {
-    case RAK_OP_NIL:
+    case RAK_OP_PUSH_NIL:
     case RAK_OP_POP:
     case RAK_OP_ADD:
     case RAK_OP_SUB:
@@ -35,7 +35,7 @@ void rak_dump_chunk(RakChunk *chunk)
     case RAK_OP_HALT:
       printf("%-15s\n", rak_opcode_to_cstr(op));
       break;
-    case RAK_OP_CONST:
+    case RAK_OP_LOAD_CONST:
       {
         uint8_t a = rak_instr_a(instr);
         printf("%-15s %-5d\n", rak_opcode_to_cstr(op), a);

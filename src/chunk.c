@@ -16,16 +16,16 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   char *cstr = NULL;
   switch (op)
   {
-  case RAK_OP_NIL:   cstr = "NIL";   break;
-  case RAK_OP_CONST: cstr = "CONST"; break;
-  case RAK_OP_POP:   cstr = "POP";   break;
-  case RAK_OP_ADD:   cstr = "ADD";   break;
-  case RAK_OP_SUB:   cstr = "SUB";   break;
-  case RAK_OP_MUL:   cstr = "MUL";   break;
-  case RAK_OP_DIV:   cstr = "DIV";   break;
-  case RAK_OP_MOD:   cstr = "MOD";   break;
-  case RAK_OP_NEG:   cstr = "NEG";   break;
-  case RAK_OP_HALT:  cstr = "HALT";  break;
+  case RAK_OP_PUSH_NIL:   cstr = "PUSH_NIL";   break;
+  case RAK_OP_LOAD_CONST: cstr = "LOAD_CONST"; break;
+  case RAK_OP_POP:        cstr = "POP";        break;
+  case RAK_OP_ADD:        cstr = "ADD";        break;
+  case RAK_OP_SUB:        cstr = "SUB";        break;
+  case RAK_OP_MUL:        cstr = "MUL";        break;
+  case RAK_OP_DIV:        cstr = "DIV";        break;
+  case RAK_OP_MOD:        cstr = "MOD";        break;
+  case RAK_OP_NEG:        cstr = "NEG";        break;
+  case RAK_OP_HALT:       cstr = "HALT";       break;
   }
   assert(cstr);
   return cstr;

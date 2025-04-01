@@ -29,5 +29,5 @@ void rak_error_set_with_args(RakError *err, const char *fmt, va_list args)
 void rak_error_print(RakError *err)
 {
   if (rak_is_ok(err)) return;
-  fprintf(stderr, "error: %s\n", err->cstr);
+  fprintf(stderr, "ERROR: %s\n", err->cstr);
 }

@@ -10,6 +10,7 @@
 
 #include "rak/value.h"
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -25,4 +26,17 @@ RakValue rak_number_value_from_cstr(int len, const char *cstr, RakError *err)
     return rak_nil_value();
   }
   return rak_number_value(num);
+}
+
+void rak_value_print(RakValue val)
+{
+  switch (val.type)
+  {
+  case RAK_TYPE_NIL:
+    printf("nil");
+    break;
+  case RAK_TYPE_NUMBER:
+    printf("%g", rak_as_number(val));
+    break;
+  }
 }
