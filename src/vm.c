@@ -15,6 +15,8 @@ typedef void (*InstrHandle)(RakVM *, RakChunk *, uint32_t *, RakError *);
 static inline void dispatch(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 
 static void do_push_nil(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
+static void do_push_false(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
+static void do_push_true(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_load_const(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_pop(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_add(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
@@ -27,6 +29,8 @@ static void do_halt(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 
 static InstrHandle dispatchTable[] = {
   [RAK_OP_PUSH_NIL]   = do_push_nil,
+  [RAK_OP_PUSH_FALSE] = do_push_false,
+  [RAK_OP_PUSH_TRUE]  = do_push_true,
   [RAK_OP_LOAD_CONST] = do_load_const,
   [RAK_OP_POP]        = do_pop,
   [RAK_OP_ADD]        = do_add,
@@ -49,6 +53,20 @@ static inline void dispatch(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *
 static void do_push_nil(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
 {
   rak_vm_push_nil(vm, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(vm, chunk, ip + 1, err);
+}
+
+static void do_push_false(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
+{
+  rak_vm_push_bool(vm, false, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(vm, chunk, ip + 1, err);
+}
+
+static void do_push_true(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
+{
+  rak_vm_push_bool(vm, true, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, chunk, ip + 1, err);
 }

@@ -24,6 +24,8 @@ void rak_dump_chunk(RakChunk *chunk)
     switch (op)
     {
     case RAK_OP_PUSH_NIL:
+    case RAK_OP_PUSH_FALSE:
+    case RAK_OP_PUSH_TRUE:
     case RAK_OP_POP:
     case RAK_OP_ADD:
     case RAK_OP_SUB:

@@ -24,6 +24,7 @@ typedef struct
 
 static inline void rak_vm_push(RakVM *vm, RakValue val, RakError *err);
 static inline void rak_vm_push_nil(RakVM *vm, RakError *err);
+static inline void rak_vm_push_bool(RakVM *vm, bool b, RakError *err);
 static inline void rak_vm_push_number(RakVM *vm, double num, RakError *err);
 static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
 static inline void rak_vm_pop(RakVM *vm);
@@ -53,6 +54,11 @@ static inline void rak_vm_push(RakVM *vm, RakValue val, RakError *err)
 static inline void rak_vm_push_nil(RakVM *vm, RakError *err)
 {
   rak_vm_push(vm, rak_nil_value(), err);
+}
+
+static inline void rak_vm_push_bool(RakVM *vm, bool b, RakError *err)
+{
+  rak_vm_push(vm, rak_bool_value(b), err);
 }
 
 static inline void rak_vm_push_number(RakVM *vm, double num, RakError *err)

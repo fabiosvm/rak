@@ -27,6 +27,8 @@
 #define rak_instr_ab(i)     ((uint16_t) (((i) >> 8) & 0xffff))
 
 #define rak_push_nil_instr()    rak_instr_fmt0(RAK_OP_PUSH_NIL)
+#define rak_push_false_instr()  rak_instr_fmt0(RAK_OP_PUSH_FALSE)
+#define rak_push_true_instr()   rak_instr_fmt0(RAK_OP_PUSH_TRUE)
 #define rak_load_const_instr(i) rak_instr_fmt1(RAK_OP_LOAD_CONST, (i))
 #define rak_pop_instr()         rak_instr_fmt0(RAK_OP_POP)
 #define rak_add_instr()         rak_instr_fmt0(RAK_OP_ADD)
@@ -40,6 +42,8 @@
 typedef enum
 {
   RAK_OP_PUSH_NIL,
+  RAK_OP_PUSH_FALSE,
+  RAK_OP_PUSH_TRUE,
   RAK_OP_LOAD_CONST,
   RAK_OP_POP,
   RAK_OP_ADD,

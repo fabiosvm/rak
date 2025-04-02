@@ -9,4 +9,5 @@ mul_expr          ::= unary_expr ( ( "*" | "/" | "%" ) unary_expr )*
 
 unary_expr        ::= "-" unary_expr | prim_expr
 
-prim_expr         ::= "nil" | NUMBER | "(" expr ")"
+prim_expr         ::= "nil" | "false" | "true" | NUMBER 
+                    | "(" expr ")"

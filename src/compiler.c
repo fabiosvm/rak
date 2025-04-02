@@ -176,6 +176,18 @@ static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
     rak_chunk_append_instr(&comp->chunk, rak_push_nil_instr(), err);
     return;
   }
+  if (match(comp, RAK_TOKEN_KIND_FALSE_KW))
+  {
+    next(comp, err);
+    rak_chunk_append_instr(&comp->chunk, rak_push_false_instr(), err);
+    return;
+  }
+  if (match(comp, RAK_TOKEN_KIND_TRUE_KW))
+  {
+    next(comp, err);
+    rak_chunk_append_instr(&comp->chunk, rak_push_true_instr(), err);
+    return;
+  }
   if (match(comp, RAK_TOKEN_KIND_NUMBER))
   {
     RakToken tok = comp->lex.tok;

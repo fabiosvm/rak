@@ -35,6 +35,9 @@ void rak_value_print(RakValue val)
   case RAK_TYPE_NIL:
     printf("nil");
     break;
+  case RAK_TYPE_BOOL:
+    printf("%s", rak_as_bool(val) ? "true" : "false");
+    break;
   case RAK_TYPE_NUMBER:
     printf("%g", rak_as_number(val));
     break;
