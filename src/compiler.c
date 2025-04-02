@@ -163,7 +163,6 @@ static inline void compile_unary_expr(RakCompiler *comp, RakError *err)
     compile_unary_expr(comp, err);
     if (!rak_is_ok(err)) return;
     rak_chunk_append_instr(&comp->chunk, rak_neg_instr(), err);
-    if (!rak_is_ok(err))
     return;
   }
   compile_prim_expr(comp, err);
