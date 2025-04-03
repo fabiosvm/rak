@@ -31,6 +31,8 @@
 static inline void compile_chunk(RakCompiler *comp, RakError *err);
 static inline void compile_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_expr(RakCompiler *comp, RakError *err);
+static inline void compile_cmp_expr(RakCompiler *comp, RakError *err);
+static inline void compile_add_expr(RakCompiler *comp, RakError *err);
 static inline void compile_mul_expr(RakCompiler *comp, RakError *err);
 static inline void compile_unary_expr(RakCompiler *comp, RakError *err);
 static inline void compile_prim_expr(RakCompiler *comp, RakError *err);
@@ -91,6 +93,86 @@ static inline void compile_stmt(RakCompiler *comp, RakError *err)
 }
 
 static inline void compile_expr(RakCompiler *comp, RakError *err)
+{
+  compile_cmp_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  for (;;)
+  {
+    if (match(comp, RAK_TOKEN_KIND_EQEQ))
+    {
+      next(comp, err);
+      compile_cmp_expr(comp, err);
+      if (!rak_is_ok(err)) return;
+      rak_chunk_append_instr(&comp->chunk, rak_eq_instr(), err);
+      if (!rak_is_ok(err)) return;
+      continue;
+    }
+    if (match(comp, RAK_TOKEN_KIND_BANGEQ))
+    {
+      next(comp, err);
+      compile_cmp_expr(comp, err);
+      if (!rak_is_ok(err)) return;
+      rak_chunk_append_instr(&comp->chunk, rak_eq_instr(), err);
+      if (!rak_is_ok(err)) return;
+      rak_chunk_append_instr(&comp->chunk, rak_not_instr(), err);
+      if (!rak_is_ok(err)) return;
+      continue;
+    }
+    break;
+  }
+}
+
+static inline void compile_cmp_expr(RakCompiler *comp, RakError *err)
+{
+  compile_add_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  for (;;)
+  {
+    if (match(comp, RAK_TOKEN_KIND_GTEQ))
+    {
+      next(comp, err);
+      compile_add_expr(comp, err);
+      if (!rak_is_ok(err)) return;
+      rak_chunk_append_instr(&comp->chunk, rak_lt_instr(), err);
+      if (!rak_is_ok(err)) return;
+      rak_chunk_append_instr(&comp->chunk, rak_not_instr(), err);
+      if (!rak_is_ok(err)) return;
+      continue;
+    }
+    if (match(comp, RAK_TOKEN_KIND_GT))
+    {
+      next(comp, err);
+      compile_add_expr(comp, err);
+      if (!rak_is_ok(err)) return;
+      rak_chunk_append_instr(&comp->chunk, rak_gt_instr(), err);
+      if (!rak_is_ok(err)) return;
+      continue;
+    }
+    if (match(comp, RAK_TOKEN_KIND_LTEQ))
+    {
+      next(comp, err);
+      compile_add_expr(comp, err);
+      if (!rak_is_ok(err)) return;
+      rak_chunk_append_instr(&comp->chunk, rak_gt_instr(), err);
+      if (!rak_is_ok(err)) return;
+      rak_chunk_append_instr(&comp->chunk, rak_not_instr(), err);
+      if (!rak_is_ok(err)) return;
+      continue;
+    }
+    if (match(comp, RAK_TOKEN_KIND_LT))
+    {
+      next(comp, err);
+      compile_add_expr(comp, err);
+      if (!rak_is_ok(err)) return;
+      rak_chunk_append_instr(&comp->chunk, rak_lt_instr(), err);
+      if (!rak_is_ok(err)) return;
+      continue;
+    }
+    break;
+  }
+}
+
+static inline void compile_add_expr(RakCompiler *comp, RakError *err)
 {
   compile_mul_expr(comp, err);
   if (!rak_is_ok(err)) return;

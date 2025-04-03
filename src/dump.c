@@ -27,11 +27,15 @@ void rak_dump_chunk(RakChunk *chunk)
     case RAK_OP_PUSH_FALSE:
     case RAK_OP_PUSH_TRUE:
     case RAK_OP_POP:
+    case RAK_OP_EQ:
+    case RAK_OP_GT:
+    case RAK_OP_LT:
     case RAK_OP_ADD:
     case RAK_OP_SUB:
     case RAK_OP_MUL:
     case RAK_OP_DIV:
     case RAK_OP_MOD:
+    case RAK_OP_NOT:
     case RAK_OP_NEG:
     case RAK_OP_HALT:
       printf("%-15s\n", rak_opcode_to_cstr(op));

@@ -1,4 +1,6 @@
 
+[![Ubuntu CI](https://github.com/fabiosvm/rak/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/fabiosvm/rak/actions/workflows/ubuntu.yml) [![macOS CI](https://github.com/fabiosvm/rak/actions/workflows/macos.yml/badge.svg)](https://github.com/fabiosvm/rak/actions/workflows/macos.yml) [![Windows CI](https://github.com/fabiosvm/rak/actions/workflows/windows.yml/badge.svg)](https://github.com/fabiosvm/rak/actions/workflows/windows.yml)
+
 # The Rak Programming Language
 
 Rak is a dynamically typed scripting language that adopts a mutable value semantics approach.
@@ -19,6 +21,12 @@ Use `rak` to run the REPL:
 
 ```
 ./build/rak
+```
+
+You can use the flag `-d` to dump the bytecode.
+
+```
+./build/rak -d
 ```
 
 ## Cleaning

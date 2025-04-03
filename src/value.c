@@ -10,6 +10,7 @@
 
 #include "rak/value.h"
 #include <errno.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,13 +20,61 @@ RakValue rak_number_value_from_cstr(int len, const char *cstr, RakError *err)
   if (len < 0) len = (int) strlen(cstr);
   char *end = NULL;
   errno = 0;
-  double num = strtod(cstr, &end);
+  double data = strtod(cstr, &end);
   if (errno || end != &cstr[len])
   {
     rak_error_set(err, "invalid number format");
     return rak_nil_value();
   }
-  return rak_number_value(num);
+  return rak_number_value(data);
+}
+
+int rak_number_compare(double num1, double num2)
+{
+  if (fabs(num1 - num2) < RAK_NUMBER_EPSILON)
+    return 0;
+  return (num1 > num2) ? 1 : -1;
+}
+
+bool rak_value_equals(RakValue val1, RakValue val2)
+{
+  if (val1.type != val2.type)
+    return false;
+  bool res = true;
+  switch (val1.type)
+  {
+  case RAK_TYPE_NIL:
+    break;
+  case RAK_TYPE_BOOL:
+    res = rak_as_bool(val1) == rak_as_bool(val2);
+    break;
+  case RAK_TYPE_NUMBER:
+    res = !rak_number_compare(rak_as_number(val1), rak_as_number(val2));
+    break;
+  }
+  return res;
+}
+
+int rak_value_compare(RakValue val1, RakValue val2, RakError *err)
+{
+  if (val1.type != val2.type)
+  {
+    rak_error_set(err, "cannot compare different types");
+    return 0;
+  }
+  int res = 0;
+  switch (val1.type)
+  {
+  case RAK_TYPE_NIL:
+    break;
+  case RAK_TYPE_BOOL:
+    res = rak_as_bool(val1) - rak_as_bool(val2);
+    break;
+  case RAK_TYPE_NUMBER:
+    res = rak_number_compare(rak_as_number(val1), rak_as_number(val2));
+    break;
+  }
+  return res;
 }
 
 void rak_value_print(RakValue val)

@@ -20,6 +20,7 @@ static inline void skip_whitespace(RakLexer *lex);
 static inline void next_char(RakLexer *lex);
 static inline void next_chars(RakLexer *lex, int len);
 static inline bool match_char(RakLexer *lex, char c, RakTokenKind kind);
+static inline bool match_chars(RakLexer *lex, const char *chars, RakTokenKind kind);
 static inline bool match_number(RakLexer *lex, RakError *err);
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind);
 static inline bool match_ident(RakLexer *lex);
@@ -57,6 +58,16 @@ static inline bool match_char(RakLexer *lex, char c, RakTokenKind kind)
   if (current_char(lex) != c) return false;
   lex->tok = token(lex, kind, 1, lex->curr);
   next_char(lex);
+  return true;
+}
+
+static inline bool match_chars(RakLexer *lex, const char *chars, RakTokenKind kind)
+{
+  int len = (int) strlen(chars);
+  if (memcmp(lex->curr, chars, len))
+    return false;
+  lex->tok = token(lex, kind, len, lex->curr);
+  next_chars(lex, len);
   return true;
 }
 
@@ -114,7 +125,7 @@ static inline bool match_number(RakLexer *lex, RakError *err)
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind)
 {
   int len = (int) strlen(kw);
-  if (strncmp(lex->curr, kw, len)
+  if (memcmp(lex->curr, kw, len)
    || (isalnum(char_at(lex, len)))
    || (char_at(lex, len) == '_'))
     return false;
@@ -178,6 +189,12 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   case RAK_TOKEN_KIND_SEMICOLON: cstr = "';'";        break;
   case RAK_TOKEN_KIND_LPAREN:    cstr = "'('";        break;
   case RAK_TOKEN_KIND_RPAREN:    cstr = "')'";        break;
+  case RAK_TOKEN_KIND_EQEQ:      cstr = "'=='";       break;
+  case RAK_TOKEN_KIND_BANGEQ:    cstr = "'!='";       break;
+  case RAK_TOKEN_KIND_GTEQ:      cstr = "'>='";       break;
+  case RAK_TOKEN_KIND_GT:        cstr = "'>'";        break;
+  case RAK_TOKEN_KIND_LTEQ:      cstr = "'<='";       break;
+  case RAK_TOKEN_KIND_LT:        cstr = "'<'";        break;
   case RAK_TOKEN_KIND_PLUS:      cstr = "'+'";        break;
   case RAK_TOKEN_KIND_MINUS:     cstr = "'-'";        break;
   case RAK_TOKEN_KIND_STAR:      cstr = "'*'";        break;
@@ -209,6 +226,12 @@ void rak_lexer_next(RakLexer *lex, RakError *err)
   if (match_char(lex, ';', RAK_TOKEN_KIND_SEMICOLON)) return;
   if (match_char(lex, '(', RAK_TOKEN_KIND_LPAREN)) return;
   if (match_char(lex, ')', RAK_TOKEN_KIND_RPAREN)) return;
+  if (match_chars(lex, "==", RAK_TOKEN_KIND_EQEQ)) return;
+  if (match_chars(lex, "!=", RAK_TOKEN_KIND_BANGEQ)) return;
+  if (match_chars(lex, ">=", RAK_TOKEN_KIND_GTEQ)) return;
+  if (match_char(lex, '>', RAK_TOKEN_KIND_GT)) return;
+  if (match_chars(lex, "<=", RAK_TOKEN_KIND_LTEQ)) return;
+  if (match_char(lex, '<', RAK_TOKEN_KIND_LT)) return;
   if (match_char(lex, '+', RAK_TOKEN_KIND_PLUS)) return;
   if (match_char(lex, '-', RAK_TOKEN_KIND_MINUS)) return;
   if (match_char(lex, '*', RAK_TOKEN_KIND_STAR)) return;

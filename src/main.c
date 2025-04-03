@@ -15,6 +15,7 @@
 
 #define SOURCE_MAX_LEN ((int) 1 << 12)
 
+static bool dump = false;
 static RakError err;
 static RakString source;
 static RakCompiler comp;
@@ -81,6 +82,8 @@ static inline void eval(void)
     rak_error_print(&err);
     return;
   }
+  if (dump)
+    rak_dump_chunk(&comp.chunk);
   rak_vm_run(&vm, &comp.chunk, &err);
   if (!rak_is_ok(&err))
   {
@@ -93,8 +96,10 @@ static inline void eval(void)
   rak_vm_pop(&vm);
 }
 
-int main(void)
+int main(int argc, const char *argv[])
 {
+  if (argc > 1)
+    dump = !strcmp(argv[1], "-d");
   init();
   repl();
   deinit();

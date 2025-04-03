@@ -16,13 +16,13 @@
 
 #define RAK_FALG_FALSY (1 << 0)
 
-#define RAK_NUMBER_EPSILON (1e-6)
+#define RAK_NUMBER_EPSILON (1e-9)
 #define RAK_INTEGER_MIN    (-9007199254740992LL)
 #define RAK_INTEGER_MAX    (9007199254740992LL)
 
 #define rak_nil_value()     ((RakValue) { .type = RAK_TYPE_NIL, .flags = RAK_FALG_FALSY })
-#define rak_bool_value(b)   ((RakValue) { .type = RAK_TYPE_BOOL, .flags = (b) ? 0 : RAK_FALG_FALSY, .opaque.b = (b) })
-#define rak_number_value(n) ((RakValue) { .type = RAK_TYPE_NUMBER, .flags = 0, .opaque.f64 = (n) })
+#define rak_bool_value(d)   ((RakValue) { .type = RAK_TYPE_BOOL, .flags = (d) ? 0 : RAK_FALG_FALSY, .opaque.b = (d) })
+#define rak_number_value(d) ((RakValue) { .type = RAK_TYPE_NUMBER, .flags = 0, .opaque.f64 = (d) })
 
 #define rak_as_bool(v)    ((v).opaque.b)
 #define rak_as_number(v)  ((v).opaque.f64)
@@ -55,6 +55,9 @@ typedef struct
 } RakValue;
 
 RakValue rak_number_value_from_cstr(int len, const char *cstr, RakError *err);
+int rak_number_compare(double num1, double num2);
+bool rak_value_equals(RakValue val1, RakValue val2);
+int rak_value_compare(RakValue val1, RakValue val2, RakError *err);
 void rak_value_print(RakValue val);
 
 #endif // RAK_VALUE_H

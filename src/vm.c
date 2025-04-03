@@ -19,11 +19,15 @@ static void do_push_false(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *er
 static void do_push_true(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_load_const(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_pop(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
+static void do_eq(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
+static void do_gt(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
+static void do_lt(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_add(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_sub(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_mul(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_div(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_mod(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
+static void do_not(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_neg(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_halt(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 
@@ -33,11 +37,15 @@ static InstrHandle dispatchTable[] = {
   [RAK_OP_PUSH_TRUE]  = do_push_true,
   [RAK_OP_LOAD_CONST] = do_load_const,
   [RAK_OP_POP]        = do_pop,
+  [RAK_OP_EQ]         = do_eq,
+  [RAK_OP_GT]         = do_gt,
+  [RAK_OP_LT]         = do_lt,
   [RAK_OP_ADD]        = do_add,
   [RAK_OP_SUB]        = do_sub,
   [RAK_OP_MUL]        = do_mul,
   [RAK_OP_DIV]        = do_div,
   [RAK_OP_MOD]        = do_mod,
+  [RAK_OP_NOT]        = do_not,
   [RAK_OP_NEG]        = do_neg,
   [RAK_OP_HALT]       = do_halt
 };
@@ -85,6 +93,27 @@ static void do_pop(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
   dispatch(vm, chunk, ip + 1, err);
 }
 
+static void do_eq(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
+{
+  rak_vm_eq(vm, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(vm, chunk, ip + 1, err);
+}
+
+static void do_gt(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
+{
+  rak_vm_gt(vm, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(vm, chunk, ip + 1, err);
+}
+
+static void do_lt(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
+{
+  rak_vm_lt(vm, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(vm, chunk, ip + 1, err);
+}
+
 static void do_add(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
 {
   rak_vm_add(vm, err);
@@ -116,6 +145,13 @@ static void do_div(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
 static void do_mod(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
 {
   rak_vm_mod(vm, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(vm, chunk, ip + 1, err);
+}
+
+static void do_not(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
+{
+  rak_vm_not(vm, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, chunk, ip + 1, err);
 }

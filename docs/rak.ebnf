@@ -3,7 +3,11 @@ chunk             ::= stmt* EOF
 
 stmt              ::= expr ";"
 
-expr              ::= mul_expr ( ( "+" | "-" ) mul_expr )*
+expr              ::= cmp_expr ( ( "==" | "!=" ) cmp_expr )*
+
+cmp_expr          ::= add_expr ( ( ">=" | ">" | "<=" | "<" ) add_expr )*
+
+add_expr          ::= mul_expr ( ( "+" | "-" ) mul_expr )*
 
 mul_expr          ::= unary_expr ( ( "*" | "/" | "%" ) unary_expr )*
 
