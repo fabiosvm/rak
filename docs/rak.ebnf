@@ -11,7 +11,7 @@ add_expr          ::= mul_expr ( ( "+" | "-" ) mul_expr )*
 
 mul_expr          ::= unary_expr ( ( "*" | "/" | "%" ) unary_expr )*
 
-unary_expr        ::= "-" unary_expr | prim_expr
+unary_expr        ::= ( "!" | "-" )? unary_expr | prim_expr
 
 prim_expr         ::= "nil" | "false" | "true" | NUMBER 
                     | "(" expr ")"

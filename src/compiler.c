@@ -65,14 +65,9 @@ static inline void expected_token_error(RakError *err, RakTokenKind kind, RakTok
 
 static inline void emit_const_instr(RakCompiler *comp, RakToken tok, RakError *err)
 {
-  int idx = rak_chunk_append_const(&comp->chunk, tok.val, err);
-  if (idx > UINT8_MAX)
-  {
-    rak_error_set(err, "too many constants");
-    return;
-  }
+  uint8_t idx = rak_chunk_append_const(&comp->chunk, tok.val, err);
   if (!rak_is_ok(err)) return;
-  rak_chunk_append_instr(&comp->chunk, rak_load_const_instr((uint8_t) idx), err);
+  rak_chunk_append_instr(&comp->chunk, rak_load_const_instr(idx), err);
 }
 
 static inline void compile_chunk(RakCompiler *comp, RakError *err)
@@ -239,6 +234,14 @@ static inline void compile_mul_expr(RakCompiler *comp, RakError *err)
 
 static inline void compile_unary_expr(RakCompiler *comp, RakError *err)
 {
+  if (match(comp, RAK_TOKEN_KIND_BANG))
+  {
+    next(comp, err);
+    compile_unary_expr(comp, err);
+    if (!rak_is_ok(err)) return;
+    rak_chunk_append_instr(&comp->chunk, rak_not_instr(), err);
+    return;
+  }
   if (match(comp, RAK_TOKEN_KIND_MINUS))
   {
     next(comp, err);

@@ -191,6 +191,7 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   case RAK_TOKEN_KIND_RPAREN:    cstr = "')'";        break;
   case RAK_TOKEN_KIND_EQEQ:      cstr = "'=='";       break;
   case RAK_TOKEN_KIND_BANGEQ:    cstr = "'!='";       break;
+  case RAK_TOKEN_KIND_BANG:      cstr = "'!'";        break;
   case RAK_TOKEN_KIND_GTEQ:      cstr = "'>='";       break;
   case RAK_TOKEN_KIND_GT:        cstr = "'>'";        break;
   case RAK_TOKEN_KIND_LTEQ:      cstr = "'<='";       break;
@@ -228,6 +229,7 @@ void rak_lexer_next(RakLexer *lex, RakError *err)
   if (match_char(lex, ')', RAK_TOKEN_KIND_RPAREN)) return;
   if (match_chars(lex, "==", RAK_TOKEN_KIND_EQEQ)) return;
   if (match_chars(lex, "!=", RAK_TOKEN_KIND_BANGEQ)) return;
+  if (match_char(lex, '!', RAK_TOKEN_KIND_BANG)) return;
   if (match_chars(lex, ">=", RAK_TOKEN_KIND_GTEQ)) return;
   if (match_char(lex, '>', RAK_TOKEN_KIND_GT)) return;
   if (match_chars(lex, "<=", RAK_TOKEN_KIND_LTEQ)) return;

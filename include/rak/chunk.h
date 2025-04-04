@@ -72,8 +72,8 @@ typedef struct
 const char *rak_opcode_to_cstr(RakOpcode op);
 void rak_chunk_init(RakChunk *chunk, RakError *err);
 void rak_chunk_deinit(RakChunk *chunk);
-int rak_chunk_append_const(RakChunk *chunk, RakValue val, RakError *err);
-void rak_chunk_append_instr(RakChunk *chunk, uint32_t instr, RakError *err);
+uint8_t rak_chunk_append_const(RakChunk *chunk, RakValue val, RakError *err);
+uint16_t rak_chunk_append_instr(RakChunk *chunk, uint32_t instr, RakError *err);
 void rak_chunk_clear(RakChunk *chunk);
 
 #endif // RAK_CHUNK_H
