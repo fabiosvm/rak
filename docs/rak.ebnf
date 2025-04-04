@@ -3,7 +3,15 @@ chunk             ::= stmt* EOF
 
 stmt              ::= expr ";"
 
-expr              ::= cmp_expr ( ( "==" | "!=" ) cmp_expr )*
+expr              ::= and_expr or_expr_cont
+
+or_expr_cont      ::= ( "||" and_expr or_expr_cont )?
+
+and_expr          ::= eq_expr and_expr_cont
+
+and_expr_cont     ::= ( "&&" eq_expr and_expr_cont )?
+
+eq_expr           ::= cmp_expr ( ( "==" | "!=" ) cmp_expr )*
 
 cmp_expr          ::= add_expr ( ( ">=" | ">" | "<=" | "<" ) add_expr )*
 

@@ -23,6 +23,7 @@ void rak_dump_chunk(RakChunk *chunk)
     printf("[%04d] ", i);
     switch (op)
     {
+    case RAK_OP_NOP:
     case RAK_OP_PUSH_NIL:
     case RAK_OP_PUSH_FALSE:
     case RAK_OP_PUSH_TRUE:
@@ -44,6 +45,14 @@ void rak_dump_chunk(RakChunk *chunk)
       {
         uint8_t a = rak_instr_a(instr);
         printf("%-15s %-5d\n", rak_opcode_to_cstr(op), a);
+      }
+      break;
+    case RAK_OP_JUMP:
+    case RAK_OP_JUMP_IF_FALSE:
+    case RAK_OP_JUMP_IF_TRUE:
+      {
+        uint16_t ab = rak_instr_ab(instr);
+        printf("%-15s %d\n", rak_opcode_to_cstr(op), ab);
       }
       break;
     }

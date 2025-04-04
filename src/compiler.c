@@ -31,6 +31,10 @@
 static inline void compile_chunk(RakCompiler *comp, RakError *err);
 static inline void compile_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_expr(RakCompiler *comp, RakError *err);
+static inline void compile_or_expr_cont(RakCompiler *comp, uint16_t *off, RakError *err);
+static inline void compile_and_expr(RakCompiler *comp, RakError *err);
+static inline void compile_and_expr_cont(RakCompiler *comp, uint16_t *off, RakError *err);
+static inline void compile_eq_expr(RakCompiler *comp, RakError *err);
 static inline void compile_cmp_expr(RakCompiler *comp, RakError *err);
 static inline void compile_add_expr(RakCompiler *comp, RakError *err);
 static inline void compile_mul_expr(RakCompiler *comp, RakError *err);
@@ -38,7 +42,6 @@ static inline void compile_unary_expr(RakCompiler *comp, RakError *err);
 static inline void compile_prim_expr(RakCompiler *comp, RakError *err);
 static inline void unexpected_token_error(RakError *err, RakToken tok);
 static inline void expected_token_error(RakError *err, RakTokenKind kind, RakToken tok);
-static inline void emit_const_instr(RakCompiler *comp, RakToken tok, RakError *err);
 
 static inline void unexpected_token_error(RakError *err, RakToken tok)
 {
@@ -63,13 +66,6 @@ static inline void expected_token_error(RakError *err, RakTokenKind kind, RakTok
     rak_token_kind_to_cstr(kind), tok.len, tok.chars, tok.ln, tok.col);
 }
 
-static inline void emit_const_instr(RakCompiler *comp, RakToken tok, RakError *err)
-{
-  uint8_t idx = rak_chunk_append_const(&comp->chunk, tok.val, err);
-  if (!rak_is_ok(err)) return;
-  rak_chunk_append_instr(&comp->chunk, rak_load_const_instr(idx), err);
-}
-
 static inline void compile_chunk(RakCompiler *comp, RakError *err)
 {
   while (!match(comp, RAK_TOKEN_KIND_EOF))
@@ -88,6 +84,62 @@ static inline void compile_stmt(RakCompiler *comp, RakError *err)
 }
 
 static inline void compile_expr(RakCompiler *comp, RakError *err)
+{
+  compile_and_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  compile_or_expr_cont(comp, NULL, err);
+}
+
+static inline void compile_or_expr_cont(RakCompiler *comp, uint16_t *off, RakError *err)
+{
+  if (!match(comp, RAK_TOKEN_KIND_PIPEPIPE))
+  {
+    if (off) *off = (uint16_t) comp->chunk.instrs.len;
+    return;
+  }
+  next(comp, err);
+  uint16_t jump = rak_chunk_append_instr(&comp->chunk, rak_nop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  rak_chunk_append_instr(&comp->chunk, rak_pop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  compile_and_expr(comp, err);
+  if (!rak_is_ok(err)) return;    
+  uint16_t _off;
+  compile_or_expr_cont(comp, &_off, err);
+  if (!rak_is_ok(err)) return;
+  rak_slice_set(&comp->chunk.instrs, jump, rak_jump_if_true_instr(_off));
+  if (off) *off = _off;
+}
+
+static inline void compile_and_expr(RakCompiler *comp, RakError *err)
+{
+  compile_eq_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  compile_and_expr_cont(comp, NULL, err);
+}
+
+static inline void compile_and_expr_cont(RakCompiler *comp, uint16_t *off, RakError *err)
+{
+  if (!match(comp, RAK_TOKEN_KIND_AMPAMP))
+  {
+    if (off) *off = (uint16_t) comp->chunk.instrs.len;
+    return;
+  }
+  next(comp, err);
+  uint16_t jump = rak_chunk_append_instr(&comp->chunk, rak_nop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  rak_chunk_append_instr(&comp->chunk, rak_pop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  compile_eq_expr(comp, err);
+  if (!rak_is_ok(err)) return;    
+  uint16_t _off;
+  compile_and_expr_cont(comp, &_off, err);
+  if (!rak_is_ok(err)) return;
+  rak_slice_set(&comp->chunk.instrs, jump, rak_jump_if_false_instr(_off));
+  if (off) *off = _off;
+}
+
+static inline void compile_eq_expr(RakCompiler *comp, RakError *err)
 {
   compile_cmp_expr(comp, err);
   if (!rak_is_ok(err)) return;
@@ -277,8 +329,9 @@ static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
   {
     RakToken tok = comp->lex.tok;
     next(comp, err);
-    emit_const_instr(comp, tok, err);
+    uint8_t idx = rak_chunk_append_const(&comp->chunk, tok.val, err);
     if (!rak_is_ok(err)) return;
+    rak_chunk_append_instr(&comp->chunk, rak_load_const_instr(idx), err);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_LPAREN))

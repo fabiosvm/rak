@@ -189,6 +189,8 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   case RAK_TOKEN_KIND_SEMICOLON: cstr = "';'";        break;
   case RAK_TOKEN_KIND_LPAREN:    cstr = "'('";        break;
   case RAK_TOKEN_KIND_RPAREN:    cstr = "')'";        break;
+  case RAK_TOKEN_KIND_PIPEPIPE:  cstr = "'||'";       break;
+  case RAK_TOKEN_KIND_AMPAMP:    cstr = "'&&'";       break;
   case RAK_TOKEN_KIND_EQEQ:      cstr = "'=='";       break;
   case RAK_TOKEN_KIND_BANGEQ:    cstr = "'!='";       break;
   case RAK_TOKEN_KIND_BANG:      cstr = "'!'";        break;
@@ -227,6 +229,8 @@ void rak_lexer_next(RakLexer *lex, RakError *err)
   if (match_char(lex, ';', RAK_TOKEN_KIND_SEMICOLON)) return;
   if (match_char(lex, '(', RAK_TOKEN_KIND_LPAREN)) return;
   if (match_char(lex, ')', RAK_TOKEN_KIND_RPAREN)) return;
+  if (match_chars(lex, "||", RAK_TOKEN_KIND_PIPEPIPE)) return;
+  if (match_chars(lex, "&&", RAK_TOKEN_KIND_AMPAMP)) return;
   if (match_chars(lex, "==", RAK_TOKEN_KIND_EQEQ)) return;
   if (match_chars(lex, "!=", RAK_TOKEN_KIND_BANGEQ)) return;
   if (match_char(lex, '!', RAK_TOKEN_KIND_BANG)) return;

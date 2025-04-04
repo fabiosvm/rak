@@ -16,22 +16,26 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   char *cstr = NULL;
   switch (op)
   {
-  case RAK_OP_PUSH_NIL:   cstr = "PUSH_NIL";   break;
-  case RAK_OP_PUSH_FALSE: cstr = "PUSH_FALSE"; break;
-  case RAK_OP_PUSH_TRUE:  cstr = "PUSH_TRUE";  break;
-  case RAK_OP_LOAD_CONST: cstr = "LOAD_CONST"; break;
-  case RAK_OP_POP:        cstr = "POP";        break;
-  case RAK_OP_EQ:         cstr = "EQ";         break;
-  case RAK_OP_GT:         cstr = "GT";         break;
-  case RAK_OP_LT:         cstr = "LT";         break;
-  case RAK_OP_ADD:        cstr = "ADD";        break;
-  case RAK_OP_SUB:        cstr = "SUB";        break;
-  case RAK_OP_MUL:        cstr = "MUL";        break;
-  case RAK_OP_DIV:        cstr = "DIV";        break;
-  case RAK_OP_MOD:        cstr = "MOD";        break;
-  case RAK_OP_NOT:        cstr = "NOT";        break;
-  case RAK_OP_NEG:        cstr = "NEG";        break;
-  case RAK_OP_HALT:       cstr = "HALT";       break;
+  case RAK_OP_NOP:           cstr = "NOP";           break;
+  case RAK_OP_PUSH_NIL:      cstr = "PUSH_NIL";      break;
+  case RAK_OP_PUSH_FALSE:    cstr = "PUSH_FALSE";    break;
+  case RAK_OP_PUSH_TRUE:     cstr = "PUSH_TRUE";     break;
+  case RAK_OP_LOAD_CONST:    cstr = "LOAD_CONST";    break;
+  case RAK_OP_POP:           cstr = "POP";           break;
+  case RAK_OP_JUMP:          cstr = "JUMP";          break;
+  case RAK_OP_JUMP_IF_FALSE: cstr = "JUMP_IF_FALSE"; break;
+  case RAK_OP_JUMP_IF_TRUE:  cstr = "JUMP_IF_TRUE";  break;
+  case RAK_OP_EQ:            cstr = "EQ";            break;
+  case RAK_OP_GT:            cstr = "GT";            break;
+  case RAK_OP_LT:            cstr = "LT";            break;
+  case RAK_OP_ADD:           cstr = "ADD";           break;
+  case RAK_OP_SUB:           cstr = "SUB";           break;
+  case RAK_OP_MUL:           cstr = "MUL";           break;
+  case RAK_OP_DIV:           cstr = "DIV";           break;
+  case RAK_OP_MOD:           cstr = "MOD";           break;
+  case RAK_OP_NOT:           cstr = "NOT";           break;
+  case RAK_OP_NEG:           cstr = "NEG";           break;
+  case RAK_OP_HALT:          cstr = "HALT";          break;
   }
   assert(cstr);
   return cstr;
