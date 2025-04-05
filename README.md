@@ -23,11 +23,13 @@ Use `rak` to run the REPL:
 ./build/rak
 ```
 
-You can use the flag `-d` to dump the bytecode.
+Example:
 
 ```
-./build/rak -d
+echo 1 + 2;
 ```
+
+> **Note:** You can use the flag `-d` to dump the bytecode.
 
 ## Cleaning
 

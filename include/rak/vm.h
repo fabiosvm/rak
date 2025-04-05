@@ -11,6 +11,7 @@
 #ifndef RAK_VM_H
 #define RAK_VM_H
 
+#include <stdio.h>
 #include <math.h>
 #include "chunk.h"
 #include "stack.h"
@@ -28,8 +29,8 @@ static inline void rak_vm_push_bool(RakVM *vm, bool b, RakError *err);
 static inline void rak_vm_push_number(RakVM *vm, double data, RakError *err);
 static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
 static inline void rak_vm_pop(RakVM *vm);
-static inline RakValue rak_vm_get(RakVM *vm, int idx);
-static inline void rak_vm_set(RakVM *vm, int idx, RakValue val);
+static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx);
+static inline void rak_vm_set(RakVM *vm, uint8_t idx, RakValue val);
 static inline void rak_vm_eq(RakVM *vm);
 static inline void rak_vm_gt(RakVM *vm, RakError *err);
 static inline void rak_vm_lt(RakVM *vm, RakError *err);
@@ -40,6 +41,7 @@ static inline void rak_vm_div(RakVM *vm, RakError *err);
 static inline void rak_vm_mod(RakVM *vm, RakError *err);
 static inline void rak_vm_not(RakVM *vm);
 static inline void rak_vm_neg(RakVM *vm, RakError *err);
+static inline void rak_vm_echo(RakVM *vm);
 
 void rak_vm_init(RakVM *vm, int vstkSize, RakError *err);
 void rak_vm_deinit(RakVM *vm);
@@ -81,12 +83,12 @@ static inline void rak_vm_pop(RakVM *vm)
   rak_stack_pop(&vm->vstk);
 }
 
-static inline RakValue rak_vm_get(RakVM *vm, int idx)
+static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx)
 {
   return rak_stack_get(&vm->vstk, idx);
 }
 
-static inline void rak_vm_set(RakVM *vm, int idx, RakValue val)
+static inline void rak_vm_set(RakVM *vm, uint8_t idx, RakValue val)
 {
   rak_stack_set(&vm->vstk, idx, val);
 }
@@ -220,6 +222,14 @@ static inline void rak_vm_neg(RakVM *vm, RakError *err)
   double num = rak_as_number(val);
   RakValue res = rak_number_value(-num);
   rak_vm_set(vm, 0, res);
+}
+
+static inline void rak_vm_echo(RakVM *vm)
+{
+  RakValue val = rak_vm_get(vm, 0);
+  rak_value_print(val);
+  printf("\n");
+  rak_vm_pop(vm);
 }
 
 #endif // RAK_VM_H

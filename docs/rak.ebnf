@@ -1,7 +1,12 @@
 
 chunk             ::= stmt* EOF
 
-stmt              ::= expr ";"
+stmt              ::= echo_stmt
+                    | stmt_expr
+
+echo_stmt         ::= "echo" expr ";"
+
+stmt_expr         ::= expr ";"
 
 expr              ::= and_expr or_expr_cont
 

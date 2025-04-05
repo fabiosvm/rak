@@ -35,6 +35,7 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   case RAK_OP_MOD:           cstr = "MOD";           break;
   case RAK_OP_NOT:           cstr = "NOT";           break;
   case RAK_OP_NEG:           cstr = "NEG";           break;
+  case RAK_OP_ECHO:          cstr = "ECHO";          break;
   case RAK_OP_HALT:          cstr = "HALT";          break;
   }
   assert(cstr);

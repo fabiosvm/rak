@@ -30,6 +30,8 @@
 
 static inline void compile_chunk(RakCompiler *comp, RakError *err);
 static inline void compile_stmt(RakCompiler *comp, RakError *err);
+static inline void compile_echo_stmt(RakCompiler *comp, RakError *err);
+static inline void compile_expr_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_expr(RakCompiler *comp, RakError *err);
 static inline void compile_or_expr_cont(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_and_expr(RakCompiler *comp, RakError *err);
@@ -80,6 +82,25 @@ static inline void compile_chunk(RakCompiler *comp, RakError *err)
 }
 
 static inline void compile_stmt(RakCompiler *comp, RakError *err)
+{
+  if (match(comp, RAK_TOKEN_KIND_ECHO_KW))
+  {
+    compile_echo_stmt(comp, err);
+    return;
+  }
+  compile_expr_stmt(comp, err);
+}
+
+static inline void compile_echo_stmt(RakCompiler *comp, RakError *err)
+{
+  next(comp, err);
+  compile_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
+  rak_chunk_append_instr(&comp->chunk, rak_echo_instr(), err);
+}
+
+static inline void compile_expr_stmt(RakCompiler *comp, RakError *err)
 {
   compile_expr(comp, err);
   if (!rak_is_ok(err)) return;
