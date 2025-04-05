@@ -1,12 +1,19 @@
 
 chunk             ::= stmt* EOF
 
-stmt              ::= echo_stmt
-                    | stmt_expr
+stmt              ::= if_stmt
+                    | echo_stmt
+                    | expr_stmt
+
+if_stmt           ::= "if" expr block if_stmt_cont
+
+block             ::= "{" stmt* "}"
+
+if_stmt_cont      ::= ( "else" ( if_stmt | block ) )?
 
 echo_stmt         ::= "echo" expr ";"
 
-stmt_expr         ::= expr ";"
+expr_stmt         ::= expr ";"
 
 expr              ::= and_expr or_expr_cont
 

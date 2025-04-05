@@ -30,6 +30,9 @@
 
 static inline void compile_chunk(RakCompiler *comp, RakError *err);
 static inline void compile_stmt(RakCompiler *comp, RakError *err);
+static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *err);
+static inline void compile_block(RakCompiler *comp, RakError *err);
+static inline void compile_if_stmt_cont(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_echo_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_expr_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_expr(RakCompiler *comp, RakError *err);
@@ -83,12 +86,74 @@ static inline void compile_chunk(RakCompiler *comp, RakError *err)
 
 static inline void compile_stmt(RakCompiler *comp, RakError *err)
 {
+  if (match(comp, RAK_TOKEN_KIND_IF_KW))
+  {
+    compile_if_stmt(comp, NULL, err);
+    return;
+  }
   if (match(comp, RAK_TOKEN_KIND_ECHO_KW))
   {
     compile_echo_stmt(comp, err);
     return;
   }
   compile_expr_stmt(comp, err);
+}
+
+static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *err)
+{
+  next(comp, err);
+  compile_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  uint16_t jump1 = rak_chunk_append_instr(&comp->chunk, rak_nop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  rak_chunk_append_instr(&comp->chunk, rak_pop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  compile_block(comp, err);
+  if (!rak_is_ok(err)) return;
+  uint16_t jump2 = rak_chunk_append_instr(&comp->chunk, rak_nop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  uint32_t instr = rak_jump_if_false_instr((uint16_t) comp->chunk.instrs.len);
+  rak_slice_set(&comp->chunk.instrs, jump1, instr);
+  uint16_t _off;
+  compile_if_stmt_cont(comp, &_off, err);
+  if (!rak_is_ok(err)) return;
+  rak_slice_set(&comp->chunk.instrs, jump2, rak_jump_instr(_off));
+  if (off) *off = _off;
+}
+
+static inline void compile_block(RakCompiler *comp, RakError *err)
+{
+  consume(comp, RAK_TOKEN_KIND_LBRACE, err);
+  while (!match(comp, RAK_TOKEN_KIND_RBRACE))
+  {
+    compile_stmt(comp, err);
+    if (!rak_is_ok(err)) return;
+  }
+  next(comp, err);
+}
+
+static inline void compile_if_stmt_cont(RakCompiler *comp, uint16_t *off, RakError *err)
+{
+  if (!match(comp, RAK_TOKEN_KIND_ELSE_KW))
+  {
+    rak_chunk_append_instr(&comp->chunk, rak_pop_instr(), err);
+    if (!rak_is_ok(err)) return;
+    rak_chunk_append_instr(&comp->chunk, rak_push_nil_instr(), err);
+    if (!rak_is_ok(err)) return;
+    *off = (uint16_t) comp->chunk.instrs.len;
+    return;
+  }
+  next(comp, err);
+  if (match(comp, RAK_TOKEN_KIND_IF_KW))
+  {
+    rak_chunk_append_instr(&comp->chunk, rak_pop_instr(), err);
+    if (!rak_is_ok(err)) return;
+    compile_if_stmt(comp, off, err);
+    return;
+  }
+  compile_block(comp, err);
+  if (!rak_is_ok(err)) return;
+  *off = (uint16_t) comp->chunk.instrs.len;
 }
 
 static inline void compile_echo_stmt(RakCompiler *comp, RakError *err)
