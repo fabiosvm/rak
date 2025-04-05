@@ -25,12 +25,12 @@ typedef struct
 static inline void rak_vm_push(RakVM *vm, RakValue val, RakError *err);
 static inline void rak_vm_push_nil(RakVM *vm, RakError *err);
 static inline void rak_vm_push_bool(RakVM *vm, bool b, RakError *err);
-static inline void rak_vm_push_number(RakVM *vm, double num, RakError *err);
+static inline void rak_vm_push_number(RakVM *vm, double data, RakError *err);
 static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
 static inline void rak_vm_pop(RakVM *vm);
 static inline RakValue rak_vm_get(RakVM *vm, int idx);
 static inline void rak_vm_set(RakVM *vm, int idx, RakValue val);
-static inline void rak_vm_eq(RakVM *vm, RakError *err);
+static inline void rak_vm_eq(RakVM *vm);
 static inline void rak_vm_gt(RakVM *vm, RakError *err);
 static inline void rak_vm_lt(RakVM *vm, RakError *err);
 static inline void rak_vm_add(RakVM *vm, RakError *err);
@@ -38,7 +38,7 @@ static inline void rak_vm_sub(RakVM *vm, RakError *err);
 static inline void rak_vm_mul(RakVM *vm, RakError *err);
 static inline void rak_vm_div(RakVM *vm, RakError *err);
 static inline void rak_vm_mod(RakVM *vm, RakError *err);
-static inline void rak_vm_not(RakVM *vm, RakError *err);
+static inline void rak_vm_not(RakVM *vm);
 static inline void rak_vm_neg(RakVM *vm, RakError *err);
 
 void rak_vm_init(RakVM *vm, int vstkSize, RakError *err);
@@ -91,9 +91,8 @@ static inline void rak_vm_set(RakVM *vm, int idx, RakValue val)
   rak_stack_set(&vm->vstk, idx, val);
 }
 
-static inline void rak_vm_eq(RakVM *vm, RakError *err)
+static inline void rak_vm_eq(RakVM *vm)
 {
-  (void) err;
   RakValue val1 = rak_vm_get(vm, 1);
   RakValue val2 = rak_vm_get(vm, 0);
   RakValue res = rak_bool_value(rak_value_equals(val1, val2));
@@ -203,9 +202,8 @@ static inline void rak_vm_mod(RakVM *vm, RakError *err)
   rak_vm_pop(vm);
 }
 
-static inline void rak_vm_not(RakVM *vm, RakError *err)
+static inline void rak_vm_not(RakVM *vm)
 {
-  (void) err;
   RakValue val = rak_vm_get(vm, 0);
   RakValue res = rak_is_falsy(val) ? rak_bool_value(true) : rak_bool_value(false);
   rak_vm_set(vm, 0, res);

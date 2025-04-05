@@ -22,4 +22,13 @@ mul_expr          ::= unary_expr ( ( "*" | "/" | "%" ) unary_expr )*
 unary_expr        ::= ( "!" | "-" )? unary_expr | prim_expr
 
 prim_expr         ::= "nil" | "false" | "true" | NUMBER 
-                    | "(" expr ")"
+                    | if_expr
+                    | group
+
+if_expr           ::= "if" expr block_expr if_expr_cont
+
+block_expr        ::= "{" expr "}"
+
+if_expr_cont      ::= ( "else" ( if_expr | block_expr ) )?
+
+group             ::= "(" expr ")"

@@ -40,6 +40,10 @@ static inline void compile_add_expr(RakCompiler *comp, RakError *err);
 static inline void compile_mul_expr(RakCompiler *comp, RakError *err);
 static inline void compile_unary_expr(RakCompiler *comp, RakError *err);
 static inline void compile_prim_expr(RakCompiler *comp, RakError *err);
+static inline void compile_if_expr(RakCompiler *comp, uint16_t *off, RakError *err);
+static inline void compile_block_expr(RakCompiler *comp, RakError *err);
+static inline void compile_if_expr_cont(RakCompiler *comp, uint16_t *off, RakError *err);
+static inline void compile_group(RakCompiler *comp, RakError *err);
 static inline void unexpected_token_error(RakError *err, RakToken tok);
 static inline void expected_token_error(RakError *err, RakTokenKind kind, RakToken tok);
 
@@ -334,15 +338,77 @@ static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
     rak_chunk_append_instr(&comp->chunk, rak_load_const_instr(idx), err);
     return;
   }
+  if (match(comp, RAK_TOKEN_KIND_IF_KW))
+  {
+    compile_if_expr(comp, NULL, err);
+    return;
+  }
   if (match(comp, RAK_TOKEN_KIND_LPAREN))
   {
-    next(comp, err);
-    compile_expr(comp, err);
-    if (!rak_is_ok(err)) return;
-    consume(comp, RAK_TOKEN_KIND_RPAREN, err);
+    compile_group(comp, err);
     return;
   }
   unexpected_token_error(err, comp->lex.tok);
+}
+
+static inline void compile_if_expr(RakCompiler *comp, uint16_t *off, RakError *err)
+{
+  next(comp, err);
+  compile_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  uint16_t jump1 = rak_chunk_append_instr(&comp->chunk, rak_nop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  rak_chunk_append_instr(&comp->chunk, rak_pop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  compile_block_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  uint16_t jump2 = rak_chunk_append_instr(&comp->chunk, rak_nop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  uint32_t instr = rak_jump_if_false_instr((uint16_t) comp->chunk.instrs.len);
+  rak_slice_set(&comp->chunk.instrs, jump1, instr);
+  uint16_t _off;
+  compile_if_expr_cont(comp, &_off, err);
+  if (!rak_is_ok(err)) return;
+  rak_slice_set(&comp->chunk.instrs, jump2, rak_jump_instr(_off));
+  if (off) *off = _off;
+}
+
+static inline void compile_block_expr(RakCompiler *comp, RakError *err)
+{
+  consume(comp, RAK_TOKEN_KIND_LBRACE, err);
+  compile_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  consume(comp, RAK_TOKEN_KIND_RBRACE, err);
+}
+
+static inline void compile_if_expr_cont(RakCompiler *comp, uint16_t *off, RakError *err)
+{
+  rak_chunk_append_instr(&comp->chunk, rak_pop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  if (!match(comp, RAK_TOKEN_KIND_ELSE_KW))
+  {
+    rak_chunk_append_instr(&comp->chunk, rak_push_nil_instr(), err);
+    if (!rak_is_ok(err)) return;
+    *off = (uint16_t) comp->chunk.instrs.len;
+    return;
+  }
+  next(comp, err);
+  if (match(comp, RAK_TOKEN_KIND_IF_KW))
+  {
+    compile_if_expr(comp, off, err);
+    return;
+  }
+  compile_block_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  *off = (uint16_t) comp->chunk.instrs.len;
+}
+
+static inline void compile_group(RakCompiler *comp, RakError *err)
+{
+  next(comp, err);
+  compile_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  consume(comp, RAK_TOKEN_KIND_RPAREN, err);
 }
 
 void rak_compiler_init(RakCompiler *comp, RakError *err)

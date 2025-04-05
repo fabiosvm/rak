@@ -130,7 +130,7 @@ static void do_jump_if_true(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *
 
 static void do_eq(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
 {
-  rak_vm_eq(vm, err);
+  rak_vm_eq(vm);
   if (!rak_is_ok(err)) return;
   dispatch(vm, chunk, ip + 1, err);
 }
@@ -186,7 +186,7 @@ static void do_mod(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
 
 static void do_not(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
 {
-  rak_vm_not(vm, err);
+  rak_vm_not(vm);
   if (!rak_is_ok(err)) return;
   dispatch(vm, chunk, ip + 1, err);
 }
