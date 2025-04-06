@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <string.h>
+#include "rak/string.h"
 
 #define char_at(l, i)   ((l)->curr[(i)])
 #define current_char(l) char_at(l, 0)
@@ -22,6 +23,7 @@ static inline void next_chars(RakLexer *lex, int len);
 static inline bool match_char(RakLexer *lex, char c, RakTokenKind kind);
 static inline bool match_chars(RakLexer *lex, const char *chars, RakTokenKind kind);
 static inline bool match_number(RakLexer *lex, RakError *err);
+static inline bool match_string(RakLexer *lex, RakError *err);
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind);
 static inline bool match_ident(RakLexer *lex);
 static inline RakToken token(RakLexer *lex, RakTokenKind kind, int len, char *chars);
@@ -122,6 +124,32 @@ static inline bool match_number(RakLexer *lex, RakError *err)
   return true;
 }
 
+static inline bool match_string(RakLexer *lex, RakError *err)
+{
+  if (current_char(lex) != '\"') return false;
+  int len = 1;
+  for (;;)
+  {
+    if (char_at(lex, len) == '\"')
+    {
+      ++len;
+      break;
+    }
+    if (char_at(lex, len) == '\0')
+    {
+      rak_error_set(err, "unterminated string in %d,%d", lex->ln, lex->col);
+      return false;
+    }
+    ++len;
+  }
+  RakString *str = rak_string_new_from_cstr(len - 2, &lex->curr[1], err);
+  if (!rak_is_ok(err)) return false;
+  RakValue val = rak_string_value(str);
+  lex->tok = token_with_value(lex, RAK_TOKEN_KIND_STRING, len, lex->curr, val);
+  next_chars(lex, len);
+  return true;
+}
+
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind)
 {
   int len = (int) strlen(kw);
@@ -153,7 +181,8 @@ static inline RakToken token(RakLexer *lex, RakTokenKind kind, int len, char *ch
     .ln = lex->ln,
     .col = lex->col,
     .len = len,
-    .chars = chars
+    .chars = chars,
+    .val = rak_nil_value()
   };
 }
 
@@ -206,6 +235,7 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   case RAK_TOKEN_KIND_SLASH:     cstr = "'/'";        break;
   case RAK_TOKEN_KIND_PERCENT:   cstr = "'%'";        break;
   case RAK_TOKEN_KIND_NUMBER:    cstr = "number";     break;
+  case RAK_TOKEN_KIND_STRING:    cstr = "string";     break;
   case RAK_TOKEN_KIND_ECHO_KW:   cstr = "echo";       break;
   case RAK_TOKEN_KIND_ELSE_KW:   cstr = "else";       break;
   case RAK_TOKEN_KIND_FALSE_KW:  cstr = "false";      break;
@@ -225,6 +255,11 @@ void rak_lexer_init(RakLexer *lex, char *source, RakError *err)
   lex->ln = 1;
   lex->col = 1;
   rak_lexer_next(lex, err);
+}
+
+void rak_lexer_deinit(RakLexer *lex)
+{
+  rak_value_release(lex->tok.val);
 }
 
 void rak_lexer_next(RakLexer *lex, RakError *err)
@@ -251,6 +286,7 @@ void rak_lexer_next(RakLexer *lex, RakError *err)
   if (match_char(lex, '/', RAK_TOKEN_KIND_SLASH)) return;
   if (match_char(lex, '%', RAK_TOKEN_KIND_PERCENT)) return;
   if (match_number(lex, err) || !rak_is_ok(err)) return;
+  if (match_string(lex, err) || !rak_is_ok(err)) return;
   if (match_keyword(lex, "echo", RAK_TOKEN_KIND_ECHO_KW)) return;
   if (match_keyword(lex, "else", RAK_TOKEN_KIND_ELSE_KW)) return;
   if (match_keyword(lex, "false", RAK_TOKEN_KIND_FALSE_KW)) return;

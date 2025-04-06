@@ -33,7 +33,7 @@ mul_expr          ::= unary_expr ( ( "*" | "/" | "%" ) unary_expr )*
 
 unary_expr        ::= ( "!" | "-" )? unary_expr | prim_expr
 
-prim_expr         ::= "nil" | "false" | "true" | NUMBER 
+prim_expr         ::= "nil" | "false" | "true" | NUMBER | STRING
                     | if_expr
                     | group
 

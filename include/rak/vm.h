@@ -27,6 +27,8 @@ static inline void rak_vm_push(RakVM *vm, RakValue val, RakError *err);
 static inline void rak_vm_push_nil(RakVM *vm, RakError *err);
 static inline void rak_vm_push_bool(RakVM *vm, bool b, RakError *err);
 static inline void rak_vm_push_number(RakVM *vm, double data, RakError *err);
+static inline void rak_vm_push_value(RakVM *vm, RakValue val, RakError *err);
+static inline void rak_vm_push_object(RakVM *vm, RakValue val, RakError *err);
 static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
 static inline void rak_vm_pop(RakVM *vm);
 static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx);
@@ -72,15 +74,31 @@ static inline void rak_vm_push_number(RakVM *vm, double data, RakError *err)
   rak_vm_push(vm, rak_number_value(data), err);
 }
 
+static inline void rak_vm_push_value(RakVM *vm, RakValue val, RakError *err)
+{
+  rak_vm_push(vm, val, err);
+  if (!rak_is_ok(err)) return;
+  rak_value_retain(val);
+}
+
+static inline void rak_vm_push_object(RakVM *vm, RakValue val, RakError *err)
+{
+  rak_vm_push(vm, val, err);
+  if (!rak_is_ok(err)) return;
+  rak_object_retain(rak_as_object(val));
+}
+
 static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err)
 {
   RakValue val = rak_slice_get(&chunk->consts, idx);
-  rak_vm_push(vm, val, err);
+  rak_vm_push_value(vm, val, err);
 }
 
 static inline void rak_vm_pop(RakVM *vm)
 {
+  RakValue val = rak_vm_get(vm, 0);
   rak_stack_pop(&vm->vstk);
+  rak_value_release(val);
 }
 
 static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx)

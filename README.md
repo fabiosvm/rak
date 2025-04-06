@@ -26,7 +26,7 @@ Use `rak` to run the REPL:
 Example:
 
 ```
-echo 1 + 2;
+echo "Hello, world!";
 ```
 
 > **Note:** You can use the flag `-d` to dump the bytecode.

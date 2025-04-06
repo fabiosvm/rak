@@ -9,10 +9,12 @@
 //
 
 #include "rak/string.h"
+#include <stdio.h>
 #include <string.h>
 
 void rak_string_init(RakString *str, RakError *err)
 {
+  rak_object_init(&str->obj);
   rak_slice_init(&str->slice, err);
 }
 
@@ -71,6 +73,14 @@ void rak_string_free(RakString *str)
   rak_memory_free(str);
 }
 
+void rak_string_release(RakString *str)
+{
+  RakObject *obj = &str->obj;
+  --obj->refCount;
+  if (obj->refCount) return;
+  rak_string_free(str);
+}
+
 void rak_string_ensure_capacity(RakString *str, int cap, RakError *err)
 {
   rak_slice_ensure_capacity(&str->slice, cap, err);
@@ -89,4 +99,27 @@ void rak_string_append_cstr(RakString *str, int len, const char *cstr, RakError 
 void rak_string_clear(RakString *str)
 {
   rak_slice_clear(&str->slice);
+}
+
+bool rak_string_equals(RakString *str1, RakString *str2)
+{
+  if (str1 == str2) return true;
+  int len = rak_string_len(str1);
+  if (len != rak_string_len(str2)) return false;
+  return !memcmp(rak_string_chars(str1), rak_string_chars(str1), len);
+}
+
+int rak_string_compare(RakString *str1, RakString *str2)
+{
+  if (str1 == str2) return 0;
+  int len1 = rak_string_len(str1);
+  int len2 = rak_string_len(str2);
+  int cmp = memcmp(rak_string_chars(str1), rak_string_chars(str2), len1 < len2 ? len1 : len2);
+  if (cmp) return cmp;
+  return len1 - len2;
+}
+
+void rak_string_print(RakString *str)
+{
+  printf("%.*s", rak_string_len(str), rak_string_chars(str));
 }

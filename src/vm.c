@@ -219,6 +219,8 @@ void rak_vm_init(RakVM *vm, int vstkSize, RakError *err)
 
 void rak_vm_deinit(RakVM *vm)
 {
+  while (!rak_stack_is_empty(&vm->vstk))
+    rak_vm_pop(vm);
   rak_stack_deinit(&vm->vstk);
 }
 

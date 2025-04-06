@@ -424,6 +424,15 @@ static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
     rak_chunk_append_instr(&comp->chunk, rak_load_const_instr(idx), err);
     return;
   }
+  if (match(comp, RAK_TOKEN_KIND_STRING))
+  {
+    RakToken tok = comp->lex.tok;
+    next(comp, err);
+    uint8_t idx = rak_chunk_append_const(&comp->chunk, tok.val, err);
+    if (!rak_is_ok(err)) return;
+    rak_chunk_append_instr(&comp->chunk, rak_load_const_instr(idx), err);
+    return;
+  }
   if (match(comp, RAK_TOKEN_KIND_IF_KW))
   {
     compile_if_expr(comp, NULL, err);
@@ -513,7 +522,9 @@ void rak_compiler_compile_chunk(RakCompiler *comp, char *source, RakError *err)
   if (!rak_is_ok(err)) return;
   rak_chunk_clear(&comp->chunk);
   compile_chunk(comp, err);
-  rak_chunk_append_instr(&comp->chunk, rak_halt_instr(), err);
+  if (rak_is_ok(err))
+    rak_chunk_append_instr(&comp->chunk, rak_halt_instr(), err);
+  rak_lexer_deinit(&comp->lex);
 }
 
 void rak_compiler_compile_expr(RakCompiler *comp, char *source, RakError *err)
@@ -522,5 +533,7 @@ void rak_compiler_compile_expr(RakCompiler *comp, char *source, RakError *err)
   if (!rak_is_ok(err)) return;
   rak_chunk_clear(&comp->chunk);
   compile_expr(comp, err);
-  rak_chunk_append_instr(&comp->chunk, rak_halt_instr(), err);
+  if (rak_is_ok(err))
+    rak_chunk_append_instr(&comp->chunk, rak_halt_instr(), err);
+  rak_lexer_deinit(&comp->lex);
 }

@@ -36,6 +36,7 @@ typedef enum
   RAK_TOKEN_KIND_SLASH,
   RAK_TOKEN_KIND_PERCENT,
   RAK_TOKEN_KIND_NUMBER,
+  RAK_TOKEN_KIND_STRING,
   RAK_TOKEN_KIND_ECHO_KW,
   RAK_TOKEN_KIND_ELSE_KW,
   RAK_TOKEN_KIND_FALSE_KW,
@@ -66,6 +67,7 @@ typedef struct
 
 const char *rak_token_kind_to_cstr(RakTokenKind kind);
 void rak_lexer_init(RakLexer *lex, char *source, RakError *err);
+void rak_lexer_deinit(RakLexer *lex);
 void rak_lexer_next(RakLexer *lex, RakError *err);
 
 #endif // RAK_LEXER_H

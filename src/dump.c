@@ -14,9 +14,9 @@
 void rak_dump_chunk(RakChunk *chunk)
 {
   printf("%d constant(s)\n", chunk->consts.len);
-  int n = chunk->instrs.len;
-  printf("%d instruction(s)\n", n);
-  for (int i = 0; i < n; ++i)
+  int len = chunk->instrs.len;
+  printf("%d instruction(s)\n", len);
+  for (int i = 0; i < len; ++i)
   {
     uint32_t instr = rak_slice_get(&chunk->instrs, i);
     RakOpcode op = rak_instr_opcode(instr);
