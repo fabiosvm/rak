@@ -46,6 +46,7 @@ static inline void compile_add_expr(RakCompiler *comp, RakError *err);
 static inline void compile_mul_expr(RakCompiler *comp, RakError *err);
 static inline void compile_unary_expr(RakCompiler *comp, RakError *err);
 static inline void compile_prim_expr(RakCompiler *comp, RakError *err);
+static inline void compile_array(RakCompiler *comp, RakError *err);
 static inline void compile_if_expr(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_block_expr(RakCompiler *comp, RakError *err);
 static inline void compile_if_expr_cont(RakCompiler *comp, uint16_t *off, RakError *err);
@@ -439,6 +440,11 @@ static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
     rak_chunk_append_instr(&comp->chunk, rak_load_const_instr(idx), err);
     return;
   }
+  if (match(comp, RAK_TOKEN_KIND_LBRACKET))
+  {
+    compile_array(comp, err);
+    return;
+  }
   if (match(comp, RAK_TOKEN_KIND_IF_KW))
   {
     compile_if_expr(comp, NULL, err);
@@ -450,6 +456,29 @@ static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
     return;
   }
   unexpected_token_error(err, comp->lex.tok);
+}
+
+static inline void compile_array(RakCompiler *comp, RakError *err)
+{
+  next(comp, err);
+  if (match(comp, RAK_TOKEN_KIND_RBRACKET))
+  {
+    next(comp, err);
+    rak_chunk_append_instr(&comp->chunk, rak_new_array_instr(0), err);
+    return;
+  }
+  compile_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  int len = 1;
+  while (match(comp, RAK_TOKEN_KIND_COMMA))
+  {
+    next(comp, err);
+    compile_expr(comp, err);
+    if (!rak_is_ok(err)) return;
+    ++len;
+  }
+  consume(comp, RAK_TOKEN_KIND_RBRACKET, err);
+  rak_chunk_append_instr(&comp->chunk, rak_new_array_instr(len), err);
 }
 
 static inline void compile_if_expr(RakCompiler *comp, uint16_t *off, RakError *err)

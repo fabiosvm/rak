@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include "array.h"
 #include "chunk.h"
 #include "stack.h"
 
@@ -30,6 +31,7 @@ static inline void rak_vm_push_number(RakVM *vm, double data, RakError *err);
 static inline void rak_vm_push_value(RakVM *vm, RakValue val, RakError *err);
 static inline void rak_vm_push_object(RakVM *vm, RakValue val, RakError *err);
 static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
+static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err);
 static inline void rak_vm_pop(RakVM *vm);
 static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx);
 static inline void rak_vm_set(RakVM *vm, uint8_t idx, RakValue val);
@@ -92,6 +94,20 @@ static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, Ra
 {
   RakValue val = rak_slice_get(&chunk->consts, idx);
   rak_vm_push_value(vm, val, err);
+}
+
+static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err)
+{
+  int n = len - 1;
+  RakValue *slots = &rak_stack_get(&vm->vstk, n);
+  RakArray *arr = rak_array_new_with_capacity(len, err);
+  if (!rak_is_ok(err)) return;
+  for (int i = 0; i < len; ++i)
+    rak_slice_set(&arr->slice, i, slots[i]);
+  arr->slice.len = len;
+  slots[0] = rak_array_value(arr);
+  rak_object_retain(&arr->obj);
+  vm->vstk.top -= n;
 }
 
 static inline void rak_vm_pop(RakVM *vm)

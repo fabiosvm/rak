@@ -18,6 +18,7 @@
 #define rak_string_len(s)      ((s)->slice.len)
 #define rak_string_chars(s)    ((s)->slice.data)
 #define rak_string_is_empty(s) (!rak_string_len(s))
+#define rak_string_get(s, i)   rak_slice_get(&(s)->slice, (i))
 
 typedef struct
 {

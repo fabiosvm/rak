@@ -25,11 +25,13 @@
 #define rak_bool_value(d)   ((RakValue) { .type = RAK_TYPE_BOOL, .flags = (d) ? 0 : RAK_FALG_FALSY, .opaque.b = (d) })
 #define rak_number_value(d) ((RakValue) { .type = RAK_TYPE_NUMBER, .flags = 0, .opaque.f64 = (d) })
 #define rak_string_value(p) ((RakValue) { .type = RAK_TYPE_STRING, .flags = RAK_FLAG_OBJECT, .opaque.ptr = (p) })
+#define rak_array_value(p)  ((RakValue) { .type = RAK_TYPE_ARRAY, .flags = RAK_FLAG_OBJECT, .opaque.ptr = (p) })
 
 #define rak_as_bool(v)    ((v).opaque.b)
 #define rak_as_number(v)  ((v).opaque.f64)
 #define rak_as_integer(v) ((int64_t) rak_as_number(v))
 #define rak_as_string(v)  ((RakString *) (v).opaque.ptr)
+#define rak_as_array(v)   ((RakArray *) (v).opaque.ptr)
 #define rak_as_object(v)  ((RakObject *) (v).opaque.ptr)
 
 #define rak_is_nil(v)     ((v).type == RAK_TYPE_NIL)
@@ -37,6 +39,7 @@
 #define rak_is_number(v)  ((v).type == RAK_TYPE_NUMBER)
 #define rak_is_integer(v) (rak_as_number(v) == rak_as_integer(v))
 #define rak_is_string(v)  ((v).type == RAK_TYPE_STRING)
+#define rak_is_array(v)   ((v).type == RAK_TYPE_ARRAY)
 #define rak_is_falsy(v)   ((v).flags & RAK_FALG_FALSY)
 #define rak_is_object(v)  ((v).flags & RAK_FLAG_OBJECT)
 
@@ -61,7 +64,8 @@ typedef enum
   RAK_TYPE_NIL,
   RAK_TYPE_BOOL,
   RAK_TYPE_NUMBER,
-  RAK_TYPE_STRING
+  RAK_TYPE_STRING,
+  RAK_TYPE_ARRAY
 } RakType;
 
 typedef union

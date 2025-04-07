@@ -11,6 +11,7 @@
 #ifndef RAK_H
 #define RAK_H
 
+#include "rak/array.h"
 #include "rak/chunk.h"
 #include "rak/compiler.h"
 #include "rak/dump.h"

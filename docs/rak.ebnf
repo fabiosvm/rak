@@ -34,8 +34,11 @@ mul_expr          ::= unary_expr ( ( "*" | "/" | "%" ) unary_expr )*
 unary_expr        ::= ( "!" | "-" )? unary_expr | prim_expr
 
 prim_expr         ::= "nil" | "false" | "true" | NUMBER | STRING
+                    | array
                     | if_expr
                     | group
+
+array            ::= "[" ( expr ( "," expr )* )? "]"
 
 if_expr           ::= "if" expr block_expr if_expr_cont
 
