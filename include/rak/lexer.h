@@ -53,7 +53,6 @@ typedef struct
   int           col;
   int           len;
   char         *chars;
-  RakValue      val;
 } RakToken;
 
 typedef struct
@@ -67,7 +66,6 @@ typedef struct
 
 const char *rak_token_kind_to_cstr(RakTokenKind kind);
 void rak_lexer_init(RakLexer *lex, char *source, RakError *err);
-void rak_lexer_deinit(RakLexer *lex);
 void rak_lexer_next(RakLexer *lex, RakError *err);
 
 #endif // RAK_LEXER_H

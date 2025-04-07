@@ -9,6 +9,7 @@
 //
 
 #include "rak/compiler.h"
+#include "rak/string.h"
 
 #define match(c, t) ((c)->lex.tok.kind == (t))
 
@@ -419,7 +420,9 @@ static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
   {
     RakToken tok = comp->lex.tok;
     next(comp, err);
-    uint8_t idx = rak_chunk_append_const(&comp->chunk, tok.val, err);
+    RakValue val = rak_number_value_from_cstr(tok.len, tok.chars, err);
+    if (!rak_is_ok(err)) return;
+    uint8_t idx = rak_chunk_append_const(&comp->chunk, val, err);
     if (!rak_is_ok(err)) return;
     rak_chunk_append_instr(&comp->chunk, rak_load_const_instr(idx), err);
     return;
@@ -428,7 +431,10 @@ static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
   {
     RakToken tok = comp->lex.tok;
     next(comp, err);
-    uint8_t idx = rak_chunk_append_const(&comp->chunk, tok.val, err);
+    RakString *str = rak_string_new_from_cstr(tok.len, tok.chars, err);
+    if (!rak_is_ok(err)) return;
+    RakValue val = rak_string_value(str);
+    uint8_t idx = rak_chunk_append_const(&comp->chunk, val, err);
     if (!rak_is_ok(err)) return;
     rak_chunk_append_instr(&comp->chunk, rak_load_const_instr(idx), err);
     return;
@@ -524,7 +530,6 @@ void rak_compiler_compile_chunk(RakCompiler *comp, char *source, RakError *err)
   compile_chunk(comp, err);
   if (rak_is_ok(err))
     rak_chunk_append_instr(&comp->chunk, rak_halt_instr(), err);
-  rak_lexer_deinit(&comp->lex);
 }
 
 void rak_compiler_compile_expr(RakCompiler *comp, char *source, RakError *err)
@@ -535,5 +540,4 @@ void rak_compiler_compile_expr(RakCompiler *comp, char *source, RakError *err)
   compile_expr(comp, err);
   if (rak_is_ok(err))
     rak_chunk_append_instr(&comp->chunk, rak_halt_instr(), err);
-  rak_lexer_deinit(&comp->lex);
 }

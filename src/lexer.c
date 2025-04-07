@@ -12,7 +12,6 @@
 #include <assert.h>
 #include <ctype.h>
 #include <string.h>
-#include "rak/string.h"
 
 #define char_at(l, i)   ((l)->curr[(i)])
 #define current_char(l) char_at(l, 0)
@@ -27,7 +26,6 @@ static inline bool match_string(RakLexer *lex, RakError *err);
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind);
 static inline bool match_ident(RakLexer *lex);
 static inline RakToken token(RakLexer *lex, RakTokenKind kind, int len, char *chars);
-static inline RakToken token_with_value(RakLexer *lex, RakTokenKind kind, int len, char *chars, RakValue val);
 static inline void unexpected_character_error(RakError *err, char c, int ln, int col);
 
 static inline void skip_whitespace(RakLexer *lex)
@@ -117,9 +115,7 @@ static inline bool match_number(RakLexer *lex, RakError *err)
     unexpected_character_error(err, c, lex->ln, col);
     return false;
   }
-  RakValue val = rak_number_value_from_cstr(len, lex->curr, err);
-  if (!rak_is_ok(err)) return false;
-  lex->tok = token_with_value(lex, RAK_TOKEN_KIND_NUMBER, len, lex->curr, val);
+  lex->tok = token(lex, RAK_TOKEN_KIND_NUMBER, len, lex->curr);
   next_chars(lex, len);
   return true;
 }
@@ -142,10 +138,7 @@ static inline bool match_string(RakLexer *lex, RakError *err)
     }
     ++len;
   }
-  RakString *str = rak_string_new_from_cstr(len - 2, &lex->curr[1], err);
-  if (!rak_is_ok(err)) return false;
-  RakValue val = rak_string_value(str);
-  lex->tok = token_with_value(lex, RAK_TOKEN_KIND_STRING, len, lex->curr, val);
+  lex->tok = token(lex, RAK_TOKEN_KIND_STRING, len - 2, &lex->curr[1]);
   next_chars(lex, len);
   return true;
 }
@@ -181,16 +174,8 @@ static inline RakToken token(RakLexer *lex, RakTokenKind kind, int len, char *ch
     .ln = lex->ln,
     .col = lex->col,
     .len = len,
-    .chars = chars,
-    .val = rak_nil_value()
+    .chars = chars
   };
-}
-
-static inline RakToken token_with_value(RakLexer *lex, RakTokenKind kind, int len, char *chars, RakValue val)
-{
-  RakToken tok = token(lex, kind, len, chars);
-  tok.val = val;
-  return tok;
 }
 
 static inline void unexpected_character_error(RakError *err, char c, int ln, int col)
@@ -255,11 +240,6 @@ void rak_lexer_init(RakLexer *lex, char *source, RakError *err)
   lex->ln = 1;
   lex->col = 1;
   rak_lexer_next(lex, err);
-}
-
-void rak_lexer_deinit(RakLexer *lex)
-{
-  rak_value_release(lex->tok.val);
 }
 
 void rak_lexer_next(RakLexer *lex, RakError *err)
