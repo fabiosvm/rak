@@ -8,6 +8,7 @@
 // located in the root directory of this project.
 //
 
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <rak.h>
@@ -26,6 +27,7 @@ static inline void deinit(void);
 static inline void repl(void);
 static inline bool read(void);
 static inline void eval(void);
+static void shutdown(int sig);
 
 static inline void check_error(void)
 {
@@ -43,6 +45,7 @@ static inline void init(void)
   check_error();
   rak_vm_init(&vm, RAK_VM_VSTK_DEFAULT_SIZE, &err);
   check_error();
+  signal(SIGINT, shutdown);
 }
 
 static inline void deinit(void)
@@ -88,12 +91,19 @@ static inline void eval(void)
   rak_error_print(&err);
 }
 
+static void shutdown(int sig)
+{
+  (void) sig;
+  printf("\n");
+  deinit();
+  exit(EXIT_SUCCESS);
+}
+
 int main(int argc, const char *argv[])
 {
   if (argc > 1)
     dump = !strcmp(argv[1], "-d");
   init();
   repl();
-  deinit();
   return EXIT_SUCCESS;
 }

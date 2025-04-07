@@ -10,7 +10,7 @@
 
 #include "rak/vm.h"
 
-typedef void (*InstrHandle)(RakVM *, RakChunk *, uint32_t *, RakError *);
+typedef void (*InstrHandler)(RakVM *, RakChunk *, uint32_t *, RakError *);
 
 static inline void dispatch(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 
@@ -36,7 +36,7 @@ static void do_neg(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_echo(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_halt(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 
-static InstrHandle dispatchTable[] = {
+static InstrHandler dispatchTable[] = {
   [RAK_OP_NOP]           = do_nop,
   [RAK_OP_PUSH_NIL]      = do_push_nil,
   [RAK_OP_PUSH_FALSE]    = do_push_false,
@@ -64,8 +64,8 @@ static inline void dispatch(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *
 {
   uint32_t instr = *ip;
   RakOpcode op = rak_instr_opcode(instr);
-  InstrHandle handle = dispatchTable[op];
-  handle(vm, chunk, ip, err);
+  InstrHandler handler = dispatchTable[op];
+  handler(vm, chunk, ip, err);
 }
 
 static void do_nop(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
