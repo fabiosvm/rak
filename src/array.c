@@ -11,6 +11,18 @@
 #include "rak/array.h"
 #include <stdio.h>
 
+static inline void release_values(RakArray *arr);
+
+static inline void release_values(RakArray *arr)
+{
+  int len = rak_array_len(arr);
+  for (int i = 0; i < len; ++i)
+  {
+    RakValue val = rak_slice_get(&arr->slice, i);
+    rak_value_release(val);
+  }
+}
+
 void rak_array_init(RakArray *arr, RakError *err)
 {
   rak_object_init(&arr->obj);
@@ -22,14 +34,23 @@ void rak_array_init_with_capacity(RakArray *arr, int cap, RakError *err)
   rak_slice_init_with_capacity(&arr->slice, cap, err);
 }
 
-void rak_array_deinit(RakArray *arr)
+void rak_array_init_copy(RakArray *arr1, RakArray *arr2, RakError *err)
 {
-  int len = arr->slice.len;
+  int len = rak_array_len(arr2);
+  rak_array_init_with_capacity(arr1, len, err);
+  if (!rak_is_ok(err)) return;
   for (int i = 0; i < len; ++i)
   {
-    RakValue val = rak_slice_get(&arr->slice, i);
-    rak_value_release(val);
+    RakValue val = rak_array_get(arr2, i);
+    rak_slice_set(&arr1->slice, i, val);
+    rak_value_retain(val);
   }
+  arr1->slice.len = len;
+}
+
+void rak_array_deinit(RakArray *arr)
+{
+  release_values(arr);
   rak_slice_deinit(&arr->slice);
 }
 
@@ -53,6 +74,16 @@ RakArray *rak_array_new_with_capacity(int cap, RakError *err)
   return NULL;
 }
 
+RakArray *rak_array_new_copy(RakArray *arr, RakError *err)
+{
+  RakArray *_arr = rak_memory_alloc(sizeof(*_arr), err);
+  if (!rak_is_ok(err)) return NULL;
+  rak_array_init_copy(_arr, arr, err);
+  if (rak_is_ok(err)) return _arr;
+  rak_memory_free(_arr);
+  return NULL;
+}
+
 void rak_array_free(RakArray *arr)
 {
   rak_array_deinit(arr);
@@ -72,8 +103,47 @@ void rak_array_ensure_capacity(RakArray *arr, int cap, RakError *err)
   rak_slice_ensure_capacity(&arr->slice, cap, err);
 }
 
-void rak_array_clear(RakArray *arr)
+void rak_array_inplace_append(RakArray *arr, RakValue val, RakError *err)
 {
+  rak_slice_append(&arr->slice, val, err);
+  if (!rak_is_ok(err)) return;
+  rak_value_retain(val);
+}
+
+void rak_array_inplace_set(RakArray *arr, int idx, RakValue val)
+{
+  rak_value_retain(val);
+  rak_value_release(rak_array_get(arr, idx));
+  rak_slice_set(&arr->slice, idx, val);
+}
+
+void rak_array_inplace_remove_at(RakArray *arr, int idx)
+{
+  RakValue val = rak_array_get(arr, idx);
+  rak_slice_remove_at(&arr->slice, idx);
+  rak_value_release(val);
+}
+
+void rak_array_inplace_concat(RakArray *arr1, RakArray *arr2, RakError *err)
+{
+  if (rak_array_is_empty(arr2)) return;
+  int len1 = rak_array_len(arr1);
+  int len2 = rak_array_len(arr2);
+  int len = len1 + len2;
+  rak_array_ensure_capacity(arr1, len, err);
+  if (!rak_is_ok(err)) return;
+  for (int i = 0; i < len2; ++i)
+  {
+    RakValue val = rak_array_get(arr2, i);
+    rak_slice_set(&arr1->slice, len1 + i, val);
+    rak_value_retain(val);
+  }
+  arr1->slice.len = len;
+}
+
+void rak_array_inplace_clear(RakArray *arr)
+{
+  release_values(arr);
   rak_slice_clear(&arr->slice);
 }
 
@@ -97,9 +167,9 @@ void rak_array_print(RakArray *arr)
   int len = rak_array_len(arr);
   for (int i = 0; i < len; ++i)
   {
+    if (i > 0) printf(", ");
     RakValue val = rak_array_get(arr, i);
     rak_value_print(val);
-    if (i < len - 1) printf(", ");
   }
   printf("]");
 }

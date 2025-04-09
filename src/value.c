@@ -9,6 +9,7 @@
 //
 
 #include "rak/value.h"
+#include <assert.h>
 #include <errno.h>
 #include <math.h>
 #include <stdio.h>
@@ -16,6 +17,21 @@
 #include <string.h>
 #include "rak/array.h"
 #include "rak/string.h"
+
+const char *rak_type_to_cstr(RakType type)
+{
+  char *cstr = NULL;
+  switch (type)
+  {
+  case RAK_TYPE_NIL:    cstr = "nil";    break;
+  case RAK_TYPE_BOOL:   cstr = "bool";   break;
+  case RAK_TYPE_NUMBER: cstr = "number"; break;
+  case RAK_TYPE_STRING: cstr = "string"; break;
+  case RAK_TYPE_ARRAY:  cstr = "array";  break;
+  }
+  assert(cstr);
+  return cstr;
+}
 
 RakValue rak_number_value_from_cstr(int len, const char *cstr, RakError *err)
 {

@@ -436,8 +436,14 @@ static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
     if (!rak_is_ok(err)) return;
     RakValue val = rak_string_value(str);
     uint8_t idx = rak_chunk_append_const(&comp->chunk, val, err);
-    if (!rak_is_ok(err)) return;
+    if (!rak_is_ok(err))
+    {
+      rak_string_free(str);
+      return;
+    }
     rak_chunk_append_instr(&comp->chunk, rak_load_const_instr(idx), err);
+    if (rak_is_ok(err)) return;
+    rak_string_free(str);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_LBRACKET))

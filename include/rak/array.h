@@ -28,13 +28,19 @@ typedef struct
 
 void rak_array_init(RakArray *arr, RakError *err);
 void rak_array_init_with_capacity(RakArray *arr, int cap, RakError *err);
+void rak_array_init_copy(RakArray *arr1, RakArray *arr2, RakError *err);
 void rak_array_deinit(RakArray *arr);
 RakArray *rak_array_new(RakError *err);
 RakArray *rak_array_new_with_capacity(int cap, RakError *err);
+RakArray *rak_array_new_copy(RakArray *arr, RakError *err);
 void rak_array_free(RakArray *arr);
 void rak_array_release(RakArray *arr);
 void rak_array_ensure_capacity(RakArray *arr, int cap, RakError *err);
-void rak_array_clear(RakArray *arr);
+void rak_array_inplace_append(RakArray *arr, RakValue val, RakError *err);
+void rak_array_inplace_set(RakArray *arr, int idx, RakValue val);
+void rak_array_inplace_remove_at(RakArray *arr, int idx);
+void rak_array_inplace_concat(RakArray *arr1, RakArray *arr2, RakError *err);
+void rak_array_inplace_clear(RakArray *arr);
 bool rak_array_equals(RakArray *arr1, RakArray *arr2);
 void rak_array_print(RakArray *arr);
 

@@ -38,7 +38,7 @@ prim_expr         ::= "nil" | "false" | "true" | NUMBER | STRING
                     | if_expr
                     | group
 
-array            ::= "[" ( expr ( "," expr )* )? "]"
+array             ::= "[" ( expr ( "," expr )* )? "]"
 
 if_expr           ::= "if" expr block_expr if_expr_cont
 

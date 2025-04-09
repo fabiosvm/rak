@@ -61,14 +61,14 @@ static inline void repl(void)
   {
     printf("> ");
     if (!read()) break;
-    if (source.slice.len == 1) continue;
+    if (rak_string_len(&source) == 1) continue;
     eval();
   }
 }
 
 static inline bool read(void)
 {
-  char *cstr = source.slice.data;
+  char *cstr = rak_string_chars(&source);
   if (!fgets(cstr, SOURCE_MAX_LEN, stdin))
     return false;
   source.slice.len = (int) strlen(cstr);

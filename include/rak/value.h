@@ -87,6 +87,7 @@ typedef struct
   int refCount;
 } RakObject;
 
+const char *rak_type_to_cstr(RakType type);
 RakValue rak_number_value_from_cstr(int len, const char *cstr, RakError *err);
 int rak_number_compare(double num1, double num2);
 void rak_value_free(RakValue val);

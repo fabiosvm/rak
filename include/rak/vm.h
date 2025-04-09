@@ -16,6 +16,7 @@
 #include "array.h"
 #include "chunk.h"
 #include "stack.h"
+#include "string.h"
 
 #define RAK_VM_VSTK_DEFAULT_SIZE (1024)
 
@@ -35,6 +36,8 @@ static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err);
 static inline void rak_vm_pop(RakVM *vm);
 static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx);
 static inline void rak_vm_set(RakVM *vm, uint8_t idx, RakValue val);
+static inline void rak_vm_set_value(RakVM *vm, uint8_t idx, RakValue val);
+static inline void rak_vm_set_object(RakVM *vm, uint8_t idx, RakValue val);
 static inline void rak_vm_eq(RakVM *vm);
 static inline void rak_vm_gt(RakVM *vm, RakError *err);
 static inline void rak_vm_lt(RakVM *vm, RakError *err);
@@ -124,7 +127,21 @@ static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx)
 
 static inline void rak_vm_set(RakVM *vm, uint8_t idx, RakValue val)
 {
+  RakValue _val = rak_stack_get(&vm->vstk, idx);
+  rak_value_release(_val);
   rak_stack_set(&vm->vstk, idx, val);
+}
+
+static inline void rak_vm_set_value(RakVM *vm, uint8_t idx, RakValue val)
+{
+  rak_value_retain(val);
+  rak_vm_set(vm, idx, val);
+}
+
+static inline void rak_vm_set_object(RakVM *vm, uint8_t idx, RakValue val)
+{
+  rak_object_retain(rak_as_object(val));
+  rak_vm_set(vm, idx, val);
 }
 
 static inline void rak_vm_eq(RakVM *vm)
@@ -162,16 +179,66 @@ static inline void rak_vm_add(RakVM *vm, RakError *err)
 {
   RakValue val1 = rak_vm_get(vm, 1);
   RakValue val2 = rak_vm_get(vm, 0);
-  if (!rak_is_number(val1) || !rak_is_number(val2))
+  if (rak_is_number(val1))
   {
-    rak_error_set(err, "cannot add non-number values");
+    if (!rak_is_number(val2))
+    {
+      rak_error_set(err, "cannot add number and %s", rak_type_to_cstr(val2.type));
+      return;
+    }
+    double num1 = rak_as_number(val1);
+    double num2 = rak_as_number(val2);
+    RakValue res = rak_number_value(num1 + num2);
+    rak_vm_set(vm, 1, res);
+    rak_vm_pop(vm);
     return;
   }
-  double num1 = rak_as_number(val1);
-  double num2 = rak_as_number(val2);
-  RakValue res = rak_number_value(num1 + num2);
-  rak_vm_set(vm, 1, res);
-  rak_vm_pop(vm);
+  if (rak_is_string(val1))
+  {
+    if (!rak_is_string(val2))
+    {
+      rak_error_set(err, "cannot add string and %s", rak_type_to_cstr(val2.type));
+      return;
+    }
+    RakString *str1 = rak_as_string(val1);
+    RakString *str2 = rak_as_string(val2);
+    RakString *str3 = rak_string_new_copy(str1, err);
+    if (!rak_is_ok(err)) return;
+    rak_string_inplace_concat(str3, str2, err);
+    if (!rak_is_ok(err))
+    {
+      rak_string_free(str3);
+      return;
+    }
+    RakValue res = rak_string_value(str3);
+    rak_vm_set_object(vm, 1, res);
+    rak_vm_pop(vm);
+    return;
+  }
+  if (rak_is_array(val1))
+  {
+    if (!rak_is_array(val2))
+    {
+      rak_error_set(err, "cannot add array and %s", rak_type_to_cstr(val2.type));
+      return;
+    }
+    RakArray *arr1 = rak_as_array(val1);
+    RakArray *arr2 = rak_as_array(val2);
+    RakArray *arr3 = rak_array_new_copy(arr1, err);
+    if (!rak_is_ok(err)) return;
+    rak_array_inplace_concat(arr3, arr2, err);
+    if (!rak_is_ok(err))
+    {
+      rak_array_free(arr3);
+      return;
+    }
+    RakValue res = rak_array_value(arr3);
+    rak_vm_set_object(vm, 1, res);
+    rak_vm_pop(vm);
+    return;
+  }
+  rak_error_set(err, "cannot add %s and %s", rak_type_to_cstr(val1.type),
+    rak_type_to_cstr(val2.type));
 }
 
 static inline void rak_vm_sub(RakVM *vm, RakError *err)

@@ -28,8 +28,17 @@ void rak_string_init_from_cstr(RakString *str, int len, const char *cstr, RakErr
   if (len < 0) len = (int) strlen(cstr);
   rak_string_init_with_capacity(str, len, err);
   if (!rak_is_ok(err)) return;
-  memcpy(str->slice.data, cstr, len);
+  memcpy(rak_string_chars(str), cstr, len);
   str->slice.len = len;
+}
+
+void rak_string_init_copy(RakString *str1, RakString *str2, RakError *err)
+{
+  int len = rak_string_len(str2);
+  rak_string_init_with_capacity(str1, len, err);
+  if (!rak_is_ok(err)) return;
+  memcpy(rak_string_chars(str1), rak_string_chars(str2), len);
+  str1->slice.len = len;
 }
 
 void rak_string_deinit(RakString *str)
@@ -67,6 +76,16 @@ RakString *rak_string_new_from_cstr(int len, const char *cstr, RakError *err)
   return NULL;
 }
 
+RakString *rak_string_new_copy(RakString *str, RakError *err)
+{
+  int len = rak_string_len(str);
+  RakString *_str = rak_string_new_with_capacity(len, err);
+  if (!rak_is_ok(err)) return NULL;
+  memcpy(rak_string_chars(_str), rak_string_chars(str), len);
+  _str->slice.len = len;
+  return _str;
+}
+
 void rak_string_free(RakString *str)
 {
   rak_string_deinit(str);
@@ -86,17 +105,28 @@ void rak_string_ensure_capacity(RakString *str, int cap, RakError *err)
   rak_slice_ensure_capacity(&str->slice, cap, err);
 }
 
-void rak_string_append_cstr(RakString *str, int len, const char *cstr, RakError *err)
+void rak_string_inplace_append_cstr(RakString *str, int len, const char *cstr, RakError *err)
 {
   if (len < 0) len = (int) strlen(cstr);
-  rak_string_ensure_capacity(str, str->slice.len + len, err);
+  rak_string_ensure_capacity(str, rak_string_len(str) + len, err);
   if (!rak_is_ok(err)) return;
-  void *dest = &str->slice.data[str->slice.len];
-  memcpy(dest, cstr, len);
+  memcpy(&str->slice.data[rak_string_len(str)], cstr, len);
   str->slice.len += len;
 }
 
-void rak_string_clear(RakString *str)
+void rak_string_inplace_concat(RakString *str1, RakString *str2, RakError *err)
+{
+  if (rak_string_is_empty(str2)) return;
+  int len1 = rak_string_len(str1);
+  int len2 = rak_string_len(str2);
+  int len = len1 + len2;
+  rak_string_ensure_capacity(str1, len, err);
+  if (!rak_is_ok(err)) return;
+  memcpy(&str1->slice.data[len1], rak_string_chars(str2), len2);
+  str1->slice.len = len;
+}
+
+void rak_string_inplace_clear(RakString *str)
 {
   rak_slice_clear(&str->slice);
 }
