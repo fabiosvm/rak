@@ -33,6 +33,7 @@ static inline void rak_vm_push_value(RakVM *vm, RakValue val, RakError *err);
 static inline void rak_vm_push_object(RakVM *vm, RakValue val, RakError *err);
 static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
 static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err);
+static inline void rak_vm_load_local(RakVM *vm, uint8_t idx, RakError *err);
 static inline void rak_vm_pop(RakVM *vm);
 static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx);
 static inline void rak_vm_set(RakVM *vm, uint8_t idx, RakValue val);
@@ -111,6 +112,12 @@ static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err)
   slots[0] = rak_array_value(arr);
   rak_object_retain(&arr->obj);
   vm->vstk.top -= n;
+}
+
+static inline void rak_vm_load_local(RakVM *vm, uint8_t idx, RakError *err)
+{
+  RakValue val = vm->vstk.base[idx];
+  rak_vm_push_value(vm, val, err);
 }
 
 static inline void rak_vm_pop(RakVM *vm)

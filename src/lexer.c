@@ -211,6 +211,7 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   case RAK_TOKEN_KIND_PIPEPIPE:  cstr = "'||'";       break;
   case RAK_TOKEN_KIND_AMPAMP:    cstr = "'&&'";       break;
   case RAK_TOKEN_KIND_EQEQ:      cstr = "'=='";       break;
+  case RAK_TOKEN_KIND_EQ:        cstr = "'='";        break;
   case RAK_TOKEN_KIND_BANGEQ:    cstr = "'!='";       break;
   case RAK_TOKEN_KIND_BANG:      cstr = "'!'";        break;
   case RAK_TOKEN_KIND_GTEQ:      cstr = "'>='";       break;
@@ -228,6 +229,7 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   case RAK_TOKEN_KIND_ELSE_KW:   cstr = "else";       break;
   case RAK_TOKEN_KIND_FALSE_KW:  cstr = "false";      break;
   case RAK_TOKEN_KIND_IF_KW:     cstr = "if";         break;
+  case RAK_TOKEN_KIND_LET_KW:    cstr = "let";        break;
   case RAK_TOKEN_KIND_NIL_KW:    cstr = "nil";        break;
   case RAK_TOKEN_KIND_TRUE_KW:   cstr = "true";       break;
   case RAK_TOKEN_KIND_IDENT:     cstr = "identifier"; break;
@@ -260,6 +262,7 @@ void rak_lexer_next(RakLexer *lex, RakError *err)
   if (match_chars(lex, "||", RAK_TOKEN_KIND_PIPEPIPE)) return;
   if (match_chars(lex, "&&", RAK_TOKEN_KIND_AMPAMP)) return;
   if (match_chars(lex, "==", RAK_TOKEN_KIND_EQEQ)) return;
+  if (match_char(lex, '=', RAK_TOKEN_KIND_EQ)) return;
   if (match_chars(lex, "!=", RAK_TOKEN_KIND_BANGEQ)) return;
   if (match_char(lex, '!', RAK_TOKEN_KIND_BANG)) return;
   if (match_chars(lex, ">=", RAK_TOKEN_KIND_GTEQ)) return;
@@ -277,6 +280,7 @@ void rak_lexer_next(RakLexer *lex, RakError *err)
   if (match_keyword(lex, "else", RAK_TOKEN_KIND_ELSE_KW)) return;
   if (match_keyword(lex, "false", RAK_TOKEN_KIND_FALSE_KW)) return;
   if (match_keyword(lex, "if", RAK_TOKEN_KIND_IF_KW)) return;
+  if (match_keyword(lex, "let", RAK_TOKEN_KIND_LET_KW)) return;
   if (match_keyword(lex, "nil", RAK_TOKEN_KIND_NIL_KW)) return;
   if (match_keyword(lex, "true", RAK_TOKEN_KIND_TRUE_KW)) return;
   if (match_ident(lex)) return;

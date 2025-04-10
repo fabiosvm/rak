@@ -13,16 +13,24 @@
 
 #include "chunk.h"
 #include "lexer.h"
+#include "string.h"
 
 typedef struct
 {
-  RakChunk chunk;
-  RakLexer lex;
+  int      len;
+  char    *chars;
+  uint8_t  idx;
+} RakSymbol;
+
+typedef struct
+{
+  RakChunk            chunk;
+  RakLexer            lex;
+  RakSlice(RakSymbol) symbols;
 } RakCompiler;
 
 void rak_compiler_init(RakCompiler *comp, RakError *err);
 void rak_compiler_deinit(RakCompiler *comp);
-void rak_compiler_compile_chunk(RakCompiler *comp, char *source, RakError *err);
-void rak_compiler_compile_expr(RakCompiler *comp, char *source, RakError *err);
+void rak_compiler_compile(RakCompiler *comp, char *source, RakError *err);
 
 #endif // RAK_COMPILER_H

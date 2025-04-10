@@ -34,6 +34,7 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   case RAK_OP_PUSH_TRUE:     cstr = "PUSH_TRUE";     break;
   case RAK_OP_LOAD_CONST:    cstr = "LOAD_CONST";    break;
   case RAK_OP_NEW_ARRAY:     cstr = "NEW_ARRAY";     break;
+  case RAK_OP_LOAD_LOCAL:    cstr = "LOAD_LOCAL";    break;
   case RAK_OP_POP:           cstr = "POP";           break;
   case RAK_OP_JUMP:          cstr = "JUMP";          break;
   case RAK_OP_JUMP_IF_FALSE: cstr = "JUMP_IF_FALSE"; break;

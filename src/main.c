@@ -78,7 +78,7 @@ static inline bool read(void)
 static inline void eval(void)
 {
   err = rak_ok();
-  rak_compiler_compile_chunk(&comp, rak_string_chars(&source), &err);
+  rak_compiler_compile(&comp, rak_string_chars(&source), &err);
   if (!rak_is_ok(&err))
   {
     rak_error_print(&err);

@@ -1,9 +1,12 @@
 
 chunk             ::= stmt* EOF
 
-stmt              ::= if_stmt
+stmt              ::= let_decl
+                    | if_stmt
                     | echo_stmt
                     | expr_stmt
+
+let_decl          ::= "let" IDENT ( "=" expr )? ";"
 
 if_stmt           ::= "if" expr block if_stmt_cont
 
@@ -33,7 +36,7 @@ mul_expr          ::= unary_expr ( ( "*" | "/" | "%" ) unary_expr )*
 
 unary_expr        ::= ( "!" | "-" )? unary_expr | prim_expr
 
-prim_expr         ::= "nil" | "false" | "true" | NUMBER | STRING
+prim_expr         ::= "nil" | "false" | "true" | NUMBER | STRING | IDENT
                     | array
                     | if_expr
                     | group
