@@ -34,7 +34,11 @@ add_expr          ::= mul_expr ( ( "+" | "-" ) mul_expr )*
 
 mul_expr          ::= unary_expr ( ( "*" | "/" | "%" ) unary_expr )*
 
-unary_expr        ::= ( "!" | "-" )? unary_expr | prim_expr
+unary_expr        ::= ( "!" | "-" )? unary_expr | subscr_expr
+
+subscr_expr       ::= prim_expr subscr
+
+subscr           ::= ( "[" expr "]" subscr )?
 
 prim_expr         ::= "nil" | "false" | "true" | NUMBER | STRING | IDENT
                     | array

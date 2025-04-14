@@ -16,7 +16,7 @@
 
 #define rak_array_cap(a)      ((a)->slice.cap)
 #define rak_array_len(a)      ((a)->slice.len)
-#define rak_array_values(a)   ((a)->slice.data)
+#define rak_array_elements(a) ((a)->slice.data)
 #define rak_array_is_empty(a) (!rak_array_len(a))
 #define rak_array_get(a, i)   rak_slice_get(&(a)->slice, (i))
 

@@ -11,9 +11,9 @@
 #include "rak/array.h"
 #include <stdio.h>
 
-static inline void release_values(RakArray *arr);
+static inline void release_elements(RakArray *arr);
 
-static inline void release_values(RakArray *arr)
+static inline void release_elements(RakArray *arr)
 {
   int len = rak_array_len(arr);
   for (int i = 0; i < len; ++i)
@@ -51,7 +51,7 @@ void rak_array_init_copy(RakArray *arr1, RakArray *arr2, RakError *err)
 
 void rak_array_deinit(RakArray *arr)
 {
-  release_values(arr);
+  release_elements(arr);
   rak_slice_deinit(&arr->slice);
 }
 
@@ -144,7 +144,7 @@ void rak_array_inplace_concat(RakArray *arr1, RakArray *arr2, RakError *err)
 
 void rak_array_inplace_clear(RakArray *arr)
 {
-  release_values(arr);
+  release_elements(arr);
   rak_slice_clear(&arr->slice);
 }
 

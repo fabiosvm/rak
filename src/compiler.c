@@ -46,6 +46,8 @@ static inline void compile_cmp_expr(RakCompiler *comp, RakError *err);
 static inline void compile_add_expr(RakCompiler *comp, RakError *err);
 static inline void compile_mul_expr(RakCompiler *comp, RakError *err);
 static inline void compile_unary_expr(RakCompiler *comp, RakError *err);
+static inline void compile_subscr_expr(RakCompiler *comp, RakError *err);
+static inline void compile_subscr(RakCompiler *comp, RakError *err);
 static inline void compile_prim_expr(RakCompiler *comp, RakError *err);
 static inline void compile_array(RakCompiler *comp, RakError *err);
 static inline void compile_if_expr(RakCompiler *comp, uint16_t *off, RakError *err);
@@ -405,7 +407,26 @@ static inline void compile_unary_expr(RakCompiler *comp, RakError *err)
     rak_chunk_append_instr(&comp->chunk, rak_neg_instr(), err);
     return;
   }
+  compile_subscr_expr(comp, err);
+}
+
+static inline void compile_subscr_expr(RakCompiler *comp, RakError *err)
+{
   compile_prim_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  compile_subscr(comp, err);
+}
+
+static inline void compile_subscr(RakCompiler *comp, RakError *err)
+{
+  if (!match(comp, RAK_TOKEN_KIND_LBRACKET)) return;
+  next(comp, err);
+  compile_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  consume(comp, RAK_TOKEN_KIND_RBRACKET, err);
+  rak_chunk_append_instr(&comp->chunk, rak_load_element_instr(), err);
+  if (!rak_is_ok(err)) return;
+  compile_subscr(comp, err);
 }
 
 static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
