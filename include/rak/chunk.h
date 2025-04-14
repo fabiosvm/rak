@@ -31,8 +31,8 @@
 #define rak_push_false_instr()     rak_instr_fmt0(RAK_OP_PUSH_FALSE)
 #define rak_push_true_instr()      rak_instr_fmt0(RAK_OP_PUSH_TRUE)
 #define rak_load_const_instr(i)    rak_instr_fmt1(RAK_OP_LOAD_CONST, (i))
-#define rak_new_array_instr(n)     rak_instr_fmt1(RAK_OP_NEW_ARRAY, (n))
 #define rak_load_local_instr(i)    rak_instr_fmt1(RAK_OP_LOAD_LOCAL, (i))
+#define rak_new_array_instr(n)     rak_instr_fmt1(RAK_OP_NEW_ARRAY, (n))
 #define rak_pop_instr()            rak_instr_fmt0(RAK_OP_POP)
 #define rak_jump_instr(o)          rak_instr_fmt4(RAK_OP_JUMP, (o))
 #define rak_jump_if_false_instr(o) rak_instr_fmt4(RAK_OP_JUMP_IF_FALSE, (o))
@@ -57,8 +57,8 @@ typedef enum
   RAK_OP_PUSH_FALSE,
   RAK_OP_PUSH_TRUE,
   RAK_OP_LOAD_CONST,
-  RAK_OP_NEW_ARRAY,
   RAK_OP_LOAD_LOCAL,
+  RAK_OP_NEW_ARRAY,
   RAK_OP_POP,
   RAK_OP_JUMP,
   RAK_OP_JUMP_IF_FALSE,

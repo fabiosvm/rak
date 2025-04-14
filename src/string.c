@@ -20,6 +20,7 @@ void rak_string_init(RakString *str, RakError *err)
 
 void rak_string_init_with_capacity(RakString *str, int cap, RakError *err)
 {
+  rak_object_init(&str->obj);
   rak_slice_init_with_capacity(&str->slice, cap, err);
 }
 

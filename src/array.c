@@ -31,6 +31,7 @@ void rak_array_init(RakArray *arr, RakError *err)
 
 void rak_array_init_with_capacity(RakArray *arr, int cap, RakError *err)
 {
+  rak_object_init(&arr->obj);
   rak_slice_init_with_capacity(&arr->slice, cap, err);
 }
 
