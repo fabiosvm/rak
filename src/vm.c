@@ -12,6 +12,7 @@
 
 typedef void (*InstrHandler)(RakVM *, RakChunk *, uint32_t *, RakError *);
 
+static inline void release_values(RakVM *vm);
 static inline void dispatch(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 
 static void do_nop(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
@@ -65,6 +66,12 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_ECHO]          = do_echo,
   [RAK_OP_HALT]          = do_halt
 };
+
+static inline void release_values(RakVM *vm)
+{
+  while (!rak_stack_is_empty(&vm->vstk))
+    rak_vm_pop(vm);
+}
 
 static inline void dispatch(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
 {
@@ -248,13 +255,14 @@ void rak_vm_init(RakVM *vm, int vstkSize, RakError *err)
 
 void rak_vm_deinit(RakVM *vm)
 {
-  while (!rak_stack_is_empty(&vm->vstk))
-    rak_vm_pop(vm);
+  release_values(vm);
   rak_stack_deinit(&vm->vstk);
 }
 
 void rak_vm_run(RakVM *vm, RakChunk *chunk, RakError *err)
 {
+  release_values(vm);
+  rak_stack_clear(&vm->vstk);
   uint32_t *ip = chunk->instrs.data;
   dispatch(vm, chunk, ip, err);
 }

@@ -57,4 +57,9 @@
     --(stk)->top; \
   } while (0)
 
+#define rak_stack_clear(stk) \
+  do { \
+    (stk)->top = &(stk)->base[-1]; \
+  } while (0)
+
 #endif // RAK_STACK_H
