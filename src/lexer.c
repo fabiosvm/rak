@@ -195,6 +195,7 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   {
   case RAK_TOKEN_KIND_EOF:       cstr = "eof";        break;
   case RAK_TOKEN_KIND_COMMA:     cstr = "','";        break;
+  case RAK_TOKEN_KIND_COLON:     cstr = "':'";        break;
   case RAK_TOKEN_KIND_SEMICOLON: cstr = "';'";        break;
   case RAK_TOKEN_KIND_LPAREN:    cstr = "'('";        break;
   case RAK_TOKEN_KIND_RPAREN:    cstr = "')'";        break;
@@ -247,6 +248,7 @@ void rak_lexer_next(RakLexer *lex, RakError *err)
   skip_whitespace(lex);
   if (match_char(lex, '\0', RAK_TOKEN_KIND_EOF)) return;
   if (match_char(lex, ',', RAK_TOKEN_KIND_COMMA)) return;
+  if (match_char(lex, ':', RAK_TOKEN_KIND_COLON)) return;
   if (match_char(lex, ';', RAK_TOKEN_KIND_SEMICOLON)) return;
   if (match_char(lex, '(', RAK_TOKEN_KIND_LPAREN)) return;
   if (match_char(lex, ')', RAK_TOKEN_KIND_RPAREN)) return;

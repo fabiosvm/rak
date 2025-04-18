@@ -27,6 +27,7 @@
 #define rak_string_value(p) ((RakValue) { .type = RAK_TYPE_STRING, .flags = RAK_FLAG_OBJECT, .opaque.ptr = (p) })
 #define rak_array_value(p)  ((RakValue) { .type = RAK_TYPE_ARRAY, .flags = RAK_FLAG_OBJECT, .opaque.ptr = (p) })
 #define rak_range_value(p)  ((RakValue) { .type = RAK_TYPE_RANGE, .flags = RAK_FLAG_OBJECT, .opaque.ptr = (p) })
+#define rak_record_value(p) ((RakValue) { .type = RAK_TYPE_RECORD, .flags = RAK_FLAG_OBJECT, .opaque.ptr = (p) })
 
 #define rak_as_bool(v)    ((v).opaque.b)
 #define rak_as_number(v)  ((v).opaque.f64)
@@ -34,6 +35,7 @@
 #define rak_as_string(v)  ((RakString *) (v).opaque.ptr)
 #define rak_as_array(v)   ((RakArray *) (v).opaque.ptr)
 #define rak_as_range(v)   ((RakRange *) (v).opaque.ptr)
+#define rak_as_record(v)  ((RakRecord *) (v).opaque.ptr)
 #define rak_as_object(v)  ((RakObject *) (v).opaque.ptr)
 
 #define rak_is_nil(v)     ((v).type == RAK_TYPE_NIL)
@@ -43,6 +45,7 @@
 #define rak_is_string(v)  ((v).type == RAK_TYPE_STRING)
 #define rak_is_array(v)   ((v).type == RAK_TYPE_ARRAY)
 #define rak_is_range(v)   ((v).type == RAK_TYPE_RANGE)
+#define rak_is_record(v)  ((v).type == RAK_TYPE_RECORD)
 #define rak_is_falsy(v)   ((v).flags & RAK_FALG_FALSY)
 #define rak_is_object(v)  ((v).flags & RAK_FLAG_OBJECT)
 
@@ -69,7 +72,8 @@ typedef enum
   RAK_TYPE_NUMBER,
   RAK_TYPE_STRING,
   RAK_TYPE_ARRAY,
-  RAK_TYPE_RANGE
+  RAK_TYPE_RANGE,
+  RAK_TYPE_RECORD
 } RakType;
 
 typedef union

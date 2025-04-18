@@ -19,6 +19,7 @@
 #include "rak/lexer.h"
 #include "rak/memory.h"
 #include "rak/range.h"
+#include "rak/record.h"
 #include "rak/slice.h"
 #include "rak/stack.h"
 #include "rak/string.h"

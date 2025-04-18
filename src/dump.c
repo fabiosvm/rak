@@ -47,6 +47,7 @@ void rak_dump_chunk(RakChunk *chunk)
     case RAK_OP_LOAD_CONST:
     case RAK_OP_LOAD_LOCAL:
     case RAK_OP_NEW_ARRAY:
+    case RAK_OP_NEW_RECORD:
       {
         uint8_t a = rak_instr_a(instr);
         printf("%-15s %-5d\n", rak_opcode_to_cstr(op), a);

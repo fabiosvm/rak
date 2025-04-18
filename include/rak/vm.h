@@ -11,13 +11,14 @@
 #ifndef RAK_VM_H
 #define RAK_VM_H
 
+#include <assert.h>
 #include <stdio.h>
 #include <math.h>
 #include "array.h"
 #include "chunk.h"
 #include "range.h"
+#include "record.h"
 #include "stack.h"
-#include "string.h"
 
 #define RAK_VM_VSTK_DEFAULT_SIZE (1024)
 
@@ -37,6 +38,7 @@ static inline void rak_vm_load_local(RakVM *vm, uint8_t idx, RakError *err);
 static inline void rak_vm_load_element(RakVM *vm, RakError *err);
 static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err);
 static inline void rak_vm_new_range(RakVM *vm, RakError *err);
+static inline void rak_vm_new_record(RakVM *vm, uint8_t len, RakError *err);
 static inline void rak_vm_pop(RakVM *vm);
 static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx);
 static inline void rak_vm_set(RakVM *vm, uint8_t idx, RakValue val);
@@ -172,9 +174,15 @@ static inline void rak_vm_load_element(RakVM *vm, RakError *err)
 
 static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err)
 {
+  RakArray *arr = rak_array_new_with_capacity(len, err);
+  if (!len)
+  {
+    RakValue res = rak_array_value(arr);
+    rak_vm_push_object(vm, res, err);
+    return;
+  }
   int n = len - 1;
   RakValue *slots = &rak_stack_get(&vm->vstk, n);
-  RakArray *arr = rak_array_new_with_capacity(len, err);
   if (!rak_is_ok(err)) return;
   for (int i = 0; i < len; ++i)
     rak_slice_set(&arr->slice, i, slots[i]);
@@ -202,6 +210,47 @@ static inline void rak_vm_new_range(RakVM *vm, RakError *err)
   rak_object_retain(rak_as_object(res));
   rak_stack_set(&vm->vstk, 1, res);
   rak_vm_pop(vm);
+}
+
+static inline void rak_vm_new_record(RakVM *vm, uint8_t len, RakError *err)
+{
+  RakRecord *rec = rak_record_new_with_capacity(len, err);
+  if (!len)
+  {
+    RakValue res = rak_record_value(rec);
+    rak_vm_push_object(vm, res, err);
+    return;
+  }
+  int n = (len << 1) - 1;
+  RakValue *slots = &rak_stack_get(&vm->vstk, n);
+  if (!rak_is_ok(err)) return;
+  for (int i = 0; i < len; ++i)
+  {
+    int j = i << 1;
+    assert(rak_is_string(slots[j]));
+    RakString *name = rak_as_string(slots[j]);
+    RakValue val = slots[j + 1];
+    int idx = rak_record_index_of(rec, name);
+    if (idx >= 0)
+    {
+      RakRecordField field = rak_record_get(rec, idx);
+      rak_value_retain(val);
+      rak_value_release(field.val);
+      field.val = val;
+      continue;
+    }
+    RakRecordField field = {
+      .name = name,
+      .val = val,
+    };
+    rak_slice_append(&rec->slice, field, err);
+    if (rak_is_ok(err)) continue;
+    rak_record_free(rec);
+    return;
+  }
+  slots[0] = rak_record_value(rec);
+  rak_object_retain(&rec->obj);
+  vm->vstk.top -= n;
 }
 
 static inline void rak_vm_pop(RakVM *vm)

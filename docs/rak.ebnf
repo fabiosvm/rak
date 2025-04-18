@@ -44,10 +44,15 @@ subscr           ::= ( "[" expr "]" subscr )?
 
 prim_expr         ::= "nil" | "false" | "true" | NUMBER | STRING | IDENT
                     | array
+                    | record
                     | if_expr
                     | group
 
 array             ::= "[" ( expr ( "," expr )* )? "]"
+
+record            ::= "{" ( field ( "," field )* )? "}"
+
+field             ::= IDENT ":" expr
 
 if_expr           ::= "if" expr block_expr if_expr_cont
 
