@@ -169,6 +169,27 @@ static inline void rak_vm_load_element(RakVM *vm, RakError *err)
     rak_error_set(err, "cannot index array with %s", rak_type_to_cstr(val2.type));
     return;
   }
+  if (rak_is_record(val1))
+  {
+    RakRecord *rec = rak_as_record(val1);
+    if (rak_is_string(val2))
+    {
+      RakString *name = rak_as_string(val2);
+      int idx = rak_record_index_of(rec, name);
+      if (idx == -1)
+      {
+        rak_error_set(err, "record does not contain field '%.*s'",
+          rak_string_len(name), rak_string_chars(name));
+        return;
+      }
+      RakValue res = rak_record_get(rec, idx).val;
+      rak_vm_set_value(vm, 1, res);
+      rak_vm_pop(vm);
+      return;
+    }
+    rak_error_set(err, "cannot index record with %s", rak_type_to_cstr(val2.type));
+    return;
+  }
   rak_error_set(err, "cannot index %s", rak_type_to_cstr(val1.type));
 }
 

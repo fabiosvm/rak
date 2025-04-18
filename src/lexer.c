@@ -214,6 +214,7 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   case RAK_TOKEN_KIND_LTEQ:      cstr = "'<='";       break;
   case RAK_TOKEN_KIND_LT:        cstr = "'<'";        break;
   case RAK_TOKEN_KIND_DOTDOT:    cstr = "'..'";       break;
+  case RAK_TOKEN_KIND_DOT:       cstr = "'.'";        break;
   case RAK_TOKEN_KIND_PLUS:      cstr = "'+'";        break;
   case RAK_TOKEN_KIND_MINUS:     cstr = "'-'";        break;
   case RAK_TOKEN_KIND_STAR:      cstr = "'*'";        break;
@@ -267,6 +268,7 @@ void rak_lexer_next(RakLexer *lex, RakError *err)
   if (match_chars(lex, "<=", RAK_TOKEN_KIND_LTEQ)) return;
   if (match_char(lex, '<', RAK_TOKEN_KIND_LT)) return;
   if (match_chars(lex, "..", RAK_TOKEN_KIND_DOTDOT)) return;
+  if (match_char(lex, '.', RAK_TOKEN_KIND_DOT)) return;
   if (match_char(lex, '+', RAK_TOKEN_KIND_PLUS)) return;
   if (match_char(lex, '-', RAK_TOKEN_KIND_MINUS)) return;
   if (match_char(lex, '*', RAK_TOKEN_KIND_STAR)) return;
