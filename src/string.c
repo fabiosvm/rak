@@ -180,7 +180,7 @@ bool rak_string_equals(RakString *str1, RakString *str2)
   if (str1 == str2) return true;
   int len = rak_string_len(str1);
   if (len != rak_string_len(str2)) return false;
-  return !memcmp(rak_string_chars(str1), rak_string_chars(str1), len);
+  return !memcmp(rak_string_chars(str1), rak_string_chars(str2), len);
 }
 
 int rak_string_compare(RakString *str1, RakString *str2)
