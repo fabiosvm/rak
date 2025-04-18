@@ -115,21 +115,38 @@ static inline void rak_vm_load_element(RakVM *vm, RakError *err)
   RakValue val2 = rak_vm_get(vm, 0);
   if (rak_is_array(val1))
   {
-    if (!rak_is_number(val2) || !rak_is_integer(val2))
-    {
-      rak_error_set(err, "cannot index array with non-integer value");
-      return;
-    }
     RakArray *arr = rak_as_array(val1);
-    int64_t idx = rak_as_integer(val2);
-    if (idx < 0 || idx >= rak_array_len(arr))
+    if (rak_is_number(val2))
     {
-      rak_error_set(err, "array index out of range");
+      if (!rak_is_integer(val2))
+      {
+        rak_error_set(err, "cannot index array with non-integer number");
+        return;
+      }
+      int64_t idx = rak_as_integer(val2);
+      if (idx < 0 || idx >= rak_array_len(arr))
+      {
+        rak_error_set(err, "array index out of bounds");
+        return;
+      }
+      RakValue res = rak_array_get(arr, (int) idx);
+      rak_vm_set_value(vm, 1, res);
+      rak_vm_pop(vm);
       return;
     }
-    RakValue res = rak_array_get(arr, (int) idx);
-    rak_vm_set_value(vm, 1, res);
-    rak_vm_pop(vm);
+    if (rak_is_range(val2))
+    {
+      RakRange *range = rak_as_range(val2);
+      int start = (int) range->start;
+      int end = (int) range->end;
+      RakArray *_arr = rak_array_slice(arr, start, end, err);
+      if (!rak_is_ok(err)) return;
+      RakValue res = rak_array_value(_arr);
+      rak_vm_set_object(vm, 1, res);
+      rak_vm_pop(vm);
+      return;
+    }
+    rak_error_set(err, "cannot index array with %s", rak_type_to_cstr(val2.type));
     return;
   }
   rak_error_set(err, "cannot index %s", rak_type_to_cstr(val1.type));

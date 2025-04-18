@@ -13,8 +13,9 @@
 
 #include "value.h"
 
-#define rak_range_len(r)    ((r)->start < (r)->end ? (r)->end - (r)->start : 0)
-#define rak_range_get(r, i) ((r)->start + (i))
+#define rak_range_len(r)      ((r)->start < (r)->end ? (r)->end - (r)->start : 0)
+#define rak_range_is_empty(r) (!rak_range_len(r))
+#define rak_range_get(r, i)   ((r)->start + (i))
 
 typedef struct
 {

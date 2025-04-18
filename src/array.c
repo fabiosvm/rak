@@ -104,6 +104,63 @@ void rak_array_ensure_capacity(RakArray *arr, int cap, RakError *err)
   rak_slice_ensure_capacity(&arr->slice, cap, err);
 }
 
+RakArray *rak_array_append(RakArray *arr, RakValue val, RakError *err)
+{
+  // TODO: Implement this function.
+  (void) arr;
+  (void) val;
+  (void) err;
+  return NULL;
+}
+
+RakArray *rak_array_set(RakArray *arr, int idx, RakValue val, RakError *err)
+{
+  // TODO: Implement this function.
+  (void) arr;
+  (void) idx;
+  (void) val;
+  (void) err;
+  return NULL;
+}
+
+RakArray *rak_array_remove_at(RakArray *arr, int idx, RakError *err)
+{
+  // TODO: Implement this function.
+  (void) arr;
+  (void) idx;
+  (void) err;
+  return NULL;
+}
+
+RakArray *rak_array_concat(RakArray *arr1, RakArray *arr2, RakError *err)
+{
+  // TODO: Implement this function.
+  (void) arr1;
+  (void) arr2;
+  (void) err;
+  return NULL;
+}
+
+RakArray *rak_array_slice(RakArray *arr, int start, int end, RakError *err)
+{
+  if (start < 0 || end > rak_array_len(arr))
+  {
+    rak_error_set(err, "array slice out of bounds");
+    return NULL;
+  }
+  int len = start < end ? end - start : 0;
+  RakArray *_arr = rak_array_new_with_capacity(len, err);
+  if (!rak_is_ok(err)) return NULL;
+  for (int i = start; i < end; ++i)
+  {
+    RakValue val = rak_array_get(arr, i);
+    rak_slice_set(&_arr->slice, i - start, val);
+    rak_value_retain(val);
+  }
+  _arr->slice.len = len;
+  return _arr;
+}
+
 void rak_array_inplace_append(RakArray *arr, RakValue val, RakError *err)
 {
   rak_slice_append(&arr->slice, val, err);
@@ -140,6 +197,15 @@ void rak_array_inplace_concat(RakArray *arr1, RakArray *arr2, RakError *err)
     rak_value_retain(val);
   }
   arr1->slice.len = len;
+}
+
+void rak_array_inplace_slice(RakArray *arr, int start, int end, RakError *err)
+{
+  // TODO: Implement this function.
+  (void) arr;
+  (void) start;
+  (void) end;
+  (void) err;
 }
 
 void rak_array_inplace_clear(RakArray *arr)
