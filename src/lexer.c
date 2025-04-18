@@ -80,15 +80,8 @@ static inline bool match_number(RakLexer *lex, RakError *err)
     ++len;
   if (char_at(lex, len) == '.')
   {
-    ++len;
-    char c = char_at(lex, len);
-    if (!isdigit(c))
-    {
-      int col = lex->col + len;
-      unexpected_character_error(err, c, lex->ln, col);
-      return false;
-    }
-    ++len;
+    if (!isdigit(char_at(lex, len + 1))) goto end;
+    len += 2;
     while (isdigit(char_at(lex, len)))
       ++len;
   }
@@ -115,6 +108,7 @@ static inline bool match_number(RakLexer *lex, RakError *err)
     unexpected_character_error(err, c, lex->ln, col);
     return false;
   }
+end:
   lex->tok = token(lex, RAK_TOKEN_KIND_NUMBER, len, lex->curr);
   next_chars(lex, len);
   return true;

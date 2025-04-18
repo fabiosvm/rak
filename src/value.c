@@ -38,10 +38,9 @@ const char *rak_type_to_cstr(RakType type)
 RakValue rak_number_value_from_cstr(int len, const char *cstr, RakError *err)
 {
   if (len < 0) len = (int) strlen(cstr);
-  char *end = NULL;
   errno = 0;
-  double data = strtod(cstr, &end);
-  if (errno || end != &cstr[len])
+  double data = strtod(cstr, NULL);
+  if (errno)
   {
     rak_error_set(err, "invalid number format");
     return rak_nil_value();
