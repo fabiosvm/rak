@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "rak/array.h"
+#include "rak/range.h"
 #include "rak/string.h"
 
 const char *rak_type_to_cstr(RakType type)
@@ -28,6 +29,7 @@ const char *rak_type_to_cstr(RakType type)
   case RAK_TYPE_NUMBER: cstr = "number"; break;
   case RAK_TYPE_STRING: cstr = "string"; break;
   case RAK_TYPE_ARRAY:  cstr = "array";  break;
+  case RAK_TYPE_RANGE:  cstr = "range";  break;
   }
   assert(cstr);
   return cstr;
@@ -68,6 +70,9 @@ void rak_value_free(RakValue val)
   case RAK_TYPE_ARRAY:
     rak_array_free(rak_as_array(val));
     break;
+  case RAK_TYPE_RANGE:
+    rak_range_free(rak_as_range(val));
+    break;
   }
 }
 
@@ -84,6 +89,9 @@ void rak_value_release(RakValue val)
     break;
   case RAK_TYPE_ARRAY:
     rak_array_release(rak_as_array(val));
+    break;
+  case RAK_TYPE_RANGE:
+    rak_range_release(rak_as_range(val));
     break;
   }
 }
@@ -108,6 +116,9 @@ bool rak_value_equals(RakValue val1, RakValue val2)
     break;
   case RAK_TYPE_ARRAY:
     res = rak_array_equals(rak_as_array(val1), rak_as_array(val2));
+    break;
+  case RAK_TYPE_RANGE:
+    res = rak_range_equals(rak_as_range(val1), rak_as_range(val2));
     break;
   }
   return res;
@@ -135,7 +146,8 @@ int rak_value_compare(RakValue val1, RakValue val2, RakError *err)
     res = rak_string_compare(rak_as_string(val1), rak_as_string(val2));
     break;
   case RAK_TYPE_ARRAY:
-    rak_error_set(err, "cannot compare arrays");
+  case RAK_TYPE_RANGE:
+    rak_error_set(err, "cannot compare %s", rak_type_to_cstr(val1.type));
     break;
   }
   return res;
@@ -159,6 +171,9 @@ void rak_value_print(RakValue val)
     break;
   case RAK_TYPE_ARRAY:
     rak_array_print(rak_as_array(val));
+    break;
+  case RAK_TYPE_RANGE:
+    rak_range_print(rak_as_range(val));
     break;
   }
 }

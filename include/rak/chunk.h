@@ -34,6 +34,7 @@
 #define rak_load_local_instr(i)    rak_instr_fmt1(RAK_OP_LOAD_LOCAL, (i))
 #define rak_load_element_instr()   rak_instr_fmt0(RAK_OP_LOAD_ELEMENT)
 #define rak_new_array_instr(n)     rak_instr_fmt1(RAK_OP_NEW_ARRAY, (n))
+#define rak_new_range_instr()      rak_instr_fmt0(RAK_OP_NEW_RANGE)
 #define rak_pop_instr()            rak_instr_fmt0(RAK_OP_POP)
 #define rak_jump_instr(o)          rak_instr_fmt4(RAK_OP_JUMP, (o))
 #define rak_jump_if_false_instr(o) rak_instr_fmt4(RAK_OP_JUMP_IF_FALSE, (o))
@@ -61,6 +62,7 @@ typedef enum
   RAK_OP_LOAD_LOCAL,
   RAK_OP_LOAD_ELEMENT,
   RAK_OP_NEW_ARRAY,
+  RAK_OP_NEW_RANGE,
   RAK_OP_POP,
   RAK_OP_JUMP,
   RAK_OP_JUMP_IF_FALSE,

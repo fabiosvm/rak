@@ -15,6 +15,7 @@
 #include <math.h>
 #include "array.h"
 #include "chunk.h"
+#include "range.h"
 #include "stack.h"
 #include "string.h"
 
@@ -35,6 +36,7 @@ static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, Ra
 static inline void rak_vm_load_local(RakVM *vm, uint8_t idx, RakError *err);
 static inline void rak_vm_load_element(RakVM *vm, RakError *err);
 static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err);
+static inline void rak_vm_new_range(RakVM *vm, RakError *err);
 static inline void rak_vm_pop(RakVM *vm);
 static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx);
 static inline void rak_vm_set(RakVM *vm, uint8_t idx, RakValue val);
@@ -145,6 +147,26 @@ static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err)
   slots[0] = rak_array_value(arr);
   rak_object_retain(&arr->obj);
   vm->vstk.top -= n;
+}
+
+static inline void rak_vm_new_range(RakVM *vm, RakError *err)
+{
+  RakValue val1 = rak_vm_get(vm, 1);
+  RakValue val2 = rak_vm_get(vm, 0);
+  if (!rak_is_number(val1) || !rak_is_number(val2)
+   || !rak_is_integer(val1) || !rak_is_integer(val2))
+  {
+    rak_error_set(err, "range must be of type integer numbers");
+    return;
+  }
+  double start = rak_as_number(val1);
+  double end = rak_as_number(val2);
+  RakRange *range = rak_range_new(start, end, err);
+  if (!rak_is_ok(err)) return;
+  RakValue res = rak_range_value(range);
+  rak_object_retain(rak_as_object(res));
+  rak_stack_set(&vm->vstk, 1, res);
+  rak_vm_pop(vm);
 }
 
 static inline void rak_vm_pop(RakVM *vm)

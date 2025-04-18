@@ -28,7 +28,9 @@ and_expr_cont     ::= ( "&&" eq_expr and_expr_cont )?
 
 eq_expr           ::= cmp_expr ( ( "==" | "!=" ) cmp_expr )*
 
-cmp_expr          ::= add_expr ( ( ">=" | ">" | "<=" | "<" ) add_expr )*
+cmp_expr          ::= range_expr ( ( ">=" | ">" | "<=" | "<" ) range_expr )*
+
+range_expr        ::= add_expr ( ".." add_expr )?
 
 add_expr          ::= mul_expr ( ( "+" | "-" ) mul_expr )*
 

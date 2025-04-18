@@ -28,6 +28,7 @@ void rak_dump_chunk(RakChunk *chunk)
     case RAK_OP_PUSH_FALSE:
     case RAK_OP_PUSH_TRUE:
     case RAK_OP_LOAD_ELEMENT:
+    case RAK_OP_NEW_RANGE:
     case RAK_OP_POP:
     case RAK_OP_EQ:
     case RAK_OP_GT:
