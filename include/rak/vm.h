@@ -113,6 +113,24 @@ static inline void rak_vm_load_element(RakVM *vm, RakError *err)
 {
   RakValue val1 = rak_vm_get(vm, 1);
   RakValue val2 = rak_vm_get(vm, 0);
+  if (rak_is_string(val1))
+  {
+    RakString *str = rak_as_string(val1);
+    if (rak_is_range(val2))
+    {
+      RakRange *range = rak_as_range(val2);
+      int start = (int) range->start;
+      int end = (int) range->end;
+      RakString *_str = rak_string_slice(str, start, end, err);
+      if (!rak_is_ok(err)) return;
+      RakValue res = rak_string_value(_str);
+      rak_vm_set_object(vm, 1, res);
+      rak_vm_pop(vm);
+      return;
+    }
+    rak_error_set(err, "cannot index string with %s", rak_type_to_cstr(val2.type));
+    return;
+  }
   if (rak_is_array(val1))
   {
     RakArray *arr = rak_as_array(val1);

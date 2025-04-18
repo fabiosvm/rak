@@ -106,6 +106,40 @@ void rak_string_ensure_capacity(RakString *str, int cap, RakError *err)
   rak_slice_ensure_capacity(&str->slice, cap, err);
 }
 
+RakString *rak_string_append_cstr(RakString *str, int len, const char *cstr, RakError *err)
+{
+  // TODO: Implement this function.
+  (void) str;
+  (void) len;
+  (void) cstr;
+  (void) err;
+  return NULL;
+}
+
+RakString *rak_string_concat(RakString *str1, RakString *str2, RakError *err)
+{
+  // TODO: Implement this function.
+  (void) str1;
+  (void) str2;
+  (void) err;
+  return NULL;
+}
+
+RakString *rak_string_slice(RakString *str, int start, int end, RakError *err)
+{
+  if (start < 0 || end > rak_string_len(str))
+  {
+    rak_error_set(err, "string slice out of bounds");
+    return NULL;
+  }
+  int len = start < end ? end - start : 0;
+  RakString *_str = rak_string_new_with_capacity(len, err);
+  if (!rak_is_ok(err)) return NULL;
+  memcpy(rak_string_chars(_str), rak_string_chars(str) + start, len);
+  _str->slice.len = len;
+  return _str;
+}
+
 void rak_string_inplace_append_cstr(RakString *str, int len, const char *cstr, RakError *err)
 {
   if (len < 0) len = (int) strlen(cstr);
@@ -125,6 +159,15 @@ void rak_string_inplace_concat(RakString *str1, RakString *str2, RakError *err)
   if (!rak_is_ok(err)) return;
   memcpy(&str1->slice.data[len1], rak_string_chars(str2), len2);
   str1->slice.len = len;
+}
+
+void rak_string_inplace_slice(RakString *str, int start, int end, RakError *err)
+{
+  // TODO: Implement this function.
+  (void) str;
+  (void) start;
+  (void) end;
+  (void) err;
 }
 
 void rak_string_inplace_clear(RakString *str)
