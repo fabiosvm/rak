@@ -590,7 +590,12 @@ static inline void compile_array(RakCompiler *comp, RakError *err)
     ++len;
   }
   consume(comp, RAK_TOKEN_KIND_RBRACKET, err);
-  rak_chunk_append_instr(&comp->chunk, rak_new_array_instr(len), err);
+  if (len > UINT8_MAX)
+  {
+    rak_error_set(err, "array length too long");
+    return;
+  }
+  rak_chunk_append_instr(&comp->chunk, rak_new_array_instr((uint8_t) len), err);
 }
 
 static inline void compile_record(RakCompiler *comp, RakError *err)
@@ -613,7 +618,12 @@ static inline void compile_record(RakCompiler *comp, RakError *err)
     ++len;
   }
   consume(comp, RAK_TOKEN_KIND_RBRACE, err);
-  rak_chunk_append_instr(&comp->chunk, rak_new_record_instr(len), err);
+  if (len > UINT8_MAX)
+  {
+    rak_error_set(err, "record length too long");
+    return;
+  }
+  rak_chunk_append_instr(&comp->chunk, rak_new_record_instr((uint8_t) len), err);
 }
 
 static inline void compile_field(RakCompiler *comp, RakError *err)
