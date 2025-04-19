@@ -156,10 +156,8 @@ int rak_value_compare(RakValue val1, RakValue val2, RakError *err)
     break;
   case RAK_TYPE_ARRAY:
   case RAK_TYPE_RANGE:
-    rak_error_set(err, "cannot compare %s", rak_type_to_cstr(val1.type));
-    break;
   case RAK_TYPE_RECORD:
-    rak_error_set(err, "cannot compare records");
+    rak_error_set(err, "cannot compare %s", rak_type_to_cstr(val1.type));
     break;
   }
   return res;

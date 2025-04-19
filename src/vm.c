@@ -136,8 +136,8 @@ static void do_load_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *
 
 static void do_new_array(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
 {
-  uint8_t len = rak_instr_a(*ip);
-  rak_vm_new_array(vm, len, err);
+  uint8_t n = rak_instr_a(*ip);
+  rak_vm_new_array(vm, n, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, chunk, ip + 1, err);
 }
@@ -151,8 +151,8 @@ static void do_new_range(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err
 
 static void do_new_record(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
 {
-  uint8_t len = rak_instr_a(*ip);
-  rak_vm_new_record(vm, len, err);
+  uint8_t n = rak_instr_a(*ip);
+  rak_vm_new_record(vm, n, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, chunk, ip + 1, err);
 }

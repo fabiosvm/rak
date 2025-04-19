@@ -14,15 +14,15 @@
 #include <stdint.h>
 #include "error.h"
 
-#define RAK_FALG_FALSY  (1 << 0)
+#define RAK_FLAG_FALSY  (1 << 0)
 #define RAK_FLAG_OBJECT (1 << 1)
 
 #define RAK_NUMBER_EPSILON (1e-9)
 #define RAK_INTEGER_MIN    (-9007199254740992LL)
 #define RAK_INTEGER_MAX    (9007199254740992LL)
 
-#define rak_nil_value()     ((RakValue) { .type = RAK_TYPE_NIL, .flags = RAK_FALG_FALSY })
-#define rak_bool_value(d)   ((RakValue) { .type = RAK_TYPE_BOOL, .flags = (d) ? 0 : RAK_FALG_FALSY, .opaque.b = (d) })
+#define rak_nil_value()     ((RakValue) { .type = RAK_TYPE_NIL, .flags = RAK_FLAG_FALSY })
+#define rak_bool_value(d)   ((RakValue) { .type = RAK_TYPE_BOOL, .flags = (d) ? 0 : RAK_FLAG_FALSY, .opaque.b = (d) })
 #define rak_number_value(d) ((RakValue) { .type = RAK_TYPE_NUMBER, .flags = 0, .opaque.f64 = (d) })
 #define rak_string_value(p) ((RakValue) { .type = RAK_TYPE_STRING, .flags = RAK_FLAG_OBJECT, .opaque.ptr = (p) })
 #define rak_array_value(p)  ((RakValue) { .type = RAK_TYPE_ARRAY, .flags = RAK_FLAG_OBJECT, .opaque.ptr = (p) })
@@ -46,7 +46,7 @@
 #define rak_is_array(v)   ((v).type == RAK_TYPE_ARRAY)
 #define rak_is_range(v)   ((v).type == RAK_TYPE_RANGE)
 #define rak_is_record(v)  ((v).type == RAK_TYPE_RECORD)
-#define rak_is_falsy(v)   ((v).flags & RAK_FALG_FALSY)
+#define rak_is_falsy(v)   ((v).flags & RAK_FLAG_FALSY)
 #define rak_is_object(v)  ((v).flags & RAK_FLAG_OBJECT)
 
 #define rak_object_init(o) \
