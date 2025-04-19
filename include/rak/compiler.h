@@ -20,6 +20,7 @@ typedef struct
   int      len;
   char    *chars;
   uint8_t  idx;
+  int      depth;
 } RakSymbol;
 
 typedef struct
@@ -27,6 +28,7 @@ typedef struct
   RakChunk            chunk;
   RakLexer            lex;
   RakSlice(RakSymbol) symbols;
+  int                 scopeDepth;
 } RakCompiler;
 
 void rak_compiler_init(RakCompiler *comp, RakError *err);

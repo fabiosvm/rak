@@ -31,9 +31,9 @@
 
 static inline void compile_chunk(RakCompiler *comp, RakError *err);
 static inline void compile_stmt(RakCompiler *comp, RakError *err);
+static inline void compile_block(RakCompiler *comp, RakError *err);
 static inline void compile_let_decl(RakCompiler *comp, RakError *err);
 static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *err);
-static inline void compile_block(RakCompiler *comp, RakError *err);
 static inline void compile_if_stmt_cont(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_echo_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_expr_stmt(RakCompiler *comp, RakError *err);
@@ -57,8 +57,9 @@ static inline void compile_if_expr(RakCompiler *comp, uint16_t *off, RakError *e
 static inline void compile_block_expr(RakCompiler *comp, RakError *err);
 static inline void compile_if_expr_cont(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_group(RakCompiler *comp, RakError *err);
+static inline void begin_scope(RakCompiler *comp);
+static inline void end_scope(RakCompiler *comp, RakError *err);
 static inline void define_local(RakCompiler *comp, RakToken tok, RakError *err);
-static inline int find_local(RakCompiler *comp, RakToken tok);
 static inline uint8_t resolve_local(RakCompiler *comp, RakToken tok, RakError *err);
 static inline void unexpected_token_error(RakError *err, RakToken tok);
 static inline void expected_token_error(RakError *err, RakTokenKind kind, RakToken tok);
@@ -74,6 +75,11 @@ static inline void compile_chunk(RakCompiler *comp, RakError *err)
 
 static inline void compile_stmt(RakCompiler *comp, RakError *err)
 {
+  if (match(comp, RAK_TOKEN_KIND_LBRACE))
+  {
+    compile_block(comp, err);
+    return;
+  }
   if (match(comp, RAK_TOKEN_KIND_LET_KW))
   {
     compile_let_decl(comp, err);
@@ -90,6 +96,19 @@ static inline void compile_stmt(RakCompiler *comp, RakError *err)
     return;
   }
   compile_expr_stmt(comp, err);
+}
+
+static inline void compile_block(RakCompiler *comp, RakError *err)
+{
+  next(comp, err);
+  begin_scope(comp);
+  while (!match(comp, RAK_TOKEN_KIND_RBRACE))
+  {
+    compile_stmt(comp, err);
+    if (!rak_is_ok(err)) return;
+  }
+  next(comp, err);
+  end_scope(comp, err);
 }
 
 static inline void compile_let_decl(RakCompiler *comp, RakError *err)
@@ -126,6 +145,11 @@ static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *e
   if (!rak_is_ok(err)) return;
   rak_chunk_append_instr(&comp->chunk, rak_pop_instr(), err);
   if (!rak_is_ok(err)) return;
+  if (!match(comp, RAK_TOKEN_KIND_LBRACE))
+  {
+    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex.tok);
+    return;
+  }
   compile_block(comp, err);
   if (!rak_is_ok(err)) return;
   uint16_t jump2 = rak_chunk_append_instr(&comp->chunk, rak_nop_instr(), err);
@@ -137,17 +161,6 @@ static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *e
   if (!rak_is_ok(err)) return;
   rak_slice_set(&comp->chunk.instrs, jump2, rak_jump_instr(_off));
   if (off) *off = _off;
-}
-
-static inline void compile_block(RakCompiler *comp, RakError *err)
-{
-  consume(comp, RAK_TOKEN_KIND_LBRACE, err);
-  while (!match(comp, RAK_TOKEN_KIND_RBRACE))
-  {
-    compile_stmt(comp, err);
-    if (!rak_is_ok(err)) return;
-  }
-  next(comp, err);
 }
 
 static inline void compile_if_stmt_cont(RakCompiler *comp, uint16_t *off, RakError *err)
@@ -167,6 +180,11 @@ static inline void compile_if_stmt_cont(RakCompiler *comp, uint16_t *off, RakErr
     rak_chunk_append_instr(&comp->chunk, rak_pop_instr(), err);
     if (!rak_is_ok(err)) return;
     compile_if_stmt(comp, off, err);
+    return;
+  }
+  if (!match(comp, RAK_TOKEN_KIND_LBRACE))
+  {
+    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex.tok);
     return;
   }
   compile_block(comp, err);
@@ -688,9 +706,40 @@ static inline void compile_group(RakCompiler *comp, RakError *err)
   consume(comp, RAK_TOKEN_KIND_RPAREN, err);
 }
 
+static inline void begin_scope(RakCompiler *comp)
+{
+  ++comp->scopeDepth;
+}
+
+static inline void end_scope(RakCompiler *comp, RakError *err)
+{
+  int len = comp->symbols.len;
+  int n = 0;
+  for (int i = len - 1; i >= 0; --i)
+  {
+    RakSymbol sym = rak_slice_get(&comp->symbols, i);
+    if (sym.depth != comp->scopeDepth) break;
+    rak_chunk_append_instr(&comp->chunk, rak_pop_instr(), err);
+    if (!rak_is_ok(err)) return;
+    ++n;
+  }
+  comp->symbols.len -= n;
+  --comp->scopeDepth;
+}
+
 static inline void define_local(RakCompiler *comp, RakToken tok, RakError *err)
 {
-  int idx = find_local(comp, tok);
+  int idx = -1;
+  int len = comp->symbols.len;
+  for (int i = len - 1; i >= 0; --i)
+  {
+    RakSymbol sym = rak_slice_get(&comp->symbols, i);
+    if (sym.depth != comp->scopeDepth) break;
+    if (sym.len != tok.len || memcmp(sym.chars, tok.chars, tok.len))
+      continue;
+    idx = sym.idx;
+    break;
+  }
   if (idx != -1)
   {
     rak_error_set(err, "duplicate local variable '%.*s'", tok.len, tok.chars);
@@ -705,27 +754,25 @@ static inline void define_local(RakCompiler *comp, RakToken tok, RakError *err)
   RakSymbol sym = {
     .len = tok.len,
     .chars = tok.chars,
-    .idx  = (uint8_t) idx
+    .idx  = (uint8_t) idx,
+    .depth = comp->scopeDepth
   };
   rak_slice_append(&comp->symbols, sym, err);
   if (!rak_is_ok(err)) return;
 }
 
-static inline int find_local(RakCompiler *comp, RakToken tok)
+static inline uint8_t resolve_local(RakCompiler *comp, RakToken tok, RakError *err)
 {
+  int idx = -1;
   int len = comp->symbols.len;
   for (int i = len - 1; i >= 0; --i)
   {
     RakSymbol sym = rak_slice_get(&comp->symbols, i);
-    if (sym.len == tok.len && !memcmp(sym.chars, tok.chars, tok.len))
-      return sym.idx;
+    if (sym.len != tok.len || memcmp(sym.chars, tok.chars, tok.len))
+      continue;
+    idx = sym.idx;
+    break;
   }
-  return -1;
-}
-
-static inline uint8_t resolve_local(RakCompiler *comp, RakToken tok, RakError *err)
-{
-  int idx = find_local(comp, tok);
   if (idx == -1)
   {
     rak_error_set(err, "undefined local variable '%.*s'", tok.len, tok.chars);
@@ -762,8 +809,12 @@ void rak_compiler_init(RakCompiler *comp, RakError *err)
   rak_chunk_init(&comp->chunk, err);
   if (!rak_is_ok(err)) return;
   rak_slice_init(&comp->symbols, err);
-  if (rak_is_ok(err)) return;
-  rak_chunk_deinit(&comp->chunk);
+  if (!rak_is_ok(err))
+  {
+    rak_chunk_deinit(&comp->chunk);
+    return;
+  }
+  comp->scopeDepth = 0;
 }
 
 void rak_compiler_deinit(RakCompiler *comp)
