@@ -11,7 +11,7 @@ block             ::= "{" stmt* "}"
 
 let_decl          ::= "let" IDENT ( "=" expr )? ";"
 
-if_stmt           ::= "if" expr block if_stmt_cont
+if_stmt           ::= "if" let_decl? expr block if_stmt_cont
 
 if_stmt_cont      ::= ( "else" ( if_stmt | block ) )?
 

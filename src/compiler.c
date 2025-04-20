@@ -139,6 +139,12 @@ static inline void compile_let_decl(RakCompiler *comp, RakError *err)
 static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *err)
 {
   next(comp, err);
+  begin_scope(comp);
+  if (match(comp, RAK_TOKEN_KIND_LET_KW))
+  {
+    compile_let_decl(comp, err);
+    if (!rak_is_ok(err)) return;
+  }
   compile_expr(comp, err);
   if (!rak_is_ok(err)) return;
   uint16_t jump1 = rak_chunk_append_instr(&comp->chunk, rak_nop_instr(), err);
@@ -151,6 +157,8 @@ static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *e
     return;
   }
   compile_block(comp, err);
+  if (!rak_is_ok(err)) return;
+  end_scope(comp, err);
   if (!rak_is_ok(err)) return;
   uint16_t jump2 = rak_chunk_append_instr(&comp->chunk, rak_nop_instr(), err);
   if (!rak_is_ok(err)) return;
