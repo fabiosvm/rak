@@ -177,8 +177,6 @@ static inline void compile_if_stmt_cont(RakCompiler *comp, uint16_t *off, RakErr
   {
     rak_chunk_append_instr(&comp->chunk, rak_pop_instr(), err);
     if (!rak_is_ok(err)) return;
-    rak_chunk_append_instr(&comp->chunk, rak_push_nil_instr(), err);
-    if (!rak_is_ok(err)) return;
     *off = (uint16_t) comp->chunk.instrs.len;
     return;
   }
