@@ -33,6 +33,7 @@ static inline void compile_chunk(RakCompiler *comp, RakError *err);
 static inline void compile_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_block(RakCompiler *comp, RakError *err);
 static inline void compile_let_decl(RakCompiler *comp, RakError *err);
+static inline void compile_assign_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_if_stmt_cont(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_echo_stmt(RakCompiler *comp, RakError *err);
@@ -85,6 +86,11 @@ static inline void compile_stmt(RakCompiler *comp, RakError *err)
     compile_let_decl(comp, err);
     return;
   }
+  if (match(comp, RAK_TOKEN_KIND_AMP))
+  {
+    compile_assign_stmt(comp, err);
+    return;
+  }
   if (match(comp, RAK_TOKEN_KIND_IF_KW))
   {
     compile_if_stmt(comp, NULL, err);
@@ -134,6 +140,25 @@ static inline void compile_let_decl(RakCompiler *comp, RakError *err)
   rak_chunk_append_instr(&comp->chunk, rak_push_nil_instr(), err);
   if (!rak_is_ok(err)) return;
   define_local(comp, tok, err);
+}
+
+static inline void compile_assign_stmt(RakCompiler *comp, RakError *err)
+{
+  next(comp, err);
+  if (!match(comp, RAK_TOKEN_KIND_IDENT))
+  {
+    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+    return;
+  }
+  RakToken tok = comp->lex.tok;
+  next(comp, err);
+  consume(comp, RAK_TOKEN_KIND_EQ, err);
+  compile_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
+  uint8_t idx = resolve_local(comp, tok, err);
+  if (!rak_is_ok(err)) return;
+  rak_chunk_append_instr(&comp->chunk, rak_store_local_instr(idx), err);
 }
 
 static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *err)

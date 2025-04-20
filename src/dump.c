@@ -46,6 +46,7 @@ void rak_dump_chunk(RakChunk *chunk)
       break;
     case RAK_OP_LOAD_CONST:
     case RAK_OP_LOAD_LOCAL:
+    case RAK_OP_STORE_LOCAL:
     case RAK_OP_NEW_ARRAY:
     case RAK_OP_NEW_RECORD:
       {

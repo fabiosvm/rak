@@ -3,6 +3,7 @@ chunk             ::= stmt* EOF
 
 stmt              ::= block
                     | let_decl
+                    | assign_stmt
                     | if_stmt
                     | echo_stmt
                     | expr_stmt
@@ -10,6 +11,8 @@ stmt              ::= block
 block             ::= "{" stmt* "}"
 
 let_decl          ::= "let" IDENT ( "=" expr )? ";"
+
+assign_stmt       ::= "&" IDENT "=" expr ";"
 
 if_stmt           ::= "if" let_decl? expr block if_stmt_cont
 

@@ -22,6 +22,7 @@ static void do_push_true(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err
 static void do_load_const(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_load_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_load_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
+static void do_store_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_new_array(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_new_range(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
 static void do_new_record(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err);
@@ -50,6 +51,7 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_LOAD_CONST]    = do_load_const,
   [RAK_OP_LOAD_LOCAL]    = do_load_local,
   [RAK_OP_LOAD_ELEMENT]  = do_load_element,
+  [RAK_OP_STORE_LOCAL]   = do_store_local,
   [RAK_OP_NEW_ARRAY]     = do_new_array,
   [RAK_OP_NEW_RANGE]     = do_new_range,
   [RAK_OP_NEW_RECORD]    = do_new_record,
@@ -131,6 +133,13 @@ static void do_load_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *
 {
   rak_vm_load_element(vm, err);
   if (!rak_is_ok(err)) return;
+  dispatch(vm, chunk, ip + 1, err);
+}
+
+static void do_store_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakError *err)
+{
+  uint8_t idx = rak_instr_a(*ip);
+  rak_vm_store_local(vm, idx);
   dispatch(vm, chunk, ip + 1, err);
 }
 

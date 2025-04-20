@@ -205,6 +205,7 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   case RAK_TOKEN_KIND_RBRACE:    cstr = "'}'";        break;
   case RAK_TOKEN_KIND_PIPEPIPE:  cstr = "'||'";       break;
   case RAK_TOKEN_KIND_AMPAMP:    cstr = "'&&'";       break;
+  case RAK_TOKEN_KIND_AMP:       cstr = "'&'";        break;
   case RAK_TOKEN_KIND_EQEQ:      cstr = "'=='";       break;
   case RAK_TOKEN_KIND_EQ:        cstr = "'='";        break;
   case RAK_TOKEN_KIND_BANGEQ:    cstr = "'!='";       break;
@@ -259,6 +260,7 @@ void rak_lexer_next(RakLexer *lex, RakError *err)
   if (match_char(lex, '}', RAK_TOKEN_KIND_RBRACE)) return;
   if (match_chars(lex, "||", RAK_TOKEN_KIND_PIPEPIPE)) return;
   if (match_chars(lex, "&&", RAK_TOKEN_KIND_AMPAMP)) return;
+  if (match_char(lex, '&', RAK_TOKEN_KIND_AMP)) return;
   if (match_chars(lex, "==", RAK_TOKEN_KIND_EQEQ)) return;
   if (match_char(lex, '=', RAK_TOKEN_KIND_EQ)) return;
   if (match_chars(lex, "!=", RAK_TOKEN_KIND_BANGEQ)) return;
