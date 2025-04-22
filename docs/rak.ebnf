@@ -42,9 +42,7 @@ mul_expr          ::= unary_expr ( ( "*" | "/" | "%" ) unary_expr )*
 
 unary_expr        ::= ( "!" | "-" )? unary_expr | subscr_expr
 
-subscr_expr       ::= prim_expr subscr
-
-subscr           ::= ( ( "[" expr "]" | "." IDENT ) subscr )?
+subscr_expr       ::= prim_expr ( "[" expr "]" | "." IDENT )*
 
 prim_expr         ::= "nil" | "false" | "true" | NUMBER | STRING | IDENT
                     | array
