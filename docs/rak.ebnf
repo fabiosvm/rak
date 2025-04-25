@@ -8,6 +8,7 @@ stmt              ::= block
                     | while_stmt
                     | do_while_stmt
                     | break_stmt
+                    | continue_stmt
                     | echo_stmt
                     | expr_stmt
 
@@ -26,6 +27,8 @@ while_stmt        ::= "while" expr block
 do_while_stmt     ::= "do" block "while" expr ";"
 
 break_stmt        ::= "break" ";"
+
+continue_stmt     ::= "continue" ";"
 
 echo_stmt         ::= "echo" expr ";"
 

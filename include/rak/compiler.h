@@ -26,6 +26,7 @@ typedef struct
 typedef struct RakLoop
 {
   struct RakLoop     *parent;
+  uint16_t            off;
   RakSlice(uint16_t)  jumps;
 } RakLoop;
 
