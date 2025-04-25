@@ -231,6 +231,7 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   case RAK_TOKEN_KIND_FALSE_KW:    cstr = "false";      break;
   case RAK_TOKEN_KIND_IF_KW:       cstr = "if";         break;
   case RAK_TOKEN_KIND_LET_KW:      cstr = "let";        break;
+  case RAK_TOKEN_KIND_LOOP_KW:     cstr = "loop";       break;
   case RAK_TOKEN_KIND_NIL_KW:      cstr = "nil";        break;
   case RAK_TOKEN_KIND_TRUE_KW:     cstr = "true";       break;
   case RAK_TOKEN_KIND_WHILE_KW:    cstr = "while";      break;
@@ -290,6 +291,7 @@ void rak_lexer_next(RakLexer *lex, RakError *err)
   if (match_keyword(lex, "false", RAK_TOKEN_KIND_FALSE_KW)) return;
   if (match_keyword(lex, "if", RAK_TOKEN_KIND_IF_KW)) return;
   if (match_keyword(lex, "let", RAK_TOKEN_KIND_LET_KW)) return;
+  if (match_keyword(lex, "loop", RAK_TOKEN_KIND_LOOP_KW)) return;
   if (match_keyword(lex, "nil", RAK_TOKEN_KIND_NIL_KW)) return;
   if (match_keyword(lex, "true", RAK_TOKEN_KIND_TRUE_KW)) return;
   if (match_keyword(lex, "while", RAK_TOKEN_KIND_WHILE_KW)) return;

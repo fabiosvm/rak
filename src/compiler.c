@@ -43,6 +43,7 @@ static inline void compile_let_decl(RakCompiler *comp, RakError *err);
 static inline void compile_assign_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_if_stmt_cont(RakCompiler *comp, uint16_t *off, RakError *err);
+static inline void compile_loop_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_while_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_do_while_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_break_stmt(RakCompiler *comp, RakError *err);
@@ -106,6 +107,11 @@ static inline void compile_stmt(RakCompiler *comp, RakError *err)
   if (match(comp, RAK_TOKEN_KIND_IF_KW))
   {
     compile_if_stmt(comp, NULL, err);
+    return;
+  }
+  if (match(comp, RAK_TOKEN_KIND_LOOP_KW))
+  {
+    compile_loop_stmt(comp, err);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_WHILE_KW))
@@ -253,6 +259,24 @@ static inline void compile_if_stmt_cont(RakCompiler *comp, uint16_t *off, RakErr
   compile_block(comp, err);
   if (!rak_is_ok(err)) return;
   *off = (uint16_t) comp->chunk.instrs.len;
+}
+
+static inline void compile_loop_stmt(RakCompiler *comp, RakError *err)
+{
+  next(comp, err);
+  RakLoop loop;
+  begin_loop(comp, &loop);
+  uint16_t off = (uint16_t) comp->chunk.instrs.len;
+  if (!match(comp, RAK_TOKEN_KIND_LBRACE))
+  {
+    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex.tok);
+    return;
+  }
+  compile_block(comp, err);
+  if (!rak_is_ok(err)) return;
+  emit_instr(comp, rak_jump_instr(off), err);
+  if (!rak_is_ok(err)) return;
+  end_loop(comp);
 }
 
 static inline void compile_while_stmt(RakCompiler *comp, RakError *err)
