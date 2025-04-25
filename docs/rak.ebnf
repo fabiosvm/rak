@@ -5,6 +5,8 @@ stmt              ::= block
                     | let_decl
                     | assign_stmt
                     | if_stmt
+                    | while_stmt
+                    | do_while_stmt
                     | echo_stmt
                     | expr_stmt
 
@@ -17,6 +19,10 @@ assign_stmt       ::= "&" IDENT "=" expr ";"
 if_stmt           ::= "if" let_decl? expr block if_stmt_cont
 
 if_stmt_cont      ::= ( "else" ( if_stmt | block ) )?
+
+while_stmt        ::= "while" expr block
+
+do_while_stmt     ::= "do" block "while" expr ";"
 
 echo_stmt         ::= "echo" expr ";"
 

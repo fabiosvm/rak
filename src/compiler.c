@@ -43,6 +43,8 @@ static inline void compile_let_decl(RakCompiler *comp, RakError *err);
 static inline void compile_assign_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_if_stmt_cont(RakCompiler *comp, uint16_t *off, RakError *err);
+static inline void compile_while_stmt(RakCompiler *comp, RakError *err);
+static inline void compile_do_while_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_echo_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_expr_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_expr(RakCompiler *comp, RakError *err);
@@ -100,6 +102,16 @@ static inline void compile_stmt(RakCompiler *comp, RakError *err)
   if (match(comp, RAK_TOKEN_KIND_IF_KW))
   {
     compile_if_stmt(comp, NULL, err);
+    return;
+  }
+  if (match(comp, RAK_TOKEN_KIND_WHILE_KW))
+  {
+    compile_while_stmt(comp, err);
+    return;
+  }
+  if (match(comp, RAK_TOKEN_KIND_DO_KW))
+  {
+    compile_do_while_stmt(comp, err);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_ECHO_KW))
@@ -227,6 +239,53 @@ static inline void compile_if_stmt_cont(RakCompiler *comp, uint16_t *off, RakErr
   compile_block(comp, err);
   if (!rak_is_ok(err)) return;
   *off = (uint16_t) comp->chunk.instrs.len;
+}
+
+static inline void compile_while_stmt(RakCompiler *comp, RakError *err)
+{
+  next(comp, err);
+  uint16_t jump1 = (uint16_t) comp->chunk.instrs.len;
+  compile_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  uint16_t jump2 = emit_instr(comp, rak_nop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  emit_instr(comp, rak_pop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  if (!match(comp, RAK_TOKEN_KIND_LBRACE))
+  {
+    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex.tok);
+    return;
+  }
+  compile_block(comp, err);
+  if (!rak_is_ok(err)) return;
+  emit_instr(comp, rak_jump_instr(jump1), err);
+  if (!rak_is_ok(err)) return;
+  uint32_t instr = rak_jump_if_false_instr((uint16_t) comp->chunk.instrs.len);
+  patch_instr(comp, jump2, instr);
+  if (!rak_is_ok(err)) return;
+  emit_instr(comp, rak_pop_instr(), err);
+}
+
+static inline void compile_do_while_stmt(RakCompiler *comp, RakError *err)
+{
+  next(comp, err);
+  uint16_t jump1 = (uint16_t) comp->chunk.instrs.len;
+  compile_block(comp, err);
+  if (!rak_is_ok(err)) return;
+  consume(comp, RAK_TOKEN_KIND_WHILE_KW, err);
+  compile_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
+  uint16_t jump2 = emit_instr(comp, rak_nop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  emit_instr(comp, rak_pop_instr(), err);
+  if (!rak_is_ok(err)) return;
+  emit_instr(comp, rak_jump_instr(jump1), err);
+  if (!rak_is_ok(err)) return;
+  uint32_t instr = rak_jump_if_false_instr((uint16_t) comp->chunk.instrs.len);
+  patch_instr(comp, jump2, instr);
+  if (!rak_is_ok(err)) return;
+  emit_instr(comp, rak_pop_instr(), err);
 }
 
 static inline void compile_echo_stmt(RakCompiler *comp, RakError *err)
