@@ -223,6 +223,7 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   case RAK_TOKEN_KIND_PERCENT:   cstr = "'%'";        break;
   case RAK_TOKEN_KIND_NUMBER:    cstr = "number";     break;
   case RAK_TOKEN_KIND_STRING:    cstr = "string";     break;
+  case RAK_TOKEN_KIND_BREAK_KW:  cstr = "break";      break;
   case RAK_TOKEN_KIND_DO_KW:     cstr = "do";         break;
   case RAK_TOKEN_KIND_ECHO_KW:   cstr = "echo";       break;
   case RAK_TOKEN_KIND_ELSE_KW:   cstr = "else";       break;
@@ -280,6 +281,7 @@ void rak_lexer_next(RakLexer *lex, RakError *err)
   if (match_char(lex, '%', RAK_TOKEN_KIND_PERCENT)) return;
   if (match_number(lex, err) || !rak_is_ok(err)) return;
   if (match_string(lex, err) || !rak_is_ok(err)) return;
+  if (match_keyword(lex, "break", RAK_TOKEN_KIND_BREAK_KW)) return;
   if (match_keyword(lex, "do", RAK_TOKEN_KIND_DO_KW)) return;
   if (match_keyword(lex, "echo", RAK_TOKEN_KIND_ECHO_KW)) return;
   if (match_keyword(lex, "else", RAK_TOKEN_KIND_ELSE_KW)) return;

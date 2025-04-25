@@ -7,6 +7,7 @@ stmt              ::= block
                     | if_stmt
                     | while_stmt
                     | do_while_stmt
+                    | break_stmt
                     | echo_stmt
                     | expr_stmt
 
@@ -23,6 +24,8 @@ if_stmt_cont      ::= ( "else" ( if_stmt | block ) )?
 while_stmt        ::= "while" expr block
 
 do_while_stmt     ::= "do" block "while" expr ";"
+
+break_stmt        ::= "break" ";"
 
 echo_stmt         ::= "echo" expr ";"
 

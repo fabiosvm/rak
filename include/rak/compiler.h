@@ -23,12 +23,19 @@ typedef struct
   int      depth;
 } RakSymbol;
 
+typedef struct RakLoop
+{
+  struct RakLoop     *parent;
+  RakSlice(uint16_t)  jumps;
+} RakLoop;
+
 typedef struct
 {
-  RakChunk            chunk;
-  RakLexer            lex;
-  RakSlice(RakSymbol) symbols;
-  int                 scopeDepth;
+  RakChunk             chunk;
+  RakLexer             lex;
+  RakSlice(RakSymbol)  symbols;
+  int                  scopeDepth;
+  RakLoop             *loop;
 } RakCompiler;
 
 void rak_compiler_init(RakCompiler *comp, RakError *err);
