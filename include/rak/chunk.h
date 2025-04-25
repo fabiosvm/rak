@@ -87,8 +87,8 @@ typedef enum
 
 typedef struct
 {
-  RakSlice(RakValue) consts;
-  RakSlice(uint32_t) instrs;
+  RakStaticSlice(RakValue, UINT8_MAX) consts;
+  RakSlice(uint32_t)                  instrs;
 } RakChunk;
 
 const char *rak_opcode_to_cstr(RakOpcode op);

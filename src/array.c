@@ -163,7 +163,7 @@ RakArray *rak_array_slice(RakArray *arr, int start, int end, RakError *err)
 
 void rak_array_inplace_append(RakArray *arr, RakValue val, RakError *err)
 {
-  rak_slice_append(&arr->slice, val, err);
+  rak_slice_ensure_append(&arr->slice, val, err);
   if (!rak_is_ok(err)) return;
   rak_value_retain(val);
 }

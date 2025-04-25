@@ -15,12 +15,25 @@
 
 #define RAK_SLICE_MIN_CAPACITY ((int) 1 << 3)
 
+#define RakStaticSlice(T, c) \
+  struct { \
+    int cap; \
+    int len; \
+    T   data[c]; \
+  }
+
 #define RakSlice(T) \
   struct { \
     int  cap; \
     int  len; \
     T   *data; \
   }
+
+#define rak_static_slice_init(s) \
+  do { \
+    (s)->cap = sizeof((s)->data) / sizeof(*(s)->data); \
+    (s)->len = 0; \
+  } while (0)
 
 #define rak_slice_init(s, e) \
   do { \
@@ -64,14 +77,21 @@
 
 #define rak_slice_is_empty(s) (!(s)->len)
 
+#define rak_slice_is_full(s) ((s)->len == (s)->cap)
+
 #define rak_slice_get(s, i) ((s)->data[(i)])
 
-#define rak_slice_append(s, d, e) \
+#define rak_slice_append(s, d) \
   do { \
-    rak_slice_ensure_capacity((s), (s)->len + 1, e); \
-    if (!rak_is_ok(e)) break; \
     (s)->data[(s)->len] = (d); \
     ++(s)->len; \
+  } while (0)
+
+#define rak_slice_ensure_append(s, d, e) \
+  do { \
+    rak_slice_ensure_capacity((s), (s)->len + 1, (e)); \
+    if (!rak_is_ok(e)) break; \
+    rak_slice_append((s), (d)); \
   } while (0)
 
 #define rak_slice_set(s, i, d) \

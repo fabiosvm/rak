@@ -62,17 +62,13 @@ const char *rak_opcode_to_cstr(RakOpcode op)
 
 void rak_chunk_init(RakChunk *chunk, RakError *err)
 {
-  rak_slice_init(&chunk->consts, err);
-  if (!rak_is_ok(err)) return;
+  rak_static_slice_init(&chunk->consts);
   rak_slice_init(&chunk->instrs, err);
-  if (rak_is_ok(err)) return;
-  rak_slice_deinit(&chunk->consts);
 }
 
 void rak_chunk_deinit(RakChunk *chunk)
 {
   release_consts(chunk);
-  rak_slice_deinit(&chunk->consts);
   rak_slice_deinit(&chunk->instrs);
 }
 
@@ -84,8 +80,7 @@ uint8_t rak_chunk_append_const(RakChunk *chunk, RakValue val, RakError *err)
     rak_error_set(err, "too many constants");
     return 0;
   }
-  rak_slice_append(&chunk->consts, val, err);
-  if (!rak_is_ok(err)) return 0;
+  rak_slice_append(&chunk->consts, val);
   rak_value_retain(val);
   return (uint8_t) idx;
 }
@@ -98,7 +93,7 @@ uint16_t rak_chunk_append_instr(RakChunk *chunk, uint32_t instr, RakError *err)
     rak_error_set(err, "too many instructions");
     return 0;
   }
-  rak_slice_append(&chunk->instrs, instr, err);
+  rak_slice_ensure_append(&chunk->instrs, instr, err);
   if (!rak_is_ok(err)) return 0;
   return (uint16_t) idx;
 }

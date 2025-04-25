@@ -70,7 +70,7 @@ static inline void compile_if_expr_cont(RakCompiler *comp, uint16_t *off, RakErr
 static inline void compile_group(RakCompiler *comp, RakError *err);
 static inline void begin_scope(RakCompiler *comp);
 static inline void end_scope(RakCompiler *comp, RakError *err);
-static inline void begin_loop(RakCompiler *comp, RakLoop *loop, RakError *err);
+static inline void begin_loop(RakCompiler *comp, RakLoop *loop);
 static inline void end_loop(RakCompiler *comp);
 static inline void define_local(RakCompiler *comp, RakToken tok, RakError *err);
 static inline uint8_t resolve_local(RakCompiler *comp, RakToken tok, RakError *err);
@@ -259,8 +259,7 @@ static inline void compile_while_stmt(RakCompiler *comp, RakError *err)
 {
   next(comp, err);
   RakLoop loop;
-  begin_loop(comp, &loop, err);
-  if (!rak_is_ok(err)) return;
+  begin_loop(comp, &loop);
   uint16_t off = (uint16_t) comp->chunk.instrs.len;
   compile_expr(comp, err);
   if (!rak_is_ok(err)) return;
@@ -287,8 +286,7 @@ static inline void compile_do_while_stmt(RakCompiler *comp, RakError *err)
 {
   next(comp, err);
   RakLoop loop;
-  begin_loop(comp, &loop, err);
-  if (!rak_is_ok(err)) return;
+  begin_loop(comp, &loop);
   uint16_t off = (uint16_t) comp->chunk.instrs.len;
   if (!match(comp, RAK_TOKEN_KIND_LBRACE))
   {
@@ -325,7 +323,12 @@ static inline void compile_break_stmt(RakCompiler *comp, RakError *err)
   }
   uint16_t jump = emit_instr(comp, rak_nop_instr(), err);
   if (!rak_is_ok(err)) return;
-  rak_slice_append(&loop->jumps, jump, err);
+  if (rak_slice_is_full(&loop->jumps))
+  {
+    rak_error_set(err, "too many break statements in loop");
+    return;
+  }
+  rak_slice_append(&loop->jumps, jump);
 }
 
 static inline void compile_continue_stmt(RakCompiler *comp, RakError *err)
@@ -888,12 +891,11 @@ static inline void end_scope(RakCompiler *comp, RakError *err)
   --comp->scopeDepth;
 }
 
-static inline void begin_loop(RakCompiler *comp, RakLoop *loop, RakError *err)
+static inline void begin_loop(RakCompiler *comp, RakLoop *loop)
 {
   loop->parent = comp->loop;
   loop->off = (uint16_t) comp->chunk.instrs.len;
-  rak_slice_init(&loop->jumps, err);
-  if (!rak_is_ok(err)) return;
+  rak_static_slice_init(&loop->jumps);
   comp->loop = loop;
 }
 
@@ -906,7 +908,6 @@ static inline void end_loop(RakCompiler *comp)
     uint16_t jump = rak_slice_get(&comp->loop->jumps, i);
     patch_instr(comp, jump, instr);
   }
-  rak_slice_deinit(&comp->loop->jumps);
   comp->loop = comp->loop->parent;
 }
 
@@ -940,8 +941,7 @@ static inline void define_local(RakCompiler *comp, RakToken tok, RakError *err)
     .idx  = (uint8_t) idx,
     .depth = comp->scopeDepth
   };
-  rak_slice_append(&comp->symbols, sym, err);
-  if (!rak_is_ok(err)) return;
+  rak_slice_append(&comp->symbols, sym);
 }
 
 static inline uint8_t resolve_local(RakCompiler *comp, RakToken tok, RakError *err)
@@ -991,12 +991,7 @@ void rak_compiler_init(RakCompiler *comp, RakError *err)
 {
   rak_chunk_init(&comp->chunk, err);
   if (!rak_is_ok(err)) return;
-  rak_slice_init(&comp->symbols, err);
-  if (!rak_is_ok(err))
-  {
-    rak_chunk_deinit(&comp->chunk);
-    return;
-  }
+  rak_static_slice_init(&comp->symbols);
   comp->scopeDepth = 0;
   comp->loop = NULL;
 }
@@ -1004,7 +999,6 @@ void rak_compiler_init(RakCompiler *comp, RakError *err)
 void rak_compiler_deinit(RakCompiler *comp)
 {
   rak_chunk_deinit(&comp->chunk);
-  rak_slice_deinit(&comp->symbols);
 }
 
 void rak_compiler_compile(RakCompiler *comp, char *source, RakError *err)

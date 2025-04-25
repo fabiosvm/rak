@@ -25,18 +25,18 @@ typedef struct
 
 typedef struct RakLoop
 {
-  struct RakLoop     *parent;
-  uint16_t            off;
-  RakSlice(uint16_t)  jumps;
+  struct RakLoop                      *parent;
+  uint16_t                             off;
+  RakStaticSlice(uint16_t, UINT8_MAX)  jumps;
 } RakLoop;
 
 typedef struct
 {
-  RakChunk             chunk;
-  RakLexer             lex;
-  RakSlice(RakSymbol)  symbols;
-  int                  scopeDepth;
-  RakLoop             *loop;
+  RakChunk                              chunk;
+  RakLexer                              lex;
+  RakStaticSlice(RakSymbol, UINT8_MAX)  symbols;
+  int                                   scopeDepth;
+  RakLoop                              *loop;
 } RakCompiler;
 
 void rak_compiler_init(RakCompiler *comp, RakError *err);

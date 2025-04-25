@@ -159,7 +159,7 @@ void rak_record_inplace_put(RakRecord *rec, RakString *name, RakValue val, RakEr
     .name = name,
     .val = val,
   };
-  rak_slice_append(&rec->slice, field, err);
+  rak_slice_ensure_append(&rec->slice, field, err);
   if (!rak_is_ok(err)) return;
   rak_object_retain(&name->obj);
   rak_value_retain(val);

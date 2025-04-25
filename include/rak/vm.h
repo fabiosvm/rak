@@ -273,7 +273,7 @@ static inline void rak_vm_new_record(RakVM *vm, uint8_t len, RakError *err)
       .name = name,
       .val = val,
     };
-    rak_slice_append(&rec->slice, field, err);
+    rak_slice_ensure_append(&rec->slice, field, err);
     if (rak_is_ok(err)) continue;
     rak_record_free(rec);
     return;
