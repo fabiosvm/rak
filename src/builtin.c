@@ -10,6 +10,7 @@
 
 #include "rak/builtin.h"
 #include <float.h>
+#include <stdio.h>
 #include <string.h>
 
 static const char *globals[] = {

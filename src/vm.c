@@ -42,7 +42,6 @@ static void do_mod(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, Ra
 static void do_not(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_neg(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_call(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
-static void do_echo(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_halt(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 
 static InstrHandler dispatchTable[] = {
@@ -73,7 +72,6 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_NOT]           = do_not,
   [RAK_OP_NEG]           = do_neg,
   [RAK_OP_CALL]          = do_call,
-  [RAK_OP_ECHO]          = do_echo,
   [RAK_OP_HALT]          = do_halt
 };
 
@@ -280,12 +278,6 @@ static void do_call(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, R
   uint8_t n = rak_instr_a(*ip);
   rak_vm_call(vm, n, err);
   if (!rak_is_ok(err)) return;
-  dispatch(vm, chunk, ip + 1, slots, err);
-}
-
-static void do_echo(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
-{
-  rak_vm_echo(vm);
   dispatch(vm, chunk, ip + 1, slots, err);
 }
 

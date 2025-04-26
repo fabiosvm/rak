@@ -25,8 +25,8 @@ Use `rak` to run the REPL:
 
 Example:
 
-```
-echo "Hello, world!";
+```rs
+println("Hello, world!");
 ```
 
 > **Note:** You can use the flag `-d` to dump the bytecode.

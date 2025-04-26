@@ -226,7 +226,6 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   case RAK_TOKEN_KIND_BREAK_KW:    cstr = "break";      break;
   case RAK_TOKEN_KIND_CONTINUE_KW: cstr = "continue";   break;
   case RAK_TOKEN_KIND_DO_KW:       cstr = "do";         break;
-  case RAK_TOKEN_KIND_ECHO_KW:     cstr = "echo";       break;
   case RAK_TOKEN_KIND_ELSE_KW:     cstr = "else";       break;
   case RAK_TOKEN_KIND_FALSE_KW:    cstr = "false";      break;
   case RAK_TOKEN_KIND_IF_KW:       cstr = "if";         break;
@@ -286,7 +285,6 @@ void rak_lexer_next(RakLexer *lex, RakError *err)
   if (match_keyword(lex, "break", RAK_TOKEN_KIND_BREAK_KW)) return;
   if (match_keyword(lex, "continue", RAK_TOKEN_KIND_CONTINUE_KW)) return;
   if (match_keyword(lex, "do", RAK_TOKEN_KIND_DO_KW)) return;
-  if (match_keyword(lex, "echo", RAK_TOKEN_KIND_ECHO_KW)) return;
   if (match_keyword(lex, "else", RAK_TOKEN_KIND_ELSE_KW)) return;
   if (match_keyword(lex, "false", RAK_TOKEN_KIND_FALSE_KW)) return;
   if (match_keyword(lex, "if", RAK_TOKEN_KIND_IF_KW)) return;

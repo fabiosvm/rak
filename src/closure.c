@@ -10,7 +10,6 @@
 
 #include "rak/closure.h"
 #include <assert.h>
-#include <stdio.h>
 #include "rak/memory.h"
 
 RakClosure *rak_closure_new_native_function(int arity, RakNativeFunction native, RakError *err)
