@@ -18,7 +18,9 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 add_executable("${PROJECT_NAME}"
   "src/array.c"
+  "src/builtin.c"
   "src/chunk.c"
+  "src/closure.c"
   "src/compiler.c"
   "src/dump.c"
   "src/error.c"

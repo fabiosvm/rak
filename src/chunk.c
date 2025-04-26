@@ -33,6 +33,7 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   case RAK_OP_PUSH_FALSE:    cstr = "PUSH_FALSE";    break;
   case RAK_OP_PUSH_TRUE:     cstr = "PUSH_TRUE";     break;
   case RAK_OP_LOAD_CONST:    cstr = "LOAD_CONST";    break;
+  case RAK_OP_LOAD_GLOBAL:   cstr = "LOAD_GLOBAL";   break;
   case RAK_OP_LOAD_LOCAL:    cstr = "LOAD_LOCAL";    break;
   case RAK_OP_LOAD_ELEMENT:  cstr = "LOAD_ELEMENT";  break;
   case RAK_OP_STORE_LOCAL:   cstr = "STORE_LOCAL";   break;
@@ -53,6 +54,7 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   case RAK_OP_MOD:           cstr = "MOD";           break;
   case RAK_OP_NOT:           cstr = "NOT";           break;
   case RAK_OP_NEG:           cstr = "NEG";           break;
+  case RAK_OP_CALL:          cstr = "CALL";          break;
   case RAK_OP_ECHO:          cstr = "ECHO";          break;
   case RAK_OP_HALT:          cstr = "HALT";          break;
   }

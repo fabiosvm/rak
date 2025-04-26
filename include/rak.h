@@ -12,7 +12,9 @@
 #define RAK_H
 
 #include "rak/array.h"
+#include "rak/builtin.h"
 #include "rak/chunk.h"
+#include "rak/closure.h"
 #include "rak/compiler.h"
 #include "rak/dump.h"
 #include "rak/error.h"

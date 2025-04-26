@@ -8,6 +8,7 @@
 // located in the root directory of this project.
 //
 
+#include <assert.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
@@ -86,6 +87,9 @@ static inline void eval(void)
   }
   if (dump)
     rak_dump_chunk(&comp.chunk);
+  rak_vm_reset(&vm);
+  rak_builtin_load_globals(&vm, &err);
+  assert(rak_is_ok(&err));
   rak_vm_run(&vm, &comp.chunk, &err);
   if (rak_is_ok(&err)) return;
   rak_error_print(&err);

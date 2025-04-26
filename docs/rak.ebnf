@@ -55,9 +55,15 @@ add_expr          ::= mul_expr ( ( "+" | "-" ) mul_expr )*
 
 mul_expr          ::= unary_expr ( ( "*" | "/" | "%" ) unary_expr )*
 
-unary_expr        ::= ( "!" | "-" )? unary_expr | subscr_expr
+unary_expr        ::= ( "!" | "-" )? unary_expr | call_expr
 
-subscr_expr       ::= prim_expr ( "[" expr "]" | "." IDENT )*
+call_expr         ::= prim_expr ( call | subscr )*
+
+call              ::= "(" expr_list? ")"
+
+expr_list         ::= expr ( "," expr )*
+
+subscr            ::= "[" expr "]" | "." IDENT
 
 prim_expr         ::= "nil" | "false" | "true" | NUMBER | STRING | IDENT
                     | array
@@ -65,7 +71,7 @@ prim_expr         ::= "nil" | "false" | "true" | NUMBER | STRING | IDENT
                     | if_expr
                     | group
 
-array             ::= "[" ( expr ( "," expr )* )? "]"
+array             ::= "[" expr_list? "]"
 
 record            ::= "{" ( field ( "," field )* )? "}"
 

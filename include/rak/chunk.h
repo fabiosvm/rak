@@ -31,6 +31,7 @@
 #define rak_push_false_instr()     rak_instr_fmt0(RAK_OP_PUSH_FALSE)
 #define rak_push_true_instr()      rak_instr_fmt0(RAK_OP_PUSH_TRUE)
 #define rak_load_const_instr(i)    rak_instr_fmt1(RAK_OP_LOAD_CONST, (i))
+#define rak_load_global_instr(i)   rak_instr_fmt1(RAK_OP_LOAD_GLOBAL, (i))
 #define rak_load_local_instr(i)    rak_instr_fmt1(RAK_OP_LOAD_LOCAL, (i))
 #define rak_load_element_instr()   rak_instr_fmt0(RAK_OP_LOAD_ELEMENT)
 #define rak_store_local_instr(i)   rak_instr_fmt1(RAK_OP_STORE_LOCAL, (i))
@@ -51,6 +52,7 @@
 #define rak_mod_instr()            rak_instr_fmt0(RAK_OP_MOD)
 #define rak_not_instr()            rak_instr_fmt0(RAK_OP_NOT)
 #define rak_neg_instr()            rak_instr_fmt0(RAK_OP_NEG)
+#define rak_call_instr(n)          rak_instr_fmt1(RAK_OP_CALL, (n))
 #define rak_echo_instr()           rak_instr_fmt0(RAK_OP_ECHO)
 #define rak_halt_instr()           rak_instr_fmt0(RAK_OP_HALT)
 
@@ -61,6 +63,7 @@ typedef enum
   RAK_OP_PUSH_FALSE,
   RAK_OP_PUSH_TRUE,
   RAK_OP_LOAD_CONST,
+  RAK_OP_LOAD_GLOBAL,
   RAK_OP_LOAD_LOCAL,
   RAK_OP_LOAD_ELEMENT,
   RAK_OP_STORE_LOCAL,
@@ -81,6 +84,7 @@ typedef enum
   RAK_OP_MOD,
   RAK_OP_NOT,
   RAK_OP_NEG,
+  RAK_OP_CALL,
   RAK_OP_ECHO,
   RAK_OP_HALT
 } RakOpcode;

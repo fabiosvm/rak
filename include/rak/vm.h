@@ -16,13 +16,14 @@
 #include <math.h>
 #include "array.h"
 #include "chunk.h"
+#include "closure.h"
 #include "range.h"
 #include "record.h"
 #include "stack.h"
 
 #define RAK_VM_VSTK_DEFAULT_SIZE (1024)
 
-typedef struct
+typedef struct RakVM
 {
   RakStack(RakValue) vstk;
 } RakVM;
@@ -34,7 +35,8 @@ static inline void rak_vm_push_number(RakVM *vm, double data, RakError *err);
 static inline void rak_vm_push_value(RakVM *vm, RakValue val, RakError *err);
 static inline void rak_vm_push_object(RakVM *vm, RakValue val, RakError *err);
 static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
-static inline void rak_vm_load_local(RakVM *vm, uint8_t idx, RakError *err);
+static inline void rak_vm_load_global(RakVM *vm, uint8_t idx, RakError *err);
+static inline void rak_vm_load_local(RakVM *vm, uint8_t idx, RakValue *slots, RakError *err);
 static inline void rak_vm_load_element(RakVM *vm, RakError *err);
 static inline void rak_vm_store_local(RakVM *vm, uint8_t idx);
 static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err);
@@ -55,11 +57,13 @@ static inline void rak_vm_div(RakVM *vm, RakError *err);
 static inline void rak_vm_mod(RakVM *vm, RakError *err);
 static inline void rak_vm_not(RakVM *vm);
 static inline void rak_vm_neg(RakVM *vm, RakError *err);
+static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err);
 static inline void rak_vm_echo(RakVM *vm);
 
 void rak_vm_init(RakVM *vm, int vstkSize, RakError *err);
 void rak_vm_deinit(RakVM *vm);
 void rak_vm_run(RakVM *vm, RakChunk *chunk, RakError *err);
+void rak_vm_reset(RakVM *vm);
 
 static inline void rak_vm_push(RakVM *vm, RakValue val, RakError *err)
 {
@@ -106,9 +110,15 @@ static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, Ra
   rak_vm_push_value(vm, val, err);
 }
 
-static inline void rak_vm_load_local(RakVM *vm, uint8_t idx, RakError *err)
+static inline void rak_vm_load_global(RakVM *vm, uint8_t idx, RakError *err)
 {
   RakValue val = vm->vstk.base[idx];
+  rak_vm_push_value(vm, val, err);
+}
+
+static inline void rak_vm_load_local(RakVM *vm, uint8_t idx, RakValue *slots, RakError *err)
+{
+  RakValue val = slots[idx];
   rak_vm_push_value(vm, val, err);
 }
 
@@ -493,6 +503,32 @@ static inline void rak_vm_neg(RakVM *vm, RakError *err)
   double num = rak_as_number(val);
   RakValue res = rak_number_value(-num);
   rak_vm_set(vm, 0, res);
+}
+
+static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err)
+{
+  RakValue *slots = &rak_stack_get(&vm->vstk, nargs);
+  RakValue val = slots[0];
+  if (!rak_is_closure(val))
+  {
+    rak_error_set(err, "cannot call non-closure value");
+    return;
+  }
+  RakClosure *closure = rak_as_closure(val);
+  if (nargs != closure->arity)
+  {
+    rak_error_set(err, "expected %d arguments, got %d", closure->arity, nargs);
+    return;
+  }
+  assert(closure->kind == RAK_CLOSURE_KIND_NATIVE_FUNCTION);
+  RakNativeFunction native = closure->as.native;
+  native(vm, slots, err);
+  if (!rak_is_ok(err)) return;
+  rak_closure_release(closure);
+  slots[0] = rak_vm_get(vm, 0);
+  rak_stack_pop(&vm->vstk);
+  while (vm->vstk.top > slots)
+    rak_vm_pop(vm);
 }
 
 static inline void rak_vm_echo(RakVM *vm)
