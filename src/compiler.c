@@ -199,7 +199,7 @@ static inline void compile_assign_stmt(RakCompiler *comp, RakError *err)
     rak_error_set(err, "undefined local variable '%.*s'", tok.len, tok.chars);
     return;
   }
-  emit_instr(comp, rak_store_local_instr((uint8_t) idx), err);
+  emit_instr(comp, rak_store_local_instr((uint8_t) idx + 1), err);
 }
 
 static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *err)

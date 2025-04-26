@@ -134,7 +134,7 @@ static void do_load_global(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *s
 static void do_load_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
 {
   uint8_t idx = rak_instr_a(*ip);
-  rak_vm_load_local(vm, idx, slots, err);
+  rak_vm_load_local(vm, slots, idx, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, chunk, ip + 1, slots, err);
 }
@@ -149,7 +149,7 @@ static void do_load_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *
 static void do_store_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
 {
   uint8_t idx = rak_instr_a(*ip);
-  rak_vm_store_local(vm, idx);
+  rak_vm_store_local(vm, slots, idx);
   dispatch(vm, chunk, ip + 1, slots, err);
 }
 
