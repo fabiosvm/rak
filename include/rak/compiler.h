@@ -33,8 +33,8 @@ typedef struct RakLoop
 typedef struct
 {
   RakChunk                              chunk;
-  RakLexer                              lex;
   RakStaticSlice(RakSymbol, UINT8_MAX)  symbols;
+  RakLexer                              lex;
   int                                   scopeDepth;
   RakLoop                              *loop;
 } RakCompiler;
@@ -42,5 +42,6 @@ typedef struct
 void rak_compiler_init(RakCompiler *comp, RakError *err);
 void rak_compiler_deinit(RakCompiler *comp);
 void rak_compiler_compile(RakCompiler *comp, char *source, RakError *err);
+void rak_compiler_reset(RakCompiler *comp);
 
 #endif // RAK_COMPILER_H

@@ -8,7 +8,6 @@
 // located in the root directory of this project.
 //
 
-#include <assert.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,98 +16,80 @@
 
 #define SOURCE_MAX_LEN ((int) 1 << 12)
 
-static bool dump = false;
-static RakError err;
-static RakString source;
-static RakCompiler comp;
-static RakVM vm;
-
-static inline void check_error(void);
-static inline void init(void);
-static inline void deinit(void);
-static inline void repl(void);
-static inline bool read(void);
-static inline void eval(void);
 static void shutdown(int sig);
-
-static inline void check_error(void)
-{
-  if (rak_is_ok(&err)) return;
-  rak_error_print(&err);
-  exit(EXIT_FAILURE);
-}
-
-static inline void init(void)
-{
-  err = rak_ok();
-  rak_string_init_with_capacity(&source, SOURCE_MAX_LEN, &err);
-  check_error();
-  rak_compiler_init(&comp, &err);
-  check_error();
-  rak_vm_init(&vm, RAK_VM_VSTK_DEFAULT_SIZE, &err);
-  check_error();
-  signal(SIGINT, shutdown);
-}
-
-static inline void deinit(void)
-{
-  rak_string_deinit(&source);
-  rak_compiler_deinit(&comp);
-  rak_vm_deinit(&vm);
-}
-
-static inline void repl(void)
-{
-  for (;;)
-  {
-    printf("> ");
-    if (!read()) break;
-    if (rak_string_len(&source) == 1) continue;
-    eval();
-  }
-}
-
-static inline bool read(void)
-{
-  char *cstr = rak_string_chars(&source);
-  if (!fgets(cstr, SOURCE_MAX_LEN, stdin))
-    return false;
-  source.slice.len = (int) strlen(cstr);
-  return true;
-}
-
-static inline void eval(void)
-{
-  err = rak_ok();
-  rak_compiler_compile(&comp, rak_string_chars(&source), &err);
-  if (!rak_is_ok(&err))
-  {
-    rak_error_print(&err);
-    return;
-  }
-  if (dump)
-    rak_dump_chunk(&comp.chunk);
-  rak_vm_reset(&vm);
-  rak_builtin_load_globals(&vm, &err);
-  assert(rak_is_ok(&err));
-  rak_vm_run(&vm, &comp.chunk, &err);
-  if (rak_is_ok(&err)) return;
-  rak_error_print(&err);
-}
+static void check_error(RakError *err);
+static void read(RakString *source);
+static void compile(RakCompiler *comp, RakString *source, RakError *err);
+static void run(RakVM *vm, RakChunk *chunk, RakError *err);
 
 static void shutdown(int sig)
 {
   (void) sig;
   printf("\n");
-  deinit();
   exit(EXIT_SUCCESS);
+}
+
+static void check_error(RakError *err)
+{
+  if (rak_is_ok(err)) return;
+  rak_error_print(err);
+  exit(EXIT_FAILURE);
+}
+
+static void read(RakString *source)
+{
+  RakError err = rak_ok();
+  rak_string_init_with_capacity(source, SOURCE_MAX_LEN, &err);
+  check_error(&err);
+  char c = (char) fgetc(stdin);
+  while (c != EOF)
+  {
+    rak_string_inplace_append_cstr(source, 1, &c, &err);
+    check_error(&err);
+    c = (char) fgetc(stdin);
+  }
+  rak_string_inplace_append_cstr(source, 1, "\0", &err);
+  check_error(&err);
+}
+
+static void compile(RakCompiler *comp, RakString *source, RakError *err)
+{
+  rak_compiler_init(comp, err);
+  check_error(err);
+  rak_compiler_compile(comp, rak_string_chars(source), err);
+  check_error(err);
+}
+
+static void run(RakVM *vm, RakChunk *chunk, RakError *err)
+{
+  rak_vm_init(vm, RAK_VM_VSTK_DEFAULT_SIZE, err);
+  check_error(err);
+  rak_builtin_load_globals(vm, err);
+  check_error(err);
+  rak_vm_run(vm, chunk, err);
+  check_error(err);
 }
 
 int main(int argc, const char *argv[])
 {
-  if (argc > 1)
-    dump = !strcmp(argv[1], "-d");
-  init();
-  repl();
+  signal(SIGINT, shutdown);
+  RakError err = rak_ok();
+  RakString source;
+  read(&source);
+  RakCompiler comp;
+  compile(&comp, &source, &err);
+  check_error(&err);
+  if (argc > 1 && !strcmp(argv[1], "-c"))
+  {
+    rak_dump_chunk(&comp.chunk);
+    goto end;
+  }
+  RakVM vm;
+  run(&vm, &comp.chunk, &err);
+  check_error(&err);
+  rak_vm_deinit(&vm);
+end:
+  rak_compiler_deinit(&comp);
+  rak_string_deinit(&source);
   return EXIT_SUCCESS;
 }

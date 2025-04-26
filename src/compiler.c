@@ -87,6 +87,7 @@ static inline void compile_chunk(RakCompiler *comp, RakError *err)
     compile_stmt(comp, err);
     if (!rak_is_ok(err)) return;
   }
+  emit_instr(comp, rak_halt_instr(), err);
 }
 
 static inline void compile_stmt(RakCompiler *comp, RakError *err)
@@ -1078,9 +1079,11 @@ void rak_compiler_compile(RakCompiler *comp, char *source, RakError *err)
 {
   rak_lexer_init(&comp->lex, source, err);
   if (!rak_is_ok(err)) return;
+  compile_chunk(comp, err);
+}
+
+void rak_compiler_reset(RakCompiler *comp)
+{
   rak_chunk_clear(&comp->chunk);
   rak_slice_clear(&comp->symbols);
-  compile_chunk(comp, err);
-  if (!rak_is_ok(err)) return;
-  emit_instr(comp, rak_halt_instr(), err);
 }

@@ -7,6 +7,14 @@ Rak is a dynamically typed scripting language that adopts a mutable value semant
 
 > **Note:** This project is in the early stages of development and is not yet ready for use.
 
+## What does Rak look like?
+
+The following is an example of a simple program that prints "Hello, world!" to the console:
+
+```rs
+println("Hello, world!");
+```
+
 ## Building
 
 This project uses [CMake](https://cmake.org) to build, and to facilitate this, a build script is provided. So, to build, simply run the build script:
@@ -15,21 +23,31 @@ This project uses [CMake](https://cmake.org) to build, and to facilitate this, a
 ./build.sh
 ```
 
-## Executing the REPL
+## Executing a script
 
-Use `rak` to run the REPL:
+Use `rak` to execute a script. Example:
 
 ```
-./build/rak
+./build/rak < examples/hello.rak
 ```
 
-Example:
+You can use the flag `-c` to just compile and display the bytecode, without executing it.
 
-```rs
-println("Hello, world!");
+```
+./build/rak -c < examples/hello.rak
 ```
 
-> **Note:** You can use the flag `-d` to dump the bytecode.
+Output:
+
+```
+1 constant(s)
+5 instruction(s)
+[0000] LOAD_GLOBAL     31
+[0001] LOAD_CONST      0
+[0002] CALL            1
+[0003] POP
+[0004] HALT
+```
 
 ## Cleaning
 

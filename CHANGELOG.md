@@ -10,4 +10,4 @@ and adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- Initial compiler and VM implementation in the REPL.
+- Initial compiler and VM implementation.
