@@ -157,7 +157,7 @@ static void ptr_native(RakVM *vm, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   void *ptr = rak_is_object(val) ? val.opaque.ptr : NULL;
-  rak_vm_push_number(vm, (uintptr_t) ptr, err);
+  rak_vm_push_number(vm, (double) (uintptr_t) ptr, err);
 }
 
 static void ref_count_native(RakVM *vm, RakValue *slots, RakError *err)
