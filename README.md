@@ -9,10 +9,22 @@ Rak is a dynamically typed scripting language that adopts a mutable value semant
 
 ## What does Rak look like?
 
-The following is an example of a simple program that prints "Hello, world!" to the console:
+The following is an example of a simple script that prints a hailstone sequence:
 
 ```rs
-println("Hello, world!");
+let n = 7;
+
+let seq = [n];
+while n != 1 {
+  if n % 2 == 0 {
+    &n = n / 2;
+  } else {
+    &n = n * 3 + 1;
+  }
+  &seq = seq + [n];
+}
+
+println(seq);
 ```
 
 ## Building
@@ -28,7 +40,7 @@ This project uses [CMake](https://cmake.org) to build, and to facilitate this, a
 Use `rak` to execute a script. Example:
 
 ```
-./build/rak < examples/hello.rak
+./build/rak < examples/hailstone.rak
 ```
 
 You can use the flag `-c` to just compile and display the bytecode, without executing it.
