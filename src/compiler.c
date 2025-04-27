@@ -188,10 +188,6 @@ static inline void compile_assign_stmt(RakCompiler *comp, RakError *err)
   }
   RakToken tok = comp->lex.tok;
   next(comp, err);
-  consume(comp, RAK_TOKEN_KIND_EQ, err);
-  compile_expr(comp, err);
-  if (!rak_is_ok(err)) return;
-  consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
   int idx = resolve_local(comp, tok);
   if (!rak_is_ok(err)) return;
   if (idx == -1)
@@ -199,7 +195,47 @@ static inline void compile_assign_stmt(RakCompiler *comp, RakError *err)
     rak_error_set(err, "undefined local variable '%.*s'", tok.len, tok.chars);
     return;
   }
-  emit_instr(comp, rak_store_local_instr((uint8_t) idx + 1), err);
+  uint8_t _idx = (uint8_t) idx + 1;
+  if (match(comp, RAK_TOKEN_KIND_EQ))
+  {
+    next(comp, err);
+    compile_expr(comp, err);
+    if (!rak_is_ok(err)) return;
+    consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
+    emit_instr(comp, rak_store_local_instr(_idx), err);
+    return;
+  }
+  uint32_t instr = rak_add_instr();
+  switch (comp->lex.tok.kind)
+  {
+  case RAK_TOKEN_KIND_PLUSEQ:
+    instr = rak_add_instr();
+    break;
+  case RAK_TOKEN_KIND_MINUSEQ:
+    instr = rak_sub_instr();
+    break;
+  case RAK_TOKEN_KIND_STAREQ:
+    instr = rak_mul_instr();
+    break;
+  case RAK_TOKEN_KIND_SLASHEQ:
+    instr = rak_div_instr();
+    break;
+  case RAK_TOKEN_KIND_PERCENTEQ:
+    instr = rak_mod_instr();
+    break;
+  default:
+    unexpected_token_error(err, comp->lex.tok);
+    return;
+  }
+  next(comp, err);
+  emit_instr(comp, rak_load_local_instr(_idx), err);
+  if (!rak_is_ok(err)) return;
+  compile_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
+  emit_instr(comp, instr, err);
+  if (!rak_is_ok(err)) return;
+  emit_instr(comp, rak_store_local_instr(_idx), err);
 }
 
 static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *err)

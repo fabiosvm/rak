@@ -16,7 +16,7 @@ block             ::= "{" stmt* "}"
 
 let_decl          ::= "let" IDENT ( "=" expr )? ";"
 
-assign_stmt       ::= "&" IDENT "=" expr ";"
+assign_stmt       ::= "&" IDENT ( "=" | "+=" | "-=" | "*=" | "/=" | "%=" ) expr ";"
 
 if_stmt           ::= "if" let_decl? expr block if_stmt_cont
 
