@@ -9,7 +9,6 @@
 //
 
 #include "rak/closure.h"
-#include <assert.h>
 #include "rak/memory.h"
 
 RakClosure *rak_closure_new_native_function(int arity, RakNativeFunction native, RakError *err)
@@ -25,7 +24,6 @@ RakClosure *rak_closure_new_native_function(int arity, RakNativeFunction native,
 
 void rak_closure_free(RakClosure *closure)
 {
-  assert(closure->kind == RAK_CLOSURE_KIND_NATIVE_FUNCTION);
   rak_memory_free(closure);
 }
 

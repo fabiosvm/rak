@@ -9,7 +9,6 @@
 //
 
 #include "rak/lexer.h"
-#include <assert.h>
 #include <ctype.h>
 #include <string.h>
 
@@ -236,7 +235,6 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   case RAK_TOKEN_KIND_WHILE_KW:    cstr = "while";      break;
   case RAK_TOKEN_KIND_IDENT:       cstr = "identifier"; break;
   }
-  assert(cstr);
   return cstr;
 }
 

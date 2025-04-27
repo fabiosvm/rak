@@ -9,7 +9,6 @@
 //
 
 #include "rak/value.h"
-#include <assert.h>
 #include <errno.h>
 #include <math.h>
 #include <stdio.h>
@@ -34,7 +33,6 @@ const char *rak_type_to_cstr(RakType type)
   case RAK_TYPE_RECORD:  cstr = "record";  break;
   case RAK_TYPE_CLOSURE: cstr = "closure"; break;
   }
-  assert(cstr);
   return cstr;
 }
 

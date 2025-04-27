@@ -9,7 +9,6 @@
 //
 
 #include "rak/chunk.h"
-#include <assert.h>
 
 static inline void release_consts(RakChunk *chunk);
 
@@ -57,7 +56,6 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   case RAK_OP_CALL:          cstr = "CALL";          break;
   case RAK_OP_HALT:          cstr = "HALT";          break;
   }
-  assert(cstr);
   return cstr;
 }
 

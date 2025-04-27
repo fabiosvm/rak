@@ -11,7 +11,6 @@
 #ifndef RAK_VM_H
 #define RAK_VM_H
 
-#include <assert.h>
 #include <math.h>
 #include "array.h"
 #include "chunk.h"
@@ -265,7 +264,6 @@ static inline void rak_vm_new_record(RakVM *vm, uint8_t len, RakError *err)
   for (int i = 0; i < len; ++i)
   {
     int j = i << 1;
-    assert(rak_is_string(slots[j]));
     RakString *name = rak_as_string(slots[j]);
     RakValue val = slots[j + 1];
     int idx = rak_record_index_of(rec, name);
@@ -518,7 +516,6 @@ static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err)
     rak_error_set(err, "expected %d arguments, got %d", closure->arity, nargs);
     return;
   }
-  assert(closure->kind == RAK_CLOSURE_KIND_NATIVE_FUNCTION);
   RakNativeFunction native = closure->as.native;
   native(vm, slots, err);
   if (!rak_is_ok(err)) return;

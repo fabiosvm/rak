@@ -642,7 +642,7 @@ static inline void compile_call(RakCompiler *comp, bool *ok, RakError *err)
       *ok = true;
       return;
     }
-    int nargs;
+    int nargs = 0;
     compile_expr_list(comp, &nargs, err);
     consume(comp, RAK_TOKEN_KIND_RPAREN, err);
     if (nargs > UINT8_MAX)
@@ -819,7 +819,7 @@ static inline void compile_array(RakCompiler *comp, RakError *err)
     emit_instr(comp, rak_new_array_instr(0), err);
     return;
   }
-  int len;
+  int len = 0;
   compile_expr_list(comp, &len, err);
   if (!rak_is_ok(err)) return;
   consume(comp, RAK_TOKEN_KIND_RBRACKET, err);
