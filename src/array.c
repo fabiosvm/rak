@@ -106,11 +106,20 @@ void rak_array_ensure_capacity(RakArray *arr, int cap, RakError *err)
 
 RakArray *rak_array_append(RakArray *arr, RakValue val, RakError *err)
 {
-  // TODO: Implement this function.
-  (void) arr;
-  (void) val;
-  (void) err;
-  return NULL;
+  int len = rak_array_len(arr);
+  int _len = len + 1;
+  RakArray *_arr = rak_array_new_with_capacity(_len, err);
+  if (!rak_is_ok(err)) return NULL;
+  for (int i = 0; i < len; ++i)
+  {
+    RakValue _val = rak_array_get(arr, i);
+    rak_slice_set(&_arr->slice, i, _val);
+    rak_value_retain(_val);
+  }
+  rak_slice_set(&_arr->slice, len, val);
+  rak_value_retain(val);
+  _arr->slice.len = _len;
+  return _arr;
 }
 
 RakArray *rak_array_set(RakArray *arr, int idx, RakValue val, RakError *err)

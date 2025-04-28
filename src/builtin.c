@@ -41,6 +41,8 @@ static const char *globals[] = {
   "is_object",
   "ptr",
   "ref_count",
+  "make_array",
+  "append",
   "cap",
   "len",
   "is_empty",
@@ -65,6 +67,8 @@ static void is_falsy_native(RakVM *vm, RakValue *slots, RakError *err);
 static void is_object_native(RakVM *vm, RakValue *slots, RakError *err);
 static void ptr_native(RakVM *vm, RakValue *slots, RakError *err);
 static void ref_count_native(RakVM *vm, RakValue *slots, RakError *err);
+static void make_array_native(RakVM *vm, RakValue *slots, RakError *err);
+static void append_native(RakVM *vm, RakValue *slots, RakError *err);
 static void cap_native(RakVM *vm, RakValue *slots, RakError *err);
 static void len_native(RakVM *vm, RakValue *slots, RakError *err);
 static void is_empty_native(RakVM *vm, RakValue *slots, RakError *err);
@@ -165,6 +169,68 @@ static void ref_count_native(RakVM *vm, RakValue *slots, RakError *err)
   RakValue val = slots[1];
   int refCount = rak_is_object(val) ? rak_as_object(val)->refCount : -1;
   rak_vm_push_number(vm, refCount, err);
+}
+
+static void make_array_native(RakVM *vm, RakValue *slots, RakError *err)
+{
+  RakValue val1 = slots[1];
+  RakValue val2 = slots[2];
+  if (rak_is_nil(val2))
+  {
+    RakArray *arr = rak_array_new(err);
+    if (!rak_is_ok(err)) return;
+    rak_vm_push_object(vm, rak_array_value(arr), err);    
+    return;
+  }
+  if (!rak_is_number(val2) || !rak_is_integer(val2))
+  {
+    rak_error_set(err, "argument #2 must be nil or an integer number, got %s",
+      rak_type_to_cstr(val2.type));
+    return;
+  }
+  int len = (int) rak_as_number(val2);
+  len = len < 0 ? 0 : len;
+  RakValue val3 = slots[3];
+  if (rak_is_nil(val3))
+  {
+    RakArray *arr = rak_array_new_with_capacity(len, err);
+    if (!rak_is_ok(err)) return;
+    for (int i = 0; i < len; ++i)
+      rak_slice_set(&arr->slice, i, val1);
+    arr->slice.len = len;
+    rak_vm_push_object(vm, rak_array_value(arr), err);
+    return;
+  }
+  if (!rak_is_number(val3) || !rak_is_integer(val3))
+  {
+    rak_error_set(err, "argument #3 must be nil or an integer number, got %s",
+      rak_type_to_cstr(val3.type));
+    return;
+  }
+  int cap = (int) rak_as_number(val3);
+  cap = cap < len ? len : cap;
+  RakArray *arr = rak_array_new_with_capacity(cap, err);
+  if (!rak_is_ok(err)) return;
+  for (int i = 0; i < len; ++i)
+    rak_slice_set(&arr->slice, i, val1);
+  arr->slice.len = len;
+  rak_vm_push_object(vm, rak_array_value(arr), err);
+}
+
+static void append_native(RakVM *vm, RakValue *slots, RakError *err)
+{
+  RakValue val = slots[1];
+  if (!rak_is_array(val))
+  {
+    rak_error_set(err, "argument #1 must be an array, got %s",
+      rak_type_to_cstr(val.type));
+    return;
+  }
+  RakArray *arr = rak_as_array(val);
+  RakValue val2 = slots[2];
+  RakArray *_arr = rak_array_append(arr, val2, err);
+  if (!rak_is_ok(err)) return;
+  rak_vm_push_object(vm, rak_array_value(_arr), err);
 }
 
 static void cap_native(RakVM *vm, RakValue *slots, RakError *err)
@@ -315,6 +381,10 @@ void rak_builtin_load_globals(RakVM *vm, RakError *err)
   push_new_native_function(vm, 1, ptr_native, err);
   if (!rak_is_ok(err)) return;
   push_new_native_function(vm, 1, ref_count_native, err);
+  if (!rak_is_ok(err)) return;
+  push_new_native_function(vm, 3, make_array_native, err);
+  if (!rak_is_ok(err)) return;
+  push_new_native_function(vm, 2, append_native, err);
   if (!rak_is_ok(err)) return;
   push_new_native_function(vm, 1, cap_native, err);
   if (!rak_is_ok(err)) return;
