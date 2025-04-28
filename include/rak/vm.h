@@ -511,10 +511,17 @@ static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err)
     return;
   }
   RakClosure *closure = rak_as_closure(val);
-  if (nargs != closure->arity)
+  int arity = closure->arity;
+  while (nargs > arity)
   {
-    rak_error_set(err, "expected %d arguments, got %d", closure->arity, nargs);
-    return;
+    rak_vm_pop(vm);
+    --nargs;
+  }
+  while (nargs < arity)
+  {
+    rak_vm_push_nil(vm, err);
+    if (!rak_is_ok(err)) return;
+    ++nargs;
   }
   RakNativeFunction native = closure->as.native;
   native(vm, slots, err);
