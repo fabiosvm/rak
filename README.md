@@ -3,9 +3,21 @@
 
 # The Rak Programming Language
 
-Rak is a dynamically typed scripting language that adopts a mutable value semantics approach.
+Rak is a simple, cross-platform, dynamically typed scripting language designed with a strict **Mutable Value Semantics** model.
 
 > **Note:** This project is in the early stages of development and is not yet ready for use.
+
+## Features
+
+Rak offers the following key features:
+
+- **Imperative and functional**: Combines imperative and functional programming paradigms.
+- **Familiar syntax**: Inspired by C, making it easy to learn.
+- **Cross-platform**: Runs on Linux, macOS, and Windows.
+- **Dynamic typing**: Variables do not have types; only values do.
+- **Mutable value semantics**: Enables safe and efficient memory management by allowing mutable values to be shared, while ensuring that mutations do not produce unintended side effects.
+- **Embeddable**: Can be embedded into C applications.
+- **Extensible**: Easily extended with native functions.
 
 ## What does Rak look like?
 
@@ -29,21 +41,21 @@ println(seq);
 
 ## Building
 
-This project uses [CMake](https://cmake.org) to build, and to facilitate this, a build script is provided. So, to build, simply run the build script:
+This project uses [CMake](https://cmake.org) and includes a build script to simplify the proces. To build, simply run:
 
 ```
 ./build.sh
 ```
 
-## Executing a script
+## Running a script
 
-Use `rak` to execute a script. Example:
+Use `rak` to run a script by reading it from standard input.
 
 ```
 ./build/rak < examples/hailstone.rak
 ```
 
-You can use the flag `-c` to just compile and display the bytecode, without executing it.
+You can use the `-c` flag to compile a script into bytecode and display it without executing.
 
 ```
 ./build/rak -c < examples/hello.rak
@@ -68,6 +80,10 @@ To clean the build files, run the clean script:
 ```
 ./clean.sh
 ```
+
+## Documentation
+
+Documentation is available at [docs/README.md](docs/README.md).
 
 ## License
 
