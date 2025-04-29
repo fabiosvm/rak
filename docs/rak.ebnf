@@ -3,7 +3,6 @@ chunk             ::= stmt* EOF
 
 stmt              ::= block
                     | let_decl
-                    | assign_stmt
                     | if_stmt
                     | loop_stmt
                     | while_stmt
@@ -15,8 +14,6 @@ stmt              ::= block
 block             ::= "{" stmt* "}"
 
 let_decl          ::= "let" IDENT ( "=" expr )? ";"
-
-assign_stmt       ::= "&" IDENT ( "=" | "+=" | "-=" | "*=" | "/=" | "%=" ) expr ";"
 
 if_stmt           ::= "if" let_decl? expr block if_stmt_cont
 
@@ -34,7 +31,11 @@ continue_stmt     ::= "continue" ";"
 
 expr_stmt         ::= expr ";"
 
-expr              ::= and_expr or_expr_cont
+expr              ::= assign_expr | or_expr
+
+assign_expr       ::= "&" IDENT ( "=" | "+=" | "-=" | "*=" | "/=" | "%=" ) expr
+
+or_expr           ::= and_expr or_expr_cont
 
 or_expr_cont      ::= ( "||" and_expr or_expr_cont )?
 

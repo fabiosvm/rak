@@ -22,11 +22,12 @@ static void do_push_true(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slo
 static void do_load_const(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_load_global(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_load_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
-static void do_load_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_store_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_load_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_array(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_range(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_record(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_dup(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_pop(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump_if_false(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
@@ -52,11 +53,12 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_LOAD_CONST]    = do_load_const,
   [RAK_OP_LOAD_GLOBAL]   = do_load_global,
   [RAK_OP_LOAD_LOCAL]    = do_load_local,
-  [RAK_OP_LOAD_ELEMENT]  = do_load_element,
   [RAK_OP_STORE_LOCAL]   = do_store_local,
+  [RAK_OP_LOAD_ELEMENT]  = do_load_element,
   [RAK_OP_NEW_ARRAY]     = do_new_array,
   [RAK_OP_NEW_RANGE]     = do_new_range,
   [RAK_OP_NEW_RECORD]    = do_new_record,
+  [RAK_OP_DUP]           = do_dup,
   [RAK_OP_POP]           = do_pop,
   [RAK_OP_JUMP]          = do_jump,
   [RAK_OP_JUMP_IF_FALSE] = do_jump_if_false,
@@ -139,17 +141,17 @@ static void do_load_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *sl
   dispatch(vm, chunk, ip + 1, slots, err);
 }
 
-static void do_load_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
-{
-  rak_vm_load_element(vm, err);
-  if (!rak_is_ok(err)) return;
-  dispatch(vm, chunk, ip + 1, slots, err);
-}
-
 static void do_store_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
 {
   uint8_t idx = rak_instr_a(*ip);
   rak_vm_store_local(vm, slots, idx);
+  dispatch(vm, chunk, ip + 1, slots, err);
+}
+
+static void do_load_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_load_element(vm, err);
+  if (!rak_is_ok(err)) return;
   dispatch(vm, chunk, ip + 1, slots, err);
 }
 
@@ -172,6 +174,13 @@ static void do_new_record(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *sl
 {
   uint8_t n = rak_instr_a(*ip);
   rak_vm_new_record(vm, n, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(vm, chunk, ip + 1, slots, err);
+}
+
+static void do_dup(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_dup(vm, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, chunk, ip + 1, slots, err);
 }

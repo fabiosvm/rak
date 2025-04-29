@@ -35,11 +35,12 @@ static inline void rak_vm_push_object(RakVM *vm, RakValue val, RakError *err);
 static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
 static inline void rak_vm_load_global(RakVM *vm, uint8_t idx, RakError *err);
 static inline void rak_vm_load_local(RakVM *vm, RakValue *slots, uint8_t idx, RakError *err);
-static inline void rak_vm_load_element(RakVM *vm, RakError *err);
 static inline void rak_vm_store_local(RakVM *vm, RakValue *slots, uint8_t idx);
+static inline void rak_vm_load_element(RakVM *vm, RakError *err);
 static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err);
 static inline void rak_vm_new_range(RakVM *vm, RakError *err);
 static inline void rak_vm_new_record(RakVM *vm, uint8_t len, RakError *err);
+static inline void rak_vm_dup(RakVM *vm, RakError *err);
 static inline void rak_vm_pop(RakVM *vm);
 static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx);
 static inline void rak_vm_set(RakVM *vm, uint8_t idx, RakValue val);
@@ -117,6 +118,14 @@ static inline void rak_vm_load_local(RakVM *vm, RakValue *slots, uint8_t idx, Ra
 {
   RakValue val = slots[idx];
   rak_vm_push_value(vm, val, err);
+}
+
+static inline void rak_vm_store_local(RakVM *vm, RakValue *slots, uint8_t idx)
+{
+  RakValue val = rak_vm_get(vm, 0);
+  rak_value_release(slots[idx]);
+  slots[idx] = val;
+  --vm->vstk.top;
 }
 
 static inline void rak_vm_load_element(RakVM *vm, RakError *err)
@@ -201,14 +210,6 @@ static inline void rak_vm_load_element(RakVM *vm, RakError *err)
   rak_error_set(err, "cannot index %s", rak_type_to_cstr(val1.type));
 }
 
-static inline void rak_vm_store_local(RakVM *vm, RakValue *slots, uint8_t idx)
-{
-  RakValue val = rak_vm_get(vm, 0);
-  rak_value_release(slots[idx]);
-  slots[idx] = val;
-  --vm->vstk.top;
-}
-
 static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err)
 {
   RakArray *arr = rak_array_new_with_capacity(len, err);
@@ -287,6 +288,12 @@ static inline void rak_vm_new_record(RakVM *vm, uint8_t len, RakError *err)
   slots[0] = rak_record_value(rec);
   rak_object_retain(&rec->obj);
   vm->vstk.top -= n;
+}
+
+static inline void rak_vm_dup(RakVM *vm, RakError *err)
+{
+  RakValue val = rak_vm_get(vm, 0);
+  rak_vm_push_value(vm, val, err);
 }
 
 static inline void rak_vm_pop(RakVM *vm)

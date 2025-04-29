@@ -40,7 +40,6 @@ static inline void compile_chunk(RakCompiler *comp, RakError *err);
 static inline void compile_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_block(RakCompiler *comp, RakError *err);
 static inline void compile_let_decl(RakCompiler *comp, RakError *err);
-static inline void compile_assign_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_if_stmt_cont(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_loop_stmt(RakCompiler *comp, RakError *err);
@@ -50,6 +49,8 @@ static inline void compile_break_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_continue_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_expr_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_expr(RakCompiler *comp, RakError *err);
+static inline void compile_assign_expr(RakCompiler *comp, RakError *err);
+static inline void compile_or_expr(RakCompiler *comp, RakError *err);
 static inline void compile_or_expr_cont(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_and_expr(RakCompiler *comp, RakError *err);
 static inline void compile_and_expr_cont(RakCompiler *comp, uint16_t *off, RakError *err);
@@ -103,11 +104,6 @@ static inline void compile_stmt(RakCompiler *comp, RakError *err)
   if (match(comp, RAK_TOKEN_KIND_LET_KW))
   {
     compile_let_decl(comp, err);
-    return;
-  }
-  if (match(comp, RAK_TOKEN_KIND_AMP))
-  {
-    compile_assign_stmt(comp, err);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_IF_KW))
@@ -179,66 +175,6 @@ static inline void compile_let_decl(RakCompiler *comp, RakError *err)
   emit_instr(comp, rak_push_nil_instr(), err);
   if (!rak_is_ok(err)) return;
   define_local(comp, tok, err);
-}
-
-static inline void compile_assign_stmt(RakCompiler *comp, RakError *err)
-{
-  next(comp, err);
-  if (!match(comp, RAK_TOKEN_KIND_IDENT))
-  {
-    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
-    return;
-  }
-  RakToken tok = comp->lex.tok;
-  next(comp, err);
-  int idx = resolve_local(comp, tok);
-  if (!rak_is_ok(err)) return;
-  if (idx == -1)
-  {
-    rak_error_set(err, "undefined local variable '%.*s'", tok.len, tok.chars);
-    return;
-  }
-  uint8_t _idx = (uint8_t) idx + 1;
-  if (match(comp, RAK_TOKEN_KIND_EQ))
-  {
-    next(comp, err);
-    compile_expr(comp, err);
-    if (!rak_is_ok(err)) return;
-    consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
-    emit_instr(comp, rak_store_local_instr(_idx), err);
-    return;
-  }
-  uint32_t instr = rak_add_instr();
-  switch (comp->lex.tok.kind)
-  {
-  case RAK_TOKEN_KIND_PLUSEQ:
-    instr = rak_add_instr();
-    break;
-  case RAK_TOKEN_KIND_MINUSEQ:
-    instr = rak_sub_instr();
-    break;
-  case RAK_TOKEN_KIND_STAREQ:
-    instr = rak_mul_instr();
-    break;
-  case RAK_TOKEN_KIND_SLASHEQ:
-    instr = rak_div_instr();
-    break;
-  case RAK_TOKEN_KIND_PERCENTEQ:
-    instr = rak_mod_instr();
-    break;
-  default:
-    unexpected_token_error(err, comp->lex.tok);
-    return;
-  }
-  next(comp, err);
-  emit_instr(comp, rak_load_local_instr(_idx), err);
-  if (!rak_is_ok(err)) return;
-  compile_expr(comp, err);
-  if (!rak_is_ok(err)) return;
-  consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
-  emit_instr(comp, instr, err);
-  if (!rak_is_ok(err)) return;
-  emit_instr(comp, rak_store_local_instr(_idx), err);
 }
 
 static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *err)
@@ -428,6 +364,78 @@ static inline void compile_expr_stmt(RakCompiler *comp, RakError *err)
 }
 
 static inline void compile_expr(RakCompiler *comp, RakError *err)
+{
+  if (match(comp, RAK_TOKEN_KIND_AMP))
+  {
+    compile_assign_expr(comp, err);
+    return;
+  }
+  compile_or_expr(comp, err);
+}
+
+static inline void compile_assign_expr(RakCompiler *comp, RakError *err)
+{
+  next(comp, err);
+  if (!match(comp, RAK_TOKEN_KIND_IDENT))
+  {
+    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+    return;
+  }
+  RakToken tok = comp->lex.tok;
+  next(comp, err);
+  int idx = resolve_local(comp, tok);
+  if (!rak_is_ok(err)) return;
+  if (idx == -1)
+  {
+    rak_error_set(err, "undefined local variable '%.*s'", tok.len, tok.chars);
+    return;
+  }
+  uint8_t _idx = (uint8_t) idx + 1;
+  if (match(comp, RAK_TOKEN_KIND_EQ))
+  {
+    next(comp, err);
+    compile_expr(comp, err);
+    if (!rak_is_ok(err)) return;
+    emit_instr(comp, rak_dup_instr(), err);
+    if (!rak_is_ok(err)) return;
+    emit_instr(comp, rak_store_local_instr(_idx), err);
+    return;
+  }
+  uint32_t instr = rak_add_instr();
+  switch (comp->lex.tok.kind)
+  {
+  case RAK_TOKEN_KIND_PLUSEQ:
+    instr = rak_add_instr();
+    break;
+  case RAK_TOKEN_KIND_MINUSEQ:
+    instr = rak_sub_instr();
+    break;
+  case RAK_TOKEN_KIND_STAREQ:
+    instr = rak_mul_instr();
+    break;
+  case RAK_TOKEN_KIND_SLASHEQ:
+    instr = rak_div_instr();
+    break;
+  case RAK_TOKEN_KIND_PERCENTEQ:
+    instr = rak_mod_instr();
+    break;
+  default:
+    unexpected_token_error(err, comp->lex.tok);
+    return;
+  }
+  next(comp, err);
+  emit_instr(comp, rak_load_local_instr(_idx), err);
+  if (!rak_is_ok(err)) return;
+  compile_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  emit_instr(comp, instr, err);
+  if (!rak_is_ok(err)) return;
+  emit_instr(comp, rak_dup_instr(), err);
+  if (!rak_is_ok(err)) return;
+  emit_instr(comp, rak_store_local_instr(_idx), err);
+}
+
+static inline void compile_or_expr(RakCompiler *comp, RakError *err)
 {
   compile_and_expr(comp, err);
   if (!rak_is_ok(err)) return;
