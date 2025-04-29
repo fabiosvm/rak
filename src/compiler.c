@@ -260,8 +260,6 @@ static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *e
   }
   compile_block(comp, err);
   if (!rak_is_ok(err)) return;
-  end_scope(comp, err);
-  if (!rak_is_ok(err)) return;
   uint16_t jump2 = emit_instr(comp, rak_nop_instr(), err);
   if (!rak_is_ok(err)) return;
   uint32_t instr = rak_jump_if_false_instr((uint16_t) comp->chunk.instrs.len);
@@ -270,6 +268,8 @@ static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *e
   compile_if_stmt_cont(comp, &_off, err);
   if (!rak_is_ok(err)) return;
   patch_instr(comp, jump2, rak_jump_instr(_off));
+  end_scope(comp, err);
+  if (!rak_is_ok(err)) return;
   if (off) *off = _off;
 }
 
