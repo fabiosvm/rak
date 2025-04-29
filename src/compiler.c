@@ -82,11 +82,14 @@ static inline void expected_token_error(RakError *err, RakTokenKind kind, RakTok
 
 static inline void compile_chunk(RakCompiler *comp, RakError *err)
 {
+  begin_scope(comp);
   while (!match(comp, RAK_TOKEN_KIND_EOF))
   {
     compile_stmt(comp, err);
     if (!rak_is_ok(err)) return;
   }
+  end_scope(comp, err);
+  if (!rak_is_ok(err)) return;
   emit_instr(comp, rak_halt_instr(), err);
 }
 
@@ -321,6 +324,12 @@ static inline void compile_loop_stmt(RakCompiler *comp, RakError *err)
 static inline void compile_while_stmt(RakCompiler *comp, RakError *err)
 {
   next(comp, err);
+  begin_scope(comp);
+  if (match(comp, RAK_TOKEN_KIND_LET_KW))
+  {
+    compile_let_decl(comp, err);
+    if (!rak_is_ok(err)) return;
+  }
   RakLoop loop;
   begin_loop(comp, &loop);
   uint16_t off = (uint16_t) comp->chunk.instrs.len;
@@ -342,7 +351,9 @@ static inline void compile_while_stmt(RakCompiler *comp, RakError *err)
   uint32_t instr = rak_jump_if_false_instr((uint16_t) comp->chunk.instrs.len);
   patch_instr(comp, jump, instr);
   emit_instr(comp, rak_pop_instr(), err);
+  if (!rak_is_ok(err)) return;
   end_loop(comp);
+  end_scope(comp, err);
 }
 
 static inline void compile_do_while_stmt(RakCompiler *comp, RakError *err)
@@ -371,6 +382,7 @@ static inline void compile_do_while_stmt(RakCompiler *comp, RakError *err)
   uint32_t instr = rak_jump_if_false_instr((uint16_t) comp->chunk.instrs.len);
   patch_instr(comp, jump, instr);
   emit_instr(comp, rak_pop_instr(), err);
+  if (!rak_is_ok(err)) return;
   end_loop(comp);
 }
 
@@ -1102,7 +1114,7 @@ void rak_compiler_init(RakCompiler *comp, RakError *err)
   rak_chunk_init(&comp->chunk, err);
   if (!rak_is_ok(err)) return;
   rak_static_slice_init(&comp->symbols);
-  comp->scopeDepth = 0;
+  comp->scopeDepth = -1;
   comp->loop = NULL;
 }
 
