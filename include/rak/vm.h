@@ -35,8 +35,13 @@ static inline void rak_vm_push_object(RakVM *vm, RakValue val, RakError *err);
 static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
 static inline void rak_vm_load_global(RakVM *vm, uint8_t idx, RakError *err);
 static inline void rak_vm_load_local(RakVM *vm, RakValue *slots, uint8_t idx, RakError *err);
-static inline void rak_vm_load_element(RakVM *vm, RakError *err);
 static inline void rak_vm_store_local(RakVM *vm, RakValue *slots, uint8_t idx);
+static inline void rak_vm_fetch_local(RakVM *vm, RakValue *slots, uint8_t idx, RakError *err);
+static inline void rak_vm_update_local(RakVM *vm);
+static inline void rak_vm_get_element(RakVM *vm, RakError *err);
+static inline void rak_vm_set_element(RakVM *vm, RakError *err);
+static inline void rak_vm_fetch_element(RakVM *vm, RakError *err);
+static inline void rak_vm_update_element(RakVM *vm, RakError *err);
 static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err);
 static inline void rak_vm_new_range(RakVM *vm, RakError *err);
 static inline void rak_vm_new_record(RakVM *vm, uint8_t len, RakError *err);
@@ -119,7 +124,48 @@ static inline void rak_vm_load_local(RakVM *vm, RakValue *slots, uint8_t idx, Ra
   rak_vm_push_value(vm, val, err);
 }
 
-static inline void rak_vm_load_element(RakVM *vm, RakError *err)
+static inline void rak_vm_store_local(RakVM *vm, RakValue *slots, uint8_t idx)
+{
+  RakValue val = rak_vm_get(vm, 0);
+  rak_value_release(slots[idx]);
+  slots[idx] = val;
+  --vm->vstk.top;
+}
+
+/*
+| Instruction   | Description                                            | Stack before | Stack after |
+| ------------- | ------------------------------------------------------ | ------------ | ----------- |
+| FETCH_LOCAL 0 | Get a ref. to the local variable by index; slots[0]; a | []           | [&a]        |
+*/
+static inline void rak_vm_fetch_local(RakVM *vm, RakValue *slots, uint8_t idx, RakError *err)
+{
+  RakValue *ref = &slots[idx];
+  RakValue val = rak_ref_value(ref);
+  if (rak_is_object(*ref))
+  {
+    RakObject *obj = rak_as_object(*ref);
+    val.flags |= obj->refCount > 1 ? RAK_FLAG_SHARED : 0;
+  }
+  rak_vm_push_value(vm, val, err);
+}
+
+/*
+| Instruction  | Description                      | Stack before | Stack after |
+| ------------ | -------------------------------- | ------------ | ----------- |
+| UPDATE_LOCAL | Store the local variable by ref. | [&a, a[0]']  | []          |
+*/
+static inline void rak_vm_update_local(RakVM *vm)
+{
+  RakValue val1 = rak_vm_get(vm, 1);
+  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue *ref = rak_as_ref(val1);
+  rak_value_retain(val2);
+  rak_value_release(*ref);
+  *ref = val2;
+  vm->vstk.top -= 2;
+}
+
+static inline void rak_vm_get_element(RakVM *vm, RakError *err)
 {
   RakValue val1 = rak_vm_get(vm, 1);
   RakValue val2 = rak_vm_get(vm, 0);
@@ -201,12 +247,165 @@ static inline void rak_vm_load_element(RakVM *vm, RakError *err)
   rak_error_set(err, "cannot index %s", rak_type_to_cstr(val1.type));
 }
 
-static inline void rak_vm_store_local(RakVM *vm, RakValue *slots, uint8_t idx)
+/*
+| Instruction | Description                                       | Stack before   | Stack after |
+| ----------- | ------------------------------------------------- | -------------- | ----------- |
+| SET_ELEMENT | Set the element at a key of compound obj. by ref. | [&a, 0, "foo"] | [&a, a']    |
+*/
+// Copy if object is shared
+// - rak_array_inplace_set
+// - rak_array_set (copy)
+// - rak_record_inplace_set
+// - rak_record_put (copy)
+static inline void rak_vm_set_element(RakVM *vm, RakError *err)
 {
-  RakValue val = rak_vm_get(vm, 0);
-  rak_value_release(slots[idx]);
-  slots[idx] = val;
-  --vm->vstk.top;
+  RakValue val1 = rak_vm_get(vm, 2);
+  RakValue val2 = rak_vm_get(vm, 1);
+  RakValue val3 = rak_vm_get(vm, 0);
+  RakValue *ref = rak_as_ref(val1);
+  if (rak_is_array(*ref))
+  {
+    RakArray *arr = rak_as_array(*ref);
+    if (rak_is_number(val2))
+    {
+      if (!rak_is_integer(val2))
+      {
+        rak_error_set(err, "cannot index array with non-integer number");
+        return;
+      }
+      int64_t idx = rak_as_integer(val2);
+      if (idx < 0 || idx >= rak_array_len(arr))
+      {
+        rak_error_set(err, "array index out of bounds");
+        return;
+      }
+      if (rak_is_shared(val1))
+      {
+        RakArray *_arr = rak_array_set(arr, (int) idx, val3, err);
+        if (!rak_is_ok(err)) return;
+        rak_stack_set(&vm->vstk, 1, rak_array_value(_arr));
+        rak_object_retain(&_arr->obj);
+        rak_vm_pop(vm);
+        return;
+      }
+      rak_array_inplace_set(arr, (int) idx, val3);
+      rak_stack_set(&vm->vstk, 1, val1);
+      rak_object_retain(&arr->obj);
+      rak_vm_pop(vm);
+      return;
+    }
+    rak_error_set(err, "cannot index array with %s", rak_type_to_cstr(val2.type));
+    return;
+  }
+  if (rak_is_record(*ref))
+  {
+    RakRecord *rec = rak_as_record(*ref);
+    // TODO
+    (void) rec;
+    return;
+  }
+  rak_error_set(err, "cannot index %s", rak_type_to_cstr(val1.type));
+}
+
+/*
+| Instruction   | Description                                         | Stack before | Stack after |
+| ------------- | --------------------------------------------------- | ------------ | ----------- |
+| FETCH_ELEMENT | Get a ref. to the element at a key of compound obj. | [&a, 0]      | [&a, &a[0]] |
+*/
+static inline void rak_vm_fetch_element(RakVM *vm, RakError *err)
+{
+  RakValue val1 = rak_vm_get(vm, 1);
+  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue *ref = rak_as_ref(val1);
+  if (rak_is_array(*ref))
+  {
+    RakArray *arr = rak_as_array(*ref);
+    if (rak_is_number(val2))
+    {
+      if (!rak_is_integer(val2))
+      {
+        rak_error_set(err, "cannot index array with non-integer number");
+        return;
+      }
+      int64_t idx = rak_as_integer(val2);
+      if (idx < 0 || idx >= rak_array_len(arr))
+      {
+        rak_error_set(err, "array index out of bounds");
+        return;
+      }
+      RakValue *ref = &rak_slice_get(&arr->slice, (int) idx);
+      RakValue res = rak_ref_value(ref);
+      if (rak_is_object(res))
+      {
+        RakObject *obj = rak_as_object(res);
+        res.flags |= rak_is_shared(val1) ? RAK_FLAG_SHARED : 0;
+        res.flags |= obj->refCount > 1 ? RAK_FLAG_SHARED : 0;
+      }
+      rak_vm_set_value(vm, 0, res);
+      return;
+    }
+    rak_error_set(err, "cannot index array with %s", rak_type_to_cstr(val2.type));
+    return;
+  }
+  if (rak_is_record(*ref))
+  {
+    RakRecord *rec = rak_as_record(*ref);
+    if (rak_is_string(val2))
+    {
+      RakString *name = rak_as_string(val2);
+      int idx = rak_record_index_of(rec, name);
+      if (idx == -1)
+      {
+        rak_error_set(err, "record does not contain field '%.*s'",
+          rak_string_len(name), rak_string_chars(name));
+        return;
+      }
+      RakValue *ref = &rak_slice_get(&rec->slice, (int) idx).val;
+      RakValue res = rak_ref_value(ref);
+      if (rak_is_object(res))
+      {
+        RakObject *obj = rak_as_object(res);
+        res.flags |= rak_is_shared(val1) ? RAK_FLAG_SHARED : 0;
+        res.flags |= obj->refCount > 1 ? RAK_FLAG_SHARED : 0;
+      }
+      rak_vm_set_value(vm, 0, res);
+      return;
+    }
+    rak_error_set(err, "cannot index record with %s", rak_type_to_cstr(val2.type));
+    return;
+  }
+  rak_error_set(err, "cannot index %s", rak_type_to_cstr(val1.type));
+}
+
+/*
+| Instruction    | Description                                         | Stack before       | Stack after |
+| -------------- | --------------------------------------------------- | ------------------ | ----------- |
+| UPDATE_ELEMENT | Store the element at a key of compound obj. by ref. | [&a, &a[0], a[0]'] | [&a, a[0]'] |
+*/
+// Copy if object is shared
+static inline void rak_vm_update_element(RakVM *vm, RakError *err)
+{
+  RakValue val1 = rak_vm_get(vm, 2);
+  RakValue val2 = rak_vm_get(vm, 1);
+  RakValue val3 = rak_vm_get(vm, 0);
+  RakValue *ref = rak_as_ref(val1);
+  if (rak_is_array(*ref))
+  {
+    RakArray *arr = rak_as_array(*ref);
+    // TODO
+    (void) arr;
+    (void) val2;
+    (void) val3;
+    return;
+  }
+  if (rak_is_record(*ref))
+  {
+    RakRecord *rec = rak_as_record(*ref);
+    // TODO
+    (void) rec;
+    return;
+  }
+  rak_error_set(err, "cannot index %s", rak_type_to_cstr(val1.type));
 }
 
 static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err)

@@ -68,6 +68,8 @@ static inline void compile_array(RakCompiler *comp, RakError *err);
 static inline void compile_record(RakCompiler *comp, RakError *err);
 static inline void compile_field(RakCompiler *comp, RakError *err);
 static inline void compile_if_expr(RakCompiler *comp, uint16_t *off, RakError *err);
+static inline void compile_ref_expr(RakCompiler *comp, RakError *err);
+static inline void compile_ref_expr_cont(RakCompiler *comp, RakError *err);
 static inline void compile_block_expr(RakCompiler *comp, RakError *err);
 static inline void compile_if_expr_cont(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_group(RakCompiler *comp, RakError *err);
@@ -717,42 +719,42 @@ static inline void compile_subscr(RakCompiler *comp, bool *ok, RakError *err)
     compile_expr(comp, err);
     if (!rak_is_ok(err)) return;
     consume(comp, RAK_TOKEN_KIND_RBRACKET, err);
-    emit_instr(comp, rak_load_element_instr(), err);
+    emit_instr(comp, rak_get_element_instr(), err);
     if (!rak_is_ok(err)) return;
     *ok = true;
     return;
   }
-  if (match(comp, RAK_TOKEN_KIND_DOT))
+  if (!match(comp, RAK_TOKEN_KIND_DOT))
   {
-    next(comp, err);
-    if (!match(comp, RAK_TOKEN_KIND_IDENT))
-    {
-      expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
-      return;
-    }
-    RakToken tok = comp->lex.tok;
-    next(comp, err);
-    RakString *str = rak_string_new_from_cstr(tok.len, tok.chars, err);
-    if (!rak_is_ok(err)) return;
-    RakValue val = rak_string_value(str);
-    uint8_t idx = rak_chunk_append_const(&comp->chunk, val, err);
-    if (!rak_is_ok(err))
-    {
-      rak_string_free(str);
-      return;
-    }
-    emit_instr(comp, rak_load_const_instr(idx), err);
-    if (!rak_is_ok(err))
-    {
-      rak_string_free(str);
-      return;
-    }
-    emit_instr(comp, rak_load_element_instr(), err);
-    if (!rak_is_ok(err)) return;
-    *ok = true;
+    *ok = false;
     return;
   }
-  *ok = false;
+  next(comp, err);
+  if (!match(comp, RAK_TOKEN_KIND_IDENT))
+  {
+    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+    return;
+  }
+  RakToken tok = comp->lex.tok;
+  next(comp, err);
+  RakString *str = rak_string_new_from_cstr(tok.len, tok.chars, err);
+  if (!rak_is_ok(err)) return;
+  RakValue val = rak_string_value(str);
+  uint8_t idx = rak_chunk_append_const(&comp->chunk, val, err);
+  if (!rak_is_ok(err))
+  {
+    rak_string_free(str);
+    return;
+  }
+  emit_instr(comp, rak_load_const_instr(idx), err);
+  if (!rak_is_ok(err))
+  {
+    rak_string_free(str);
+    return;
+  }
+  emit_instr(comp, rak_get_element_instr(), err);
+  if (!rak_is_ok(err)) return;
+  *ok = true;
 }
 
 static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
@@ -836,6 +838,11 @@ static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
   if (match(comp, RAK_TOKEN_KIND_IF_KW))
   {
     compile_if_expr(comp, NULL, err);
+    return;
+  }
+  if (match(comp, RAK_TOKEN_KIND_AMP))
+  {
+    compile_ref_expr(comp, err);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_LPAREN))
@@ -945,6 +952,51 @@ static inline void compile_if_expr(RakCompiler *comp, uint16_t *off, RakError *e
   if (!rak_is_ok(err)) return;
   patch_instr(comp, jump2, rak_jump_instr(_off));
   if (off) *off = _off;
+}
+
+/*
+ref_expr          ::= "&" IDENT ref_expr_cont
+*/
+// TODO
+static inline void compile_ref_expr(RakCompiler *comp, RakError *err)
+{
+  next(comp, err);
+  if (!match(comp, RAK_TOKEN_KIND_IDENT))
+  {
+    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+    return;
+  }
+  RakToken tok = comp->lex.tok;
+  next(comp, err);
+  (void) tok;
+  compile_ref_expr_cont(comp, err);
+}
+
+/*
+ref_expr_cont     ::= ( ( "[" expr "]" | "." IDENT ) ref_expr_cont )?
+*/
+// TODO
+static inline void compile_ref_expr_cont(RakCompiler *comp, RakError *err)
+{
+  if (match(comp, RAK_TOKEN_KIND_LBRACKET))
+  {
+    next(comp, err);
+    compile_expr(comp, err);
+    if (!rak_is_ok(err)) return;
+    consume(comp, RAK_TOKEN_KIND_RBRACKET, err);
+    return;
+  }
+  if (!match(comp, RAK_TOKEN_KIND_DOT)) return;
+  next(comp, err);
+  if (!match(comp, RAK_TOKEN_KIND_IDENT))
+  {
+    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+    return;
+  }
+  RakToken tok = comp->lex.tok;
+  next(comp, err);
+  (void) tok;
+  compile_ref_expr_cont(comp, err);
 }
 
 static inline void compile_block_expr(RakCompiler *comp, RakError *err)

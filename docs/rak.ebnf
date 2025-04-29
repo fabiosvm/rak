@@ -66,6 +66,7 @@ prim_expr         ::= "nil" | "false" | "true" | NUMBER | STRING | IDENT
                     | array
                     | record
                     | if_expr
+                    | ref_expr
                     | group
 
 array             ::= "[" expr_list? "]"
@@ -79,5 +80,9 @@ if_expr           ::= "if" expr block_expr if_expr_cont
 block_expr        ::= "{" expr "}"
 
 if_expr_cont      ::= ( "else" ( if_expr | block_expr ) )?
+
+ref_expr          ::= "&" IDENT ref_expr_cont
+
+ref_expr_cont     ::= ( ( "[" expr "]" | "." IDENT ) ref_expr_cont )?
 
 group             ::= "(" expr ")"
