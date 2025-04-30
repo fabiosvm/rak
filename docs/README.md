@@ -178,6 +178,8 @@ The following arithmetic operators are supported:
 | `%` | Remainder |
 | `-` (unary) | Negation |
 
+> (Examples for this section are coming soon.)
+
 ## Equality and comparison operators
 
 The following equality and comparison operators are supported:
@@ -191,6 +193,8 @@ The following equality and comparison operators are supported:
 | `<=` | Less than or equal to |
 | `<` | Less than |
 
+> (Examples for this section are coming soon.)
+
 ## Logical operators
 
 The following logical operators are supported:
@@ -200,6 +204,117 @@ The following logical operators are supported:
 | `\|\|` | Logical OR |
 | `&&` | Logical AND |
 | `!` | Logical NOT |
+
+> (Examples for this section are coming soon.)
+
+## If statements
+
+If statements are used to execute a block of code conditionally.
+
+```rs
+if x > 0 {
+  println("x is zero");
+}
+```
+
+It is also possible to use `else` and `else if` to create more complex conditional statements.
+
+```rs
+if x > 0 {
+  println("x is positive");
+} else if x < 0 {
+  println("x is negative");
+} else {
+  println("x is zero");
+}
+```
+
+Rak allows a variable before the expression in an if statement.
+
+```rs
+if let x = 1; x > 0 {
+  println(x);
+}
+```
+
+> **Note:** `x` is declared in the scope of the block.
+
+## If expressions
+
+It is also possible to use if in expressions. This is useful when you want to assign a value based on a condition.
+
+```rs
+let x = 1;
+let y = if x > 0 { "positive" } else if x < 0 { "negative" } else { "zero" };
+println(y); // positive
+```
+
+If you omit the `else` branch, the expression will return `nil` if the condition is false.
+
+```rs
+&x = 0;
+let y = if x > 0 { "positive" };
+println(y); // nil
+```
+
+## Loop statements
+
+Loop statements are used to execute a block of code repeatedly.
+
+```rs
+loop {
+  println("Press Ctrl+C to stop");
+}
+```
+
+In loops, you can use `break` to exit the loop and `continue` to skip the current iteration.
+
+```rs
+let i = 0;
+loop {
+  &i += 1;
+  if i < 5 {
+    continue;
+  }
+  if i > 10 {
+    break;
+  }
+  println(i);
+}
+```
+
+## While statements
+
+While statements are used to execute a block of code repeatedly while a condition is true.
+
+```rs
+let i = 0;
+while i < 10 {
+  println(i);
+  &i += 1;
+}
+```
+
+There is also a `while let` statement that allows you to declare a variable before the expression.
+
+```rs
+while let i = 0; i < 10 {
+  println(i);
+  &i += 1;
+}
+```
+
+## Do-while statements
+
+Do-while statements are used to execute a block of code at least once and then repeatedly while a condition is true.
+
+```rs
+let i = 0;
+do {
+  println(i);
+  &i += 1;
+} while i < 10;
+```
 
 ## Strings
 
