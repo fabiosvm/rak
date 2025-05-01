@@ -737,7 +737,7 @@ static inline void compile_subscr(RakCompiler *comp, bool *ok, RakError *err)
     compile_expr(comp, err);
     if (!rak_is_ok(err)) return;
     consume(comp, RAK_TOKEN_KIND_RBRACKET, err);
-    emit_instr(comp, rak_load_element_instr(), err);
+    emit_instr(comp, rak_get_element_instr(), err);
     if (!rak_is_ok(err)) return;
     *ok = true;
     return;
@@ -761,13 +761,7 @@ static inline void compile_subscr(RakCompiler *comp, bool *ok, RakError *err)
       rak_string_free(str);
       return;
     }
-    emit_instr(comp, rak_load_const_instr(idx), err);
-    if (!rak_is_ok(err))
-    {
-      rak_string_free(str);
-      return;
-    }
-    emit_instr(comp, rak_load_element_instr(), err);
+    emit_instr(comp, rak_get_field_instr(idx), err);
     if (!rak_is_ok(err)) return;
     *ok = true;
     return;

@@ -34,7 +34,8 @@
 #define rak_load_global_instr(i)   rak_instr_fmt1(RAK_OP_LOAD_GLOBAL, (i))
 #define rak_load_local_instr(i)    rak_instr_fmt1(RAK_OP_LOAD_LOCAL, (i))
 #define rak_store_local_instr(i)   rak_instr_fmt1(RAK_OP_STORE_LOCAL, (i))
-#define rak_load_element_instr()   rak_instr_fmt0(RAK_OP_LOAD_ELEMENT)
+#define rak_get_element_instr()    rak_instr_fmt0(RAK_OP_GET_ELEMENT)
+#define rak_get_field_instr(i)     rak_instr_fmt1(RAK_OP_GET_FIELD, (i))
 #define rak_new_array_instr(n)     rak_instr_fmt1(RAK_OP_NEW_ARRAY, (n))
 #define rak_new_range_instr()      rak_instr_fmt0(RAK_OP_NEW_RANGE)
 #define rak_new_record_instr(n)    rak_instr_fmt1(RAK_OP_NEW_RECORD, (n))
@@ -66,7 +67,8 @@ typedef enum
   RAK_OP_LOAD_GLOBAL,
   RAK_OP_LOAD_LOCAL,
   RAK_OP_STORE_LOCAL,
-  RAK_OP_LOAD_ELEMENT,
+  RAK_OP_GET_ELEMENT,
+  RAK_OP_GET_FIELD,
   RAK_OP_NEW_ARRAY,
   RAK_OP_NEW_RANGE,
   RAK_OP_NEW_RECORD,

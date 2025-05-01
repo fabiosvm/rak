@@ -23,7 +23,8 @@ static void do_load_const(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *sl
 static void do_load_global(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_load_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_store_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
-static void do_load_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_get_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_get_field(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_array(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_range(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_record(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
@@ -54,7 +55,8 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_LOAD_GLOBAL]   = do_load_global,
   [RAK_OP_LOAD_LOCAL]    = do_load_local,
   [RAK_OP_STORE_LOCAL]   = do_store_local,
-  [RAK_OP_LOAD_ELEMENT]  = do_load_element,
+  [RAK_OP_GET_ELEMENT]   = do_get_element,
+  [RAK_OP_GET_FIELD]     = do_get_field,
   [RAK_OP_NEW_ARRAY]     = do_new_array,
   [RAK_OP_NEW_RANGE]     = do_new_range,
   [RAK_OP_NEW_RECORD]    = do_new_record,
@@ -148,9 +150,17 @@ static void do_store_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *s
   dispatch(vm, chunk, ip + 1, slots, err);
 }
 
-static void do_load_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
+static void do_get_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_load_element(vm, err);
+  rak_vm_get_element(vm, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(vm, chunk, ip + 1, slots, err);
+}
+
+static void do_get_field(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  uint8_t idx = rak_instr_a(*ip);
+  rak_vm_get_field(vm, chunk, idx, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, chunk, ip + 1, slots, err);
 }
