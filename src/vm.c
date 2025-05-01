@@ -23,13 +23,14 @@ static void do_load_const(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *sl
 static void do_load_global(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_load_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_store_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
-static void do_get_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
-static void do_get_field(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_array(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_range(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_record(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_dup(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_pop(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_get_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_get_field(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_unpack_elements(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump_if_false(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump_if_true(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
@@ -47,36 +48,37 @@ static void do_call(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, R
 static void do_halt(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 
 static InstrHandler dispatchTable[] = {
-  [RAK_OP_NOP]           = do_nop,
-  [RAK_OP_PUSH_NIL]      = do_push_nil,
-  [RAK_OP_PUSH_FALSE]    = do_push_false,
-  [RAK_OP_PUSH_TRUE]     = do_push_true,
-  [RAK_OP_LOAD_CONST]    = do_load_const,
-  [RAK_OP_LOAD_GLOBAL]   = do_load_global,
-  [RAK_OP_LOAD_LOCAL]    = do_load_local,
-  [RAK_OP_STORE_LOCAL]   = do_store_local,
-  [RAK_OP_GET_ELEMENT]   = do_get_element,
-  [RAK_OP_GET_FIELD]     = do_get_field,
-  [RAK_OP_NEW_ARRAY]     = do_new_array,
-  [RAK_OP_NEW_RANGE]     = do_new_range,
-  [RAK_OP_NEW_RECORD]    = do_new_record,
-  [RAK_OP_DUP]           = do_dup,
-  [RAK_OP_POP]           = do_pop,
-  [RAK_OP_JUMP]          = do_jump,
-  [RAK_OP_JUMP_IF_FALSE] = do_jump_if_false,
-  [RAK_OP_JUMP_IF_TRUE]  = do_jump_if_true,
-  [RAK_OP_EQ]            = do_eq,
-  [RAK_OP_GT]            = do_gt,
-  [RAK_OP_LT]            = do_lt,
-  [RAK_OP_ADD]           = do_add,
-  [RAK_OP_SUB]           = do_sub,
-  [RAK_OP_MUL]           = do_mul,
-  [RAK_OP_DIV]           = do_div,
-  [RAK_OP_MOD]           = do_mod,
-  [RAK_OP_NOT]           = do_not,
-  [RAK_OP_NEG]           = do_neg,
-  [RAK_OP_CALL]          = do_call,
-  [RAK_OP_HALT]          = do_halt
+  [RAK_OP_NOP]             = do_nop,
+  [RAK_OP_PUSH_NIL]        = do_push_nil,
+  [RAK_OP_PUSH_FALSE]      = do_push_false,
+  [RAK_OP_PUSH_TRUE]       = do_push_true,
+  [RAK_OP_LOAD_CONST]      = do_load_const,
+  [RAK_OP_LOAD_GLOBAL]     = do_load_global,
+  [RAK_OP_LOAD_LOCAL]      = do_load_local,
+  [RAK_OP_STORE_LOCAL]     = do_store_local,
+  [RAK_OP_NEW_ARRAY]       = do_new_array,
+  [RAK_OP_NEW_RANGE]       = do_new_range,
+  [RAK_OP_NEW_RECORD]      = do_new_record,
+  [RAK_OP_DUP]             = do_dup,
+  [RAK_OP_POP]             = do_pop,
+  [RAK_OP_GET_ELEMENT]     = do_get_element,
+  [RAK_OP_GET_FIELD]       = do_get_field,
+  [RAK_OP_UNPACK_ELEMENTS] = do_unpack_elements,
+  [RAK_OP_JUMP]            = do_jump,
+  [RAK_OP_JUMP_IF_FALSE]   = do_jump_if_false,
+  [RAK_OP_JUMP_IF_TRUE]    = do_jump_if_true,
+  [RAK_OP_EQ]              = do_eq,
+  [RAK_OP_GT]              = do_gt,
+  [RAK_OP_LT]              = do_lt,
+  [RAK_OP_ADD]             = do_add,
+  [RAK_OP_SUB]             = do_sub,
+  [RAK_OP_MUL]             = do_mul,
+  [RAK_OP_DIV]             = do_div,
+  [RAK_OP_MOD]             = do_mod,
+  [RAK_OP_NOT]             = do_not,
+  [RAK_OP_NEG]             = do_neg,
+  [RAK_OP_CALL]            = do_call,
+  [RAK_OP_HALT]            = do_halt
 };
 
 static inline void release_values(RakVM *vm)
@@ -150,21 +152,6 @@ static void do_store_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *s
   dispatch(vm, chunk, ip + 1, slots, err);
 }
 
-static void do_get_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
-{
-  rak_vm_get_element(vm, err);
-  if (!rak_is_ok(err)) return;
-  dispatch(vm, chunk, ip + 1, slots, err);
-}
-
-static void do_get_field(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
-{
-  uint8_t idx = rak_instr_a(*ip);
-  rak_vm_get_field(vm, chunk, idx, err);
-  if (!rak_is_ok(err)) return;
-  dispatch(vm, chunk, ip + 1, slots, err);
-}
-
 static void do_new_array(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
 {
   uint8_t n = rak_instr_a(*ip);
@@ -198,6 +185,29 @@ static void do_dup(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, Ra
 static void do_pop(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
 {
   rak_vm_pop(vm);
+  dispatch(vm, chunk, ip + 1, slots, err);
+}
+
+static void do_get_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_get_element(vm, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(vm, chunk, ip + 1, slots, err);
+}
+
+static void do_get_field(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  uint8_t idx = rak_instr_a(*ip);
+  rak_vm_get_field(vm, chunk, idx, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(vm, chunk, ip + 1, slots, err);
+}
+
+static void do_unpack_elements(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  uint8_t n = rak_instr_a(*ip);
+  rak_vm_unpack_elements(vm, n, err);
+  if (!rak_is_ok(err)) return;
   dispatch(vm, chunk, ip + 1, slots, err);
 }
 

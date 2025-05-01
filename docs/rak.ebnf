@@ -13,7 +13,9 @@ stmt              ::= block
 
 block             ::= "{" stmt* "}"
 
-let_decl          ::= "let" IDENT ( "=" expr )? ";"
+let_decl          ::= "let" destruct | ( IDENT ( "=" expr )? ) ";"
+
+destruct          ::= "[" IDENT ( "," IDENT )* "]" "=" expr
 
 if_stmt           ::= "if" let_decl? expr block if_stmt_cont
 

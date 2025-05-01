@@ -26,36 +26,37 @@
 #define rak_instr_c(i)      ((uint8_t) (((i) >> 24) & 0xff))
 #define rak_instr_ab(i)     ((uint16_t) (((i) >> 8) & 0xffff))
 
-#define rak_nop_instr()            rak_instr_fmt0(RAK_OP_NOP)
-#define rak_push_nil_instr()       rak_instr_fmt0(RAK_OP_PUSH_NIL)
-#define rak_push_false_instr()     rak_instr_fmt0(RAK_OP_PUSH_FALSE)
-#define rak_push_true_instr()      rak_instr_fmt0(RAK_OP_PUSH_TRUE)
-#define rak_load_const_instr(i)    rak_instr_fmt1(RAK_OP_LOAD_CONST, (i))
-#define rak_load_global_instr(i)   rak_instr_fmt1(RAK_OP_LOAD_GLOBAL, (i))
-#define rak_load_local_instr(i)    rak_instr_fmt1(RAK_OP_LOAD_LOCAL, (i))
-#define rak_store_local_instr(i)   rak_instr_fmt1(RAK_OP_STORE_LOCAL, (i))
-#define rak_get_element_instr()    rak_instr_fmt0(RAK_OP_GET_ELEMENT)
-#define rak_get_field_instr(i)     rak_instr_fmt1(RAK_OP_GET_FIELD, (i))
-#define rak_new_array_instr(n)     rak_instr_fmt1(RAK_OP_NEW_ARRAY, (n))
-#define rak_new_range_instr()      rak_instr_fmt0(RAK_OP_NEW_RANGE)
-#define rak_new_record_instr(n)    rak_instr_fmt1(RAK_OP_NEW_RECORD, (n))
-#define rak_dup_instr()            rak_instr_fmt0(RAK_OP_DUP)
-#define rak_pop_instr()            rak_instr_fmt0(RAK_OP_POP)
-#define rak_jump_instr(o)          rak_instr_fmt4(RAK_OP_JUMP, (o))
-#define rak_jump_if_false_instr(o) rak_instr_fmt4(RAK_OP_JUMP_IF_FALSE, (o))
-#define rak_jump_if_true_instr(o)  rak_instr_fmt4(RAK_OP_JUMP_IF_TRUE, (o))
-#define rak_eq_instr()             rak_instr_fmt0(RAK_OP_EQ)
-#define rak_gt_instr()             rak_instr_fmt0(RAK_OP_GT)
-#define rak_lt_instr()             rak_instr_fmt0(RAK_OP_LT)
-#define rak_add_instr()            rak_instr_fmt0(RAK_OP_ADD)
-#define rak_sub_instr()            rak_instr_fmt0(RAK_OP_SUB)
-#define rak_mul_instr()            rak_instr_fmt0(RAK_OP_MUL)
-#define rak_div_instr()            rak_instr_fmt0(RAK_OP_DIV)
-#define rak_mod_instr()            rak_instr_fmt0(RAK_OP_MOD)
-#define rak_not_instr()            rak_instr_fmt0(RAK_OP_NOT)
-#define rak_neg_instr()            rak_instr_fmt0(RAK_OP_NEG)
-#define rak_call_instr(n)          rak_instr_fmt1(RAK_OP_CALL, (n))
-#define rak_halt_instr()           rak_instr_fmt0(RAK_OP_HALT)
+#define rak_nop_instr()              rak_instr_fmt0(RAK_OP_NOP)
+#define rak_push_nil_instr()         rak_instr_fmt0(RAK_OP_PUSH_NIL)
+#define rak_push_false_instr()       rak_instr_fmt0(RAK_OP_PUSH_FALSE)
+#define rak_push_true_instr()        rak_instr_fmt0(RAK_OP_PUSH_TRUE)
+#define rak_load_const_instr(i)      rak_instr_fmt1(RAK_OP_LOAD_CONST, (i))
+#define rak_load_global_instr(i)     rak_instr_fmt1(RAK_OP_LOAD_GLOBAL, (i))
+#define rak_load_local_instr(i)      rak_instr_fmt1(RAK_OP_LOAD_LOCAL, (i))
+#define rak_store_local_instr(i)     rak_instr_fmt1(RAK_OP_STORE_LOCAL, (i))
+#define rak_new_array_instr(n)       rak_instr_fmt1(RAK_OP_NEW_ARRAY, (n))
+#define rak_new_range_instr()        rak_instr_fmt0(RAK_OP_NEW_RANGE)
+#define rak_new_record_instr(n)      rak_instr_fmt1(RAK_OP_NEW_RECORD, (n))
+#define rak_dup_instr()              rak_instr_fmt0(RAK_OP_DUP)
+#define rak_pop_instr()              rak_instr_fmt0(RAK_OP_POP)
+#define rak_get_element_instr()      rak_instr_fmt0(RAK_OP_GET_ELEMENT)
+#define rak_get_field_instr(i)       rak_instr_fmt1(RAK_OP_GET_FIELD, (i))
+#define rak_unpack_elements_instr(n) rak_instr_fmt1(RAK_OP_UNPACK_ELEMENTS, (n))
+#define rak_jump_instr(o)            rak_instr_fmt4(RAK_OP_JUMP, (o))
+#define rak_jump_if_false_instr(o)   rak_instr_fmt4(RAK_OP_JUMP_IF_FALSE, (o))
+#define rak_jump_if_true_instr(o)    rak_instr_fmt4(RAK_OP_JUMP_IF_TRUE, (o))
+#define rak_eq_instr()               rak_instr_fmt0(RAK_OP_EQ)
+#define rak_gt_instr()               rak_instr_fmt0(RAK_OP_GT)
+#define rak_lt_instr()               rak_instr_fmt0(RAK_OP_LT)
+#define rak_add_instr()              rak_instr_fmt0(RAK_OP_ADD)
+#define rak_sub_instr()              rak_instr_fmt0(RAK_OP_SUB)
+#define rak_mul_instr()              rak_instr_fmt0(RAK_OP_MUL)
+#define rak_div_instr()              rak_instr_fmt0(RAK_OP_DIV)
+#define rak_mod_instr()              rak_instr_fmt0(RAK_OP_MOD)
+#define rak_not_instr()              rak_instr_fmt0(RAK_OP_NOT)
+#define rak_neg_instr()              rak_instr_fmt0(RAK_OP_NEG)
+#define rak_call_instr(n)            rak_instr_fmt1(RAK_OP_CALL, (n))
+#define rak_halt_instr()             rak_instr_fmt0(RAK_OP_HALT)
 
 typedef enum
 {
@@ -67,13 +68,14 @@ typedef enum
   RAK_OP_LOAD_GLOBAL,
   RAK_OP_LOAD_LOCAL,
   RAK_OP_STORE_LOCAL,
-  RAK_OP_GET_ELEMENT,
-  RAK_OP_GET_FIELD,
   RAK_OP_NEW_ARRAY,
   RAK_OP_NEW_RANGE,
   RAK_OP_NEW_RECORD,
   RAK_OP_DUP,
   RAK_OP_POP,
+  RAK_OP_GET_ELEMENT,
+  RAK_OP_GET_FIELD,
+  RAK_OP_UNPACK_ELEMENTS,
   RAK_OP_JUMP,
   RAK_OP_JUMP_IF_FALSE,
   RAK_OP_JUMP_IF_TRUE,

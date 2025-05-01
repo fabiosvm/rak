@@ -40,6 +40,7 @@ static inline void compile_chunk(RakCompiler *comp, RakError *err);
 static inline void compile_stmt(RakCompiler *comp, RakError *err);
 static inline void compile_block(RakCompiler *comp, RakError *err);
 static inline void compile_let_decl(RakCompiler *comp, RakError *err);
+static inline void compile_destruct(RakCompiler *comp, RakError *err);
 static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_if_stmt_cont(RakCompiler *comp, uint16_t *off, RakError *err);
 static inline void compile_loop_stmt(RakCompiler *comp, RakError *err);
@@ -155,6 +156,12 @@ static inline void compile_block(RakCompiler *comp, RakError *err)
 static inline void compile_let_decl(RakCompiler *comp, RakError *err)
 {
   next(comp, err);
+  if (match(comp, RAK_TOKEN_KIND_LBRACKET))
+  {
+    compile_destruct(comp, err);
+    if (!rak_is_ok(err)) return;
+    goto end;
+  }
   if (!match(comp, RAK_TOKEN_KIND_IDENT))
   {
     expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
@@ -167,14 +174,56 @@ static inline void compile_let_decl(RakCompiler *comp, RakError *err)
     next(comp, err);
     compile_expr(comp, err);
     if (!rak_is_ok(err)) return;
-    consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
     define_local(comp, tok, err);
-    return;
+    goto end;
   }
-  consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
   emit_instr(comp, rak_push_nil_instr(), err);
   if (!rak_is_ok(err)) return;
   define_local(comp, tok, err);
+end:
+  consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
+}
+
+static inline void compile_destruct(RakCompiler *comp, RakError *err)
+{
+  next(comp, err);
+  RakStaticSlice(RakToken, UINT8_MAX) toks;
+  rak_static_slice_init(&toks);
+  if (!match(comp, RAK_TOKEN_KIND_IDENT))
+  {
+    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+    return;
+  }
+  RakToken tok = comp->lex.tok;
+  for (;;)
+  {
+    next(comp, err);
+    if (rak_slice_is_full(&toks))
+    {
+      rak_error_set(err, "too many destructuring variables");
+      return;
+    }
+    rak_slice_append(&toks, tok);
+    if (!match(comp, RAK_TOKEN_KIND_COMMA)) break;
+    next(comp, err);
+    if (!match(comp, RAK_TOKEN_KIND_IDENT))
+    {
+      expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+      return;
+    }
+    tok = comp->lex.tok;
+  }
+  consume(comp, RAK_TOKEN_KIND_RBRACKET, err);
+  consume(comp, RAK_TOKEN_KIND_EQ, err);
+  compile_expr(comp, err);
+  if (!rak_is_ok(err)) return;
+  for (int i = 0; i < toks.len; ++i)
+  {
+    RakToken _tok = toks.data[i];
+    define_local(comp, _tok, err);
+    if (!rak_is_ok(err)) return;
+  }
+  emit_instr(comp, rak_unpack_elements_instr((uint8_t) toks.len), err);
 }
 
 static inline void compile_if_stmt(RakCompiler *comp, uint16_t *off, RakError *err)
