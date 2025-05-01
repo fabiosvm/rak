@@ -259,7 +259,7 @@ static inline void rak_vm_get_element(RakVM *vm, RakError *err)
       int64_t idx = rak_as_integer(val2);
       if (idx < 0 || idx >= rak_array_len(arr))
       {
-        rak_error_set(err, "array index out of bounds");
+        rak_error_set(err, "index out of bounds");
         return;
       }
       RakValue res = rak_array_get(arr, (int) idx);
@@ -282,6 +282,28 @@ static inline void rak_vm_get_element(RakVM *vm, RakError *err)
     rak_error_set(err, "cannot index array with value of type %s",
       rak_type_to_cstr(val2.type));
     return;
+  }
+  if (rak_is_range(val1))
+  {
+    RakRange *range = rak_as_range(val1);
+    if (rak_is_number(val2))
+    {
+      if (!rak_is_integer(val2))
+      {
+        rak_error_set(err, "cannot index range with non-integer number");
+        return;
+      }
+      int64_t idx = rak_as_integer(val2);
+      if (idx < 0 || idx >= rak_range_len(range))
+      {
+        rak_error_set(err, "index out of bounds");
+        return;
+      }
+      RakValue res = rak_number_value(rak_range_get(range, (int) idx));
+      rak_vm_set_value(vm, 1, res);
+      rak_vm_pop(vm);
+      return;
+    }
   }
   if (rak_is_record(val1))
   {

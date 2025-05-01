@@ -134,6 +134,24 @@ let x = 1;
 println(x); // 1
 ```
 
+## Destructuring
+
+Rak allows destructuring in let statements. This means you can extract values from compound values into separate variables.
+
+```rs
+let [x, y] = [1, 2];
+println(x); // 1
+println(y); // 2
+
+```
+
+If the number of variables is greater than the number of values, the remaining variables are assigned `nil`.
+
+```rs
+let [x, y, z] = [1, 2];
+println(z); // nil
+```
+
 ## Assignment
 
 In Rak, assignment is explicit. The `&` symbol indicates that you intend to mutate a value. This strictness helps prevent accidental side effects.
@@ -318,13 +336,99 @@ do {
 
 ## Strings
 
-> (Documentation for this section is coming soon.)
+Strings are sequences of characters. They are constructed using double quotes `"`.
+
+```rs
+let s = "This is a string";
+```
+
+Use the `len` built-in function to get the length of a string.
+
+```rs
+println(len(s)); // 16
+```
+
+Besides the `+` operator add numbers, it can also be used to concatenate strings.
+
+```rs
+let s = "Hello, " + "world!";
+println(s); // Hello, world!
+```
 
 ## Arrays
 
-> (Documentation for this section is coming soon.)
+Arrays are ordered collections of values. They are constructed using square brackets `[]` and can contain any type of value.
+
+```rs
+let a = [false, 3.14, "foo"];
+```
+
+You can access elements in an array using the index operator `[]`.
+
+```rs
+println(a[0]); // false
+println(a[1]); // 3.14
+println(a[2]); // foo
+```
+
+> **Note:** Arrays are 0-indexed, meaning that the first element is at index 0.
+
+When you access an element that is out of bounds, Rak will panic.
+
+```rs
+println(a[3]); // ERROR: index out of bounds
+```
+
+Use the `len` function to get the length of an array.
+
+```rs
+println(len(a)); // 3
+```
+
+You can also use the `append` to add elements to the end of an array.
+
+```rs
+&a = append(a, 4);
+println(a); // [false, 3.14, "foo", 4]
+```
+
+As strings, the `+` operator can also be used to concatenate arrays.
+
+```rs
+let a = [1, 2] + [3, 4];
+println(a); // [1, 2, 3, 4]
+```
 
 ## Ranges
+
+Ranges are a representation of a range of integers. They are constructed using the `..` operator.
+
+```rs
+let r = 1..3;
+```
+
+You can access elements in a range using the index operator `[]`.
+
+```rs
+println(r[0]); // 1
+println(r[1]); // 2
+```
+
+Ranges are exclusive, meaning that the last element is not included in the range.
+
+```rs
+println(r[2]); // ERROR: index out of bounds
+```
+
+Also, you can use the `len` to get the length of a range.
+
+```rs
+println(len(r)); // 2
+```
+
+> **Note:** Ranges can be used for slicing strings and arrays. Look at the Slicing section.
+
+## Slicing
 
 > (Documentation for this section is coming soon.)
 
