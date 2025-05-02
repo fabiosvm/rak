@@ -19,6 +19,7 @@ static void do_nop(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, Ra
 static void do_push_nil(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_push_false(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_push_true(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_push_int(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_load_const(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_load_global(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_load_local(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
@@ -52,6 +53,7 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_PUSH_NIL]        = do_push_nil,
   [RAK_OP_PUSH_FALSE]      = do_push_false,
   [RAK_OP_PUSH_TRUE]       = do_push_true,
+  [RAK_OP_PUSH_INT]        = do_push_int,
   [RAK_OP_LOAD_CONST]      = do_load_const,
   [RAK_OP_LOAD_GLOBAL]     = do_load_global,
   [RAK_OP_LOAD_LOCAL]      = do_load_local,
@@ -117,6 +119,14 @@ static void do_push_false(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *sl
 static void do_push_true(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
 {
   rak_vm_push_bool(vm, true, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(vm, chunk, ip + 1, slots, err);
+}
+
+static void do_push_int(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  uint16_t data = rak_instr_ab(*ip);
+  rak_vm_push_number(vm, data, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, chunk, ip + 1, slots, err);
 }

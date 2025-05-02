@@ -852,6 +852,14 @@ static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
     next(comp, err);
     RakValue val = rak_number_value_from_cstr(tok.len, tok.chars, err);
     if (!rak_is_ok(err)) return;
+    if (rak_is_integer(val)
+     && rak_as_integer(val) >= 0
+     && rak_as_integer(val) <= UINT16_MAX)
+    {
+      uint16_t data = (uint16_t) rak_as_integer(val);
+      emit_instr(comp, rak_push_int_instr(data), err);
+      return;
+    }
     uint8_t idx = rak_chunk_append_const(&comp->chunk, val, err);
     if (!rak_is_ok(err)) return;
     emit_instr(comp, rak_load_const_instr(idx), err);

@@ -58,6 +58,7 @@ void rak_dump_chunk(RakChunk *chunk)
         printf("%-15s %-5d\n", rak_opcode_to_cstr(op), a);
       }
       break;
+    case RAK_OP_PUSH_INT:
     case RAK_OP_JUMP:
     case RAK_OP_JUMP_IF_FALSE:
     case RAK_OP_JUMP_IF_TRUE:

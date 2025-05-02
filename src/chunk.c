@@ -31,6 +31,7 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   case RAK_OP_PUSH_NIL:        cstr = "PUSH_NIL";        break;
   case RAK_OP_PUSH_FALSE:      cstr = "PUSH_FALSE";      break;
   case RAK_OP_PUSH_TRUE:       cstr = "PUSH_TRUE";       break;
+  case RAK_OP_PUSH_INT:        cstr = "PUSH_INT";        break;
   case RAK_OP_LOAD_CONST:      cstr = "LOAD_CONST";      break;
   case RAK_OP_LOAD_GLOBAL:     cstr = "LOAD_GLOBAL";     break;
   case RAK_OP_LOAD_LOCAL:      cstr = "LOAD_LOCAL";      break;

@@ -30,6 +30,7 @@
 #define rak_push_nil_instr()         rak_instr_fmt0(RAK_OP_PUSH_NIL)
 #define rak_push_false_instr()       rak_instr_fmt0(RAK_OP_PUSH_FALSE)
 #define rak_push_true_instr()        rak_instr_fmt0(RAK_OP_PUSH_TRUE)
+#define rak_push_int_instr(d)        rak_instr_fmt4(RAK_OP_PUSH_INT, (d))
 #define rak_load_const_instr(i)      rak_instr_fmt1(RAK_OP_LOAD_CONST, (i))
 #define rak_load_global_instr(i)     rak_instr_fmt1(RAK_OP_LOAD_GLOBAL, (i))
 #define rak_load_local_instr(i)      rak_instr_fmt1(RAK_OP_LOAD_LOCAL, (i))
@@ -64,6 +65,7 @@ typedef enum
   RAK_OP_PUSH_NIL,
   RAK_OP_PUSH_FALSE,
   RAK_OP_PUSH_TRUE,
+  RAK_OP_PUSH_INT,
   RAK_OP_LOAD_CONST,
   RAK_OP_LOAD_GLOBAL,
   RAK_OP_LOAD_LOCAL,
