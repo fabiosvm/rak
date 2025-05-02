@@ -7,7 +7,7 @@ Rak is a simple, cross-platform, dynamically typed scripting language designed w
 
 ## Hello, world!
 
-When learning a new programming language, the first thing you usually do is print "Hello, world!" to the console. In Rak, you can do this using the `println` function.
+When learning a new programming language, the first thing you usually do is to print "Hello, world!" to the console. In Rak, you can do this using the `println` function.
 
 ```rs
 println("Hello, world!");
@@ -22,12 +22,12 @@ Comments are used to add notes to your code. They are ignored by the compiler an
 let x; // This is also a single-line comment
 ```
 
-Do you want to write a multi-line comment?
+To write a multi-line comment, simply use multiple single-line comments:
 
 ```rs
 // This is a
 // multi-line
-// comment ;)
+// comment
 ```
 
 ## Semicolons
@@ -38,7 +38,7 @@ Semicolons are important in Rak. They are used to separate statements and are no
 let x = 42;
 ```
 
-There is no empty statement. A semicolon by itself is not a valid statement.
+Empty statements are not allowed; a semicolon by itself is not a valid statement.
 
 ```rs
 ; // ERROR: unexpected token ';' at 1:1
@@ -153,7 +153,7 @@ println(x); // 1
 
 ## Destructuring
 
-Rak allows destructuring in let statements. This means you can extract values from compound values into separate variables.
+Rak allows destructuring in `let` statements. This means you can extract values from compound values into separate variables.
 
 ```rs
 let [x, y] = [1, 2];
@@ -168,6 +168,8 @@ If the number of variables is greater than the number of values, the remaining v
 let [x, y, z] = [1, 2];
 println(z); // nil
 ```
+
+> **Note:** Destructuring is currently only supported for Array values.
 
 ## Assignment
 
@@ -213,7 +215,15 @@ The following arithmetic operators are supported:
 | `%` | Remainder |
 | `-` (unary) | Negation |
 
-> (Examples for this section are coming soon.)
+Examples:
+
+```rs
+println(1 + 2);  // 3
+println(5 * 2);  // 10
+println(10 / 2); // 5
+println(5 % 2);  // 1
+println(-42);    // -42
+```
 
 ## Equality and comparison operators
 
@@ -228,7 +238,16 @@ The following equality and comparison operators are supported:
 | `<=` | Less than or equal to |
 | `<` | Less than |
 
-> (Examples for this section are coming soon.)
+Examples:
+
+```rs
+println(1 == 1); // true
+println(1 != 2); // true
+println(2 >= 2); // true
+println(3 > 2);  // true
+println(2 <= 2); // true
+println(1 < 2);  // true
+```
 
 ## Logical operators
 
@@ -240,7 +259,13 @@ The following logical operators are supported:
 | `&&` | Logical AND |
 | `!` | Logical NOT |
 
-> (Examples for this section are coming soon.)
+Examples:
+
+```rs
+println(true && false); // false
+println(true || false); // true
+println(!false);        // true
+```
 
 ## If statements
 
@@ -248,7 +273,7 @@ If statements are used to execute a block of code conditionally.
 
 ```rs
 if x > 0 {
-  println("x is zero");
+  println("x is positive");
 }
 ```
 
@@ -365,16 +390,26 @@ Use the `len` built-in function to get the length of a string.
 println(len(s)); // 16
 ```
 
-Besides the `+` operator add numbers, it can also be used to concatenate strings.
+Besides adding numbers, the `+` operator can also be used to concatenate strings.
 
 ```rs
 let s = "Hello, " + "world!";
 println(s); // Hello, world!
 ```
 
+Strings can be sliced using the `[]` operator and a range.
+
+```rs
+let s = "Hello, world!";
+println(s[0..5]); // Hello
+println(s[7..12]); // world
+```
+
+> **Note:** The range is exclusive, meaning that the last character is not included in the slice.
+
 ## Arrays
 
-Arrays are ordered collections of values. They are constructed using square brackets `[]` and can contain any type of value.
+Arrays are ordered collections of values, enclosed in square brackets `[]`. Each element can be of any type, and values are accessed by their zero-based index.
 
 ```rs
 let a = [false, 3.14, "foo"];
@@ -416,6 +451,14 @@ let a = [1, 2] + [3, 4];
 println(a); // [1, 2, 3, 4]
 ```
 
+Arrays can be sliced too.
+
+```rs
+let a = [1, 2, 3, 4, 5];
+println(a[0..3]); // [1, 2, 3]
+println(a[2..5]); // [3, 4, 5]
+```
+
 ## Ranges
 
 Ranges are a representation of a range of integers. They are constructed using the `..` operator.
@@ -431,7 +474,7 @@ println(r[0]); // 1
 println(r[1]); // 2
 ```
 
-Ranges are exclusive, meaning that the last element is not included in the range.
+Remember that ranges are exclusive. So...
 
 ```rs
 println(r[2]); // ERROR: index out of bounds
@@ -443,15 +486,30 @@ Also, you can use the `len` to get the length of a range.
 println(len(r)); // 2
 ```
 
-> **Note:** Ranges can be used for slicing strings and arrays. Look at the Slicing section.
-
-## Slicing
-
-> (Documentation for this section is coming soon.)
-
 ## Records
 
-> (Documentation for this section is coming soon.)
+Records are ordered collections of key-value pairs, enclosed in curly braces `{}`. Each key is a string, and each value can be of any type. They are commonly used to represent structured data, similar to objects or dictionaries in other languages.
+
+```rs
+let r = {
+  name: "Yoda",
+  age: 900,
+  species: "Unknown"
+};
+```
+
+To access the values in a record, use the `[]` or `.` operator.
+
+```rs
+println(r["name"]); // Yoda
+println(r.age); // 900
+```
+
+Use `len` to get the number of fields in a record.
+
+```rs
+println(len(r)); // 3
+```
 
 ## Closures
 

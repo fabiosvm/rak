@@ -37,11 +37,9 @@
     rak_slice_set(&(c)->instrs, (o), (i)); \
   } while (0)
 
-  
 typedef struct
 {
-  int      len;
-  char    *chars;
+  RakToken tok;
   uint8_t  idx;
   int      depth;
 } Symbol;
@@ -58,9 +56,9 @@ typedef struct
   RakStaticSlice(Symbol, UINT8_MAX)  symbols;
   RakLexer                           lex;
   int                                scopeDepth;
-  Loop                           *loop;
+  Loop                              *loop;
 } Compiler;
-  
+
 static inline void compiler_init(Compiler *comp);
 static inline void compile_chunk(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
@@ -105,6 +103,7 @@ static inline void begin_loop(Compiler *comp, RakChunk *chunk, Loop *loop);
 static inline void end_loop(Compiler *comp, RakChunk *chunk);
 static inline void define_local(Compiler *comp, RakToken tok, RakError *err);
 static inline int resolve_local(Compiler *comp, RakToken tok);
+static inline bool ident_equals(RakToken tok1, RakToken tok2);
 static inline void unexpected_token_error(RakError *err, RakToken tok);
 static inline void expected_token_error(RakError *err, RakTokenKind kind, RakToken tok);
 
@@ -1149,8 +1148,7 @@ static inline void define_local(Compiler *comp, RakToken tok, RakError *err)
   {
     Symbol sym = rak_slice_get(&comp->symbols, i);
     if (sym.depth != comp->scopeDepth) break;
-    if (sym.len != tok.len || memcmp(sym.chars, tok.chars, tok.len))
-      continue;
+    if (!ident_equals(sym.tok, tok)) continue;
     idx = sym.idx;
     break;
   }
@@ -1168,9 +1166,8 @@ static inline void define_local(Compiler *comp, RakToken tok, RakError *err)
     return;
   }
   Symbol sym = {
-    .len = tok.len,
-    .chars = tok.chars,
-    .idx  = (uint8_t) idx,
+    .tok = tok,
+    .idx = (uint8_t) idx,
     .depth = comp->scopeDepth
   };
   rak_slice_append(&comp->symbols, sym);
@@ -1183,12 +1180,18 @@ static inline int resolve_local(Compiler *comp, RakToken tok)
   for (int i = len - 1; i >= 0; --i)
   {
     Symbol sym = rak_slice_get(&comp->symbols, i);
-    if (sym.len != tok.len || memcmp(sym.chars, tok.chars, tok.len))
-      continue;
+    if (!ident_equals(sym.tok, tok)) continue;
     idx = sym.idx;
     break;
   }
   return idx;
+}
+
+static inline bool ident_equals(RakToken tok1, RakToken tok2)
+{
+  int len = tok1.len;
+  if (len != tok2.len) return false;
+  return !memcmp(tok1.chars, tok2.chars, len);
 }
 
 static inline void unexpected_token_error(RakError *err, RakToken tok)
