@@ -120,31 +120,64 @@ int rak_record_index_of(RakRecord *rec, RakString *name)
 
 RakRecord *rak_record_put(RakRecord *rec, RakString *name, RakValue val, RakError *err)
 {
-  // TODO: Implement this function.
-  (void) rec;
-  (void) name;
-  (void) val;
-  (void) err;
+  RakRecord *_rec = rak_record_new_copy(rec, err);
+  if (!rak_is_ok(err)) return NULL;
+  rak_record_inplace_put(_rec, name, val, err);
+  if (rak_is_ok(err)) return _rec;
+  rak_record_free(_rec);
   return NULL;
 }
 
 RakRecord *rak_record_set(RakRecord *rec, int idx, RakValue val, RakError *err)
 {
-  // TODO: Implement this function.
-  (void) rec;
-  (void) idx;
-  (void) val;
-  (void) err;
-  return NULL;
+  int len = rak_record_len(rec);
+  RakRecord *_rec = rak_record_new_with_capacity(len, err);
+  if (!rak_is_ok(err)) return NULL;
+  for (int i = 0; i < idx; ++i)
+  {
+    RakRecordField field = rak_record_get(rec, i);
+    rak_slice_set(&_rec->slice, i, field);
+    rak_object_retain(&field.name->obj);
+    rak_value_retain(field.val);
+  }
+  RakRecordField field = rak_record_get(rec, idx);
+  field.val = val;
+  rak_slice_set(&_rec->slice, idx, field);
+  rak_object_retain(&field.name->obj);
+  rak_value_retain(field.val);
+  for (int i = idx + 1; i < len; ++i)
+  {
+    RakRecordField _field = rak_record_get(rec, i);
+    rak_slice_set(&_rec->slice, i, _field);
+    rak_object_retain(&_field.name->obj);
+    rak_value_retain(_field.val);
+  }
+  _rec->slice.len = len;
+  return _rec;
 }
 
 RakRecord *rak_record_remove_at(RakRecord *rec, int idx, RakError *err)
 {
-  // TODO: Implement this function.
-  (void) rec;
-  (void) idx;
-  (void) err;
-  return NULL;
+  int len = rak_record_len(rec);
+  int _len = len - 1;
+  RakRecord *_rec = rak_record_new_with_capacity(_len, err);
+  if (!rak_is_ok(err)) return NULL;
+  for (int i = 0; i < idx; ++i)
+  {
+    RakRecordField field = rak_record_get(rec, i);
+    rak_slice_set(&_rec->slice, i, field);
+    rak_object_retain(&field.name->obj);
+    rak_value_retain(field.val);
+  }
+  for (int i = idx + 1; i < len; ++i)
+  {
+    RakRecordField field = rak_record_get(rec, i);
+    rak_slice_set(&_rec->slice, i, field);
+    rak_object_retain(&field.name->obj);
+    rak_value_retain(field.val);
+  }
+  _rec->slice.len = _len;
+  return _rec;
 }
 
 void rak_record_inplace_put(RakRecord *rec, RakString *name, RakValue val, RakError *err)

@@ -200,7 +200,8 @@ static inline void compile_destruct(RakCompiler *comp, RakError *err)
     next(comp, err);
     if (rak_slice_is_full(&toks))
     {
-      rak_error_set(err, "too many destructuring variables");
+      rak_error_set(err, "too many destructuring variables at %d:%d",
+        tok.ln, tok.col);
       return;
     }
     rak_slice_append(&toks, tok);
@@ -373,19 +374,22 @@ static inline void compile_do_while_stmt(RakCompiler *comp, RakError *err)
 
 static inline void compile_break_stmt(RakCompiler *comp, RakError *err)
 {
+  RakToken tok = comp->lex.tok;
   next(comp, err);
   consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
   RakLoop *loop = comp->loop;
   if (!loop)
   {
-    rak_error_set(err, "break statement not in loop");
+    rak_error_set(err, "break statement not in loop at %d:%d",
+      tok.ln, tok.col);
     return;
   }
   uint16_t jump = emit_instr(comp, rak_nop_instr(), err);
   if (!rak_is_ok(err)) return;
   if (rak_slice_is_full(&loop->jumps))
   {
-    rak_error_set(err, "too many break statements in loop");
+    rak_error_set(err, "too many break statements in loop at %d:%d",
+      tok.ln, tok.col);
     return;
   }
   rak_slice_append(&loop->jumps, jump);
@@ -393,12 +397,14 @@ static inline void compile_break_stmt(RakCompiler *comp, RakError *err)
 
 static inline void compile_continue_stmt(RakCompiler *comp, RakError *err)
 {
+  RakToken tok = comp->lex.tok;
   next(comp, err);
   consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
   RakLoop *loop = comp->loop;
   if (!loop)
   {
-    rak_error_set(err, "continue statement not in loop");
+    rak_error_set(err, "continue statement not in loop at %d:%d",
+      tok.ln, tok.col);
     return;
   }
   emit_instr(comp, rak_jump_instr(loop->off), err);
@@ -436,7 +442,8 @@ static inline void compile_assign_expr(RakCompiler *comp, RakError *err)
   if (!rak_is_ok(err)) return;
   if (idx == -1)
   {
-    rak_error_set(err, "undefined local variable '%.*s'", tok.len, tok.chars);
+    rak_error_set(err, "variable '%.*s' used, but not defined at %d:%d",
+      tok.len, tok.chars, tok.ln, tok.col);
     return;
   }
   uint8_t _idx = (uint8_t) idx + 1;
@@ -752,7 +759,8 @@ static inline void compile_call(RakCompiler *comp, bool *ok, RakError *err)
     consume(comp, RAK_TOKEN_KIND_RPAREN, err);
     if (nargs > UINT8_MAX)
     {
-      rak_error_set(err, "too many arguments to call");
+      rak_error_set(err, "too many arguments to call at %d:%d",
+        comp->lex.tok.ln, comp->lex.tok.col);
       return;
     }
     emit_instr(comp, rak_call_instr((uint8_t) nargs), err);
@@ -883,7 +891,8 @@ static inline void compile_prim_expr(RakCompiler *comp, RakError *err)
       emit_instr(comp, rak_load_global_instr((uint8_t) idx), err);
       return;
     }
-    rak_error_set(err, "undefined symbol '%.*s'", tok.len, tok.chars);
+    rak_error_set(err, "undefined symbol '%.*s' at %d:%d", tok.len, tok.chars,
+      tok.ln, tok.col);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_LBRACKET))
@@ -924,7 +933,8 @@ static inline void compile_array(RakCompiler *comp, RakError *err)
   consume(comp, RAK_TOKEN_KIND_RBRACKET, err);
   if (len > UINT8_MAX)
   {
-    rak_error_set(err, "array length too long");
+    rak_error_set(err, "array length too long at %d:%d",
+      comp->lex.tok.ln, comp->lex.tok.col);
     return;
   }
   emit_instr(comp, rak_new_array_instr((uint8_t) len), err);
@@ -952,7 +962,8 @@ static inline void compile_record(RakCompiler *comp, RakError *err)
   consume(comp, RAK_TOKEN_KIND_RBRACE, err);
   if (len > UINT8_MAX)
   {
-    rak_error_set(err, "record length too long");
+    rak_error_set(err, "record length too long at %d:%d",
+      comp->lex.tok.ln, comp->lex.tok.col);
     return;
   }
   emit_instr(comp, rak_new_record_instr((uint8_t) len), err);
@@ -1104,13 +1115,15 @@ static inline void define_local(RakCompiler *comp, RakToken tok, RakError *err)
   }
   if (idx != -1)
   {
-    rak_error_set(err, "duplicate local variable '%.*s'", tok.len, tok.chars);
+    rak_error_set(err, "duplicate local variable '%.*s' at %d:%d",
+      tok.len, tok.chars, tok.ln, tok.col);
     return;
   }
   idx = comp->symbols.len;
   if (idx > UINT8_MAX)
   {
-    rak_error_set(err, "too many local variables");
+    rak_error_set(err, "too many local variables at %d:%d",
+      tok.ln, tok.col);
     return;
   }
   RakSymbol sym = {

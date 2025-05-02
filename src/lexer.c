@@ -126,7 +126,7 @@ static inline bool match_string(RakLexer *lex, RakError *err)
     }
     if (char_at(lex, len) == '\0')
     {
-      rak_error_set(err, "unterminated string in %d,%d", lex->ln, lex->col);
+      rak_error_set(err, "unterminated string at %d,%d", lex->ln, lex->col);
       return false;
     }
     ++len;

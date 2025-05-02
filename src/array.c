@@ -124,30 +124,71 @@ RakArray *rak_array_append(RakArray *arr, RakValue val, RakError *err)
 
 RakArray *rak_array_set(RakArray *arr, int idx, RakValue val, RakError *err)
 {
-  // TODO: Implement this function.
-  (void) arr;
-  (void) idx;
-  (void) val;
-  (void) err;
-  return NULL;
+  int len = rak_array_len(arr);
+  RakArray *_arr = rak_array_new_with_capacity(len, err);
+  if (!rak_is_ok(err)) return NULL;
+  for (int i = 0; i < idx; ++i)
+  {
+    RakValue _val = rak_array_get(arr, i);
+    rak_slice_set(&_arr->slice, i, _val);
+    rak_value_retain(_val);
+  }
+  rak_slice_set(&_arr->slice, idx, val);
+  rak_value_retain(val);
+  for (int i = idx + 1; i < len; ++i)
+  {
+    RakValue _val = rak_array_get(arr, i);
+    rak_slice_set(&_arr->slice, i, _val);
+    rak_value_retain(_val);
+  }
+  _arr->slice.len = len;
+  return _arr;
 }
 
 RakArray *rak_array_remove_at(RakArray *arr, int idx, RakError *err)
 {
-  // TODO: Implement this function.
-  (void) arr;
-  (void) idx;
-  (void) err;
-  return NULL;
+  int len = rak_array_len(arr);
+  int _len = len - 1;
+  RakArray *_arr = rak_array_new_with_capacity(_len, err);
+  if (!rak_is_ok(err)) return NULL;
+  for (int i = 0; i < idx; ++i)
+  {
+    RakValue val = rak_array_get(arr, i);
+    rak_slice_set(&_arr->slice, i, val);
+    rak_value_retain(val);
+  }
+  for (int i = idx + 1; i < len; ++i)
+  {
+    RakValue val = rak_array_get(arr, i);
+    rak_slice_set(&_arr->slice, i, val);
+    rak_value_retain(val);
+  }
+  _arr->slice.len = _len;
+  return _arr;
 }
 
 RakArray *rak_array_concat(RakArray *arr1, RakArray *arr2, RakError *err)
 {
-  // TODO: Implement this function.
-  (void) arr1;
-  (void) arr2;
-  (void) err;
-  return NULL;
+  int len1 = rak_array_len(arr1);
+  int len2 = rak_array_len(arr2);
+  int len = len1 + len2;
+  RakArray *arr = rak_array_new_with_capacity(len, err);
+  if (!rak_is_ok(err)) return NULL;
+  int j = 0;
+  for (int i = 0; i < len1; ++i, ++j)
+  {
+    RakValue val = rak_array_get(arr, i);
+    rak_slice_set(&arr->slice, j, val);
+    rak_value_retain(val);
+  }
+  for (int i = 0; i < len2; ++i, ++j)
+  {
+    RakValue val = rak_array_get(arr, i);
+    rak_slice_set(&arr->slice, j, val);
+    rak_value_retain(val);
+  }
+  arr->slice.len = len;
+  return arr;
 }
 
 RakArray *rak_array_slice(RakArray *arr, int start, int end, RakError *err)
