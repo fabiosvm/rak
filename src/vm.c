@@ -346,9 +346,3 @@ void rak_vm_run(RakVM *vm, RakChunk *chunk, RakError *err)
   RakValue *slots = &rak_stack_get(&vm->vstk, 0);
   dispatch(vm, chunk, ip, slots, err);
 }
-
-void rak_vm_reset(RakVM *vm)
-{
-  release_values(vm);
-  rak_stack_clear(&vm->vstk);
-}

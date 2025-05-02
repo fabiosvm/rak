@@ -12,36 +12,7 @@
 #define RAK_COMPILER_H
 
 #include "chunk.h"
-#include "lexer.h"
-#include "string.h"
 
-typedef struct
-{
-  int      len;
-  char    *chars;
-  uint8_t  idx;
-  int      depth;
-} RakSymbol;
-
-typedef struct RakLoop
-{
-  struct RakLoop                      *parent;
-  uint16_t                             off;
-  RakStaticSlice(uint16_t, UINT8_MAX)  jumps;
-} RakLoop;
-
-typedef struct
-{
-  RakChunk                              chunk;
-  RakStaticSlice(RakSymbol, UINT8_MAX)  symbols;
-  RakLexer                              lex;
-  int                                   scopeDepth;
-  RakLoop                              *loop;
-} RakCompiler;
-
-void rak_compiler_init(RakCompiler *comp, RakError *err);
-void rak_compiler_deinit(RakCompiler *comp);
-void rak_compiler_compile(RakCompiler *comp, char *source, RakError *err);
-void rak_compiler_reset(RakCompiler *comp);
+void rak_compile(char *source, RakChunk *chunk, RakError *err);
 
 #endif // RAK_COMPILER_H

@@ -19,7 +19,6 @@
 static void shutdown(int sig);
 static void check_error(RakError *err);
 static void read(RakString *source);
-static void compile(RakCompiler *comp, RakString *source, RakError *err);
 static void run(RakVM *vm, RakChunk *chunk, RakError *err);
 
 static void shutdown(int sig)
@@ -52,14 +51,6 @@ static void read(RakString *source)
   check_error(&err);
 }
 
-static void compile(RakCompiler *comp, RakString *source, RakError *err)
-{
-  rak_compiler_init(comp, err);
-  check_error(err);
-  rak_compiler_compile(comp, rak_string_chars(source), err);
-  check_error(err);
-}
-
 static void run(RakVM *vm, RakChunk *chunk, RakError *err)
 {
   rak_vm_init(vm, RAK_VM_VSTK_DEFAULT_SIZE, err);
@@ -76,20 +67,22 @@ int main(int argc, const char *argv[])
   RakError err = rak_ok();
   RakString source;
   read(&source);
-  RakCompiler comp;
-  compile(&comp, &source, &err);
+  RakChunk chunk;
+  rak_chunk_init(&chunk, &err);
+  check_error(&err);
+  rak_compile(rak_string_chars(&source), &chunk, &err);
   check_error(&err);
   if (argc > 1 && !strcmp(argv[1], "-c"))
   {
-    rak_dump_chunk(&comp.chunk);
+    rak_dump_chunk(&chunk);
     goto end;
   }
   RakVM vm;
-  run(&vm, &comp.chunk, &err);
+  run(&vm, &chunk, &err);
   check_error(&err);
   rak_vm_deinit(&vm);
 end:
-  rak_compiler_deinit(&comp);
+  rak_chunk_deinit(&chunk);
   rak_string_deinit(&source);
   return EXIT_SUCCESS;
 }

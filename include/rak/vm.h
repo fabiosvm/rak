@@ -63,7 +63,6 @@ static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err);
 void rak_vm_init(RakVM *vm, int vstkSize, RakError *err);
 void rak_vm_deinit(RakVM *vm);
 void rak_vm_run(RakVM *vm, RakChunk *chunk, RakError *err);
-void rak_vm_reset(RakVM *vm);
 
 static inline void rak_vm_push(RakVM *vm, RakValue val, RakError *err)
 {
