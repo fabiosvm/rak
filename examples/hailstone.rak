@@ -1,4 +1,8 @@
 
+//
+// hailstone.rak
+//
+
 let n = 7;
 
 let seq = [n];

@@ -15,7 +15,7 @@
 #define char_at(l, i)   ((l)->curr[(i)])
 #define current_char(l) char_at(l, 0)
 
-static inline void skip_whitespace(RakLexer *lex);
+static inline void skip_whitespace_comments(RakLexer *lex);
 static inline void next_char(RakLexer *lex);
 static inline void next_chars(RakLexer *lex, int len);
 static inline bool match_char(RakLexer *lex, char c, RakTokenKind kind);
@@ -27,10 +27,25 @@ static inline bool match_ident(RakLexer *lex);
 static inline RakToken token(RakLexer *lex, RakTokenKind kind, int len, char *chars);
 static inline void unexpected_character_error(RakError *err, char c, int ln, int col);
 
-static inline void skip_whitespace(RakLexer *lex)
+static inline void skip_whitespace_comments(RakLexer *lex)
 {
+begin:
   while (isspace(current_char(lex)))
     next_char(lex);
+  if ((char_at(lex, 0) != '/' || char_at(lex, 1) != '/'))
+    return;
+  next_chars(lex, 2);
+  for (;;)
+  {
+    if (current_char(lex) == '\0')
+      break;
+    if (current_char(lex) == '\n')
+    {
+      next_char(lex);
+      goto begin;
+    }
+    next_char(lex);
+  }
 }
 
 static inline void next_char(RakLexer *lex)
@@ -254,7 +269,7 @@ void rak_lexer_init(RakLexer *lex, char *source, RakError *err)
 
 void rak_lexer_next(RakLexer *lex, RakError *err)
 {
-  skip_whitespace(lex);
+  skip_whitespace_comments(lex);
   if (match_char(lex, '\0', RAK_TOKEN_KIND_EOF)) return;
   if (match_char(lex, ',', RAK_TOKEN_KIND_COMMA)) return;
   if (match_char(lex, ':', RAK_TOKEN_KIND_COLON)) return;

@@ -13,12 +13,29 @@ When learning a new programming language, the first thing you usually do is prin
 println("Hello, world!");
 ```
 
+## Comments
+
+Comments are used to add notes to your code. They are ignored by the compiler and are not executed.
+
+```rs
+// This is a single-line comment
+let x; // This is also a single-line comment
+```
+
+Do you want to write a multi-line comment?
+
+```rs
+// This is a
+// multi-line
+// comment ;)
+```
+
 ## Semicolons
 
 Semicolons are important in Rak. They are used to separate statements and are not optional.
 
 ```rs
-let x;
+let x = 42;
 ```
 
 There is no empty statement. A semicolon by itself is not a valid statement.
