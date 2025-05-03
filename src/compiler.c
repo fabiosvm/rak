@@ -53,12 +53,14 @@ typedef struct Loop
   RakStaticSlice(uint16_t, UINT8_MAX)  jumps;
 } Loop;
 
+typedef RakStaticSlice(Symbol, UINT8_MAX) SymbolSlice;
+
 typedef struct
 {
-  RakStaticSlice(Symbol, UINT8_MAX)  symbols;
-  RakLexer                           lex;
-  int                                scopeDepth;
-  Loop                              *loop;
+  SymbolSlice  symbols;
+  RakLexer     lex;
+  int          scopeDepth;
+  Loop        *loop;
 } Compiler;
 
 static inline void compiler_init(Compiler *comp);
@@ -66,7 +68,9 @@ static inline void compile_chunk(Compiler *comp, RakChunk *chunk, RakError *err)
 static inline void compile_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_block(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_let_decl(Compiler *comp, RakChunk *chunk, RakError *err);
-static inline void compile_destruct(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline void compile_destruct_elements(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline void compile_ident_list(Compiler *comp, SymbolSlice *symbols, RakError *err);
+static inline void compile_destruct_fields(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err);
 static inline void compile_if_stmt_cont(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err);
 static inline void compile_loop_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
@@ -192,7 +196,13 @@ static inline void compile_let_decl(Compiler *comp, RakChunk *chunk, RakError *e
   next(comp, err);
   if (match(comp, RAK_TOKEN_KIND_LBRACKET))
   {
-    compile_destruct(comp, chunk, err);
+    compile_destruct_elements(comp, chunk, err);
+    if (!rak_is_ok(err)) return;
+    goto end;
+  }
+  if (match(comp, RAK_TOKEN_KIND_LBRACE))
+  {
+    compile_destruct_fields(comp, chunk, err);
     if (!rak_is_ok(err)) return;
     goto end;
   }
@@ -228,45 +238,13 @@ end:
   consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
 }
 
-static inline void compile_destruct(Compiler *comp, RakChunk *chunk, RakError *err)
+static inline void compile_destruct_elements(Compiler *comp, RakChunk *chunk, RakError *err)
 {
   next(comp, err);
-  RakStaticSlice(Symbol, UINT8_MAX) symbols;
+  SymbolSlice symbols;
   rak_static_slice_init(&symbols);
-  if (!match(comp, RAK_TOKEN_KIND_IDENT))
-  {
-    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
-    return;
-  }
-  RakToken tok = comp->lex.tok;
-  uint8_t idx = 0;
-  for (;;)
-  {
-    next(comp, err);
-    if (!is_blank_ident(tok))
-    {
-      if (rak_slice_is_full(&symbols))
-      {
-        rak_error_set(err, "too many destructuring variables at %d:%d",
-          tok.ln, tok.col);
-        return;
-      }
-      Symbol sym = {
-        .tok = tok,
-        .idx = idx
-      };
-      rak_slice_append(&symbols, sym);
-    }
-    ++idx;
-    if (!match(comp, RAK_TOKEN_KIND_COMMA)) break;
-    next(comp, err);
-    if (!match(comp, RAK_TOKEN_KIND_IDENT))
-    {
-      expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
-      return;
-    }
-    tok = comp->lex.tok;
-  }
+  compile_ident_list(comp, &symbols, err);
+  if (!rak_is_ok(err)) return;
   consume(comp, RAK_TOKEN_KIND_RBRACKET, err);
   consume(comp, RAK_TOKEN_KIND_EQ, err);
   compile_expr(comp, chunk, err);
@@ -280,6 +258,76 @@ static inline void compile_destruct(Compiler *comp, RakChunk *chunk, RakError *e
     if (!rak_is_ok(err)) return;
   }
   emit_instr(chunk, rak_unpack_elements_instr((uint8_t) symbols.len), err);
+}
+
+static inline void compile_ident_list(Compiler *comp, SymbolSlice *symbols, RakError *err)
+{
+  if (!match(comp, RAK_TOKEN_KIND_IDENT))
+  {
+    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+    return;
+  }
+  RakToken tok = comp->lex.tok;
+  uint8_t idx = 0;
+  for (;;)
+  {
+    next(comp, err);
+    if (!is_blank_ident(tok))
+    {
+      if (rak_slice_is_full(symbols))
+      {
+        rak_error_set(err, "too many destructuring variables at %d:%d",
+          tok.ln, tok.col);
+        return;
+      }
+      Symbol sym = {
+        .tok = tok,
+        .idx = idx
+      };
+      rak_slice_append(symbols, sym);
+    }
+    ++idx;
+    if (!match(comp, RAK_TOKEN_KIND_COMMA)) break;
+    next(comp, err);
+    if (!match(comp, RAK_TOKEN_KIND_IDENT))
+    {
+      expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+      return;
+    }
+    tok = comp->lex.tok;
+  }
+}
+
+static inline void compile_destruct_fields(Compiler *comp, RakChunk *chunk, RakError *err)
+{
+  next(comp, err);
+  SymbolSlice symbols;
+  rak_static_slice_init(&symbols);
+  compile_ident_list(comp, &symbols, err);
+  if (!rak_is_ok(err)) return;
+  consume(comp, RAK_TOKEN_KIND_RBRACE, err);
+  consume(comp, RAK_TOKEN_KIND_EQ, err);
+  compile_expr(comp, chunk, err);
+  if (!rak_is_ok(err)) return;
+  for (int i = 0; i < symbols.len; ++i)
+  {
+    RakToken tok = rak_slice_get(&symbols, i).tok;
+    define_local(comp, tok, err);
+    if (!rak_is_ok(err)) return;
+    RakString *str = rak_string_new_from_cstr(tok.len, tok.chars, err);
+    if (!rak_is_ok(err)) return;
+    RakValue val = rak_string_value(str);
+    uint8_t idx = rak_chunk_append_const(chunk, val, err);
+    if (!rak_is_ok(err))
+    {
+      rak_string_free(str);
+      return;
+    }
+    emit_instr(chunk, rak_load_const_instr(idx), err);
+    if (rak_is_ok(err)) continue;
+    rak_string_free(str);
+  }
+  emit_instr(chunk, rak_unpack_fields_instr((uint8_t) symbols.len), err);
 }
 
 static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err)

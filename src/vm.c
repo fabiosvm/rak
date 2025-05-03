@@ -32,6 +32,7 @@ static void do_pop(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, Ra
 static void do_get_element(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_get_field(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_unpack_elements(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_unpack_fields(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump_if_false(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump_if_true(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err);
@@ -66,6 +67,7 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_GET_ELEMENT]     = do_get_element,
   [RAK_OP_GET_FIELD]       = do_get_field,
   [RAK_OP_UNPACK_ELEMENTS] = do_unpack_elements,
+  [RAK_OP_UNPACK_FIELDS]   = do_unpack_fields,
   [RAK_OP_JUMP]            = do_jump,
   [RAK_OP_JUMP_IF_FALSE]   = do_jump_if_false,
   [RAK_OP_JUMP_IF_TRUE]    = do_jump_if_true,
@@ -217,6 +219,14 @@ static void do_unpack_elements(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValu
 {
   uint8_t n = rak_instr_a(*ip);
   rak_vm_unpack_elements(vm, n, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(vm, chunk, ip + 1, slots, err);
+}
+
+static void do_unpack_fields(RakVM *vm, RakChunk *chunk, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  uint8_t n = rak_instr_a(*ip);
+  rak_vm_unpack_fields(vm, n, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, chunk, ip + 1, slots, err);
 }

@@ -44,6 +44,7 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   case RAK_OP_GET_ELEMENT:     cstr = "GET_ELEMENT";     break;
   case RAK_OP_GET_FIELD:       cstr = "GET_FIELD";       break;
   case RAK_OP_UNPACK_ELEMENTS: cstr = "UNPACK_ELEMENTS"; break;
+  case RAK_OP_UNPACK_FIELDS:   cstr = "UNPACK_FIELDS";   break;
   case RAK_OP_JUMP:            cstr = "JUMP";            break;
   case RAK_OP_JUMP_IF_FALSE:   cstr = "JUMP_IF_FALSE";   break;
   case RAK_OP_JUMP_IF_TRUE:    cstr = "JUMP_IF_TRUE";    break;

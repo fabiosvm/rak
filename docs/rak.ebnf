@@ -13,9 +13,13 @@ stmt              ::= block
 
 block             ::= "{" stmt* "}"
 
-let_decl          ::= "let" destruct | ( IDENT ( "=" expr )? ) ";"
+let_decl          ::= "let" ( destruct_elements | destruct_fields ) | ( IDENT ( "=" expr )? ) ";"
 
-destruct          ::= "[" IDENT ( "," IDENT )* "]" "=" expr
+destruct_elements ::= "[" ident_list "]" "=" expr
+
+ident_list        ::= IDENT ( "," IDENT )*
+
+destruct_fields   ::= "{" ident_list "}" "=" expr
 
 if_stmt           ::= "if" let_decl? expr block if_stmt_cont
 

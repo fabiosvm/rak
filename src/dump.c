@@ -52,6 +52,7 @@ void rak_dump_chunk(RakChunk *chunk)
     case RAK_OP_NEW_RECORD:
     case RAK_OP_GET_FIELD:
     case RAK_OP_UNPACK_ELEMENTS:
+    case RAK_OP_UNPACK_FIELDS:
     case RAK_OP_CALL:
       {
         uint8_t a = rak_instr_a(instr);

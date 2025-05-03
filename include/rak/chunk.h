@@ -43,6 +43,7 @@
 #define rak_get_element_instr()      rak_instr_fmt0(RAK_OP_GET_ELEMENT)
 #define rak_get_field_instr(i)       rak_instr_fmt1(RAK_OP_GET_FIELD, (i))
 #define rak_unpack_elements_instr(n) rak_instr_fmt1(RAK_OP_UNPACK_ELEMENTS, (n))
+#define rak_unpack_fields_instr(n)   rak_instr_fmt1(RAK_OP_UNPACK_FIELDS, (n))
 #define rak_jump_instr(o)            rak_instr_fmt4(RAK_OP_JUMP, (o))
 #define rak_jump_if_false_instr(o)   rak_instr_fmt4(RAK_OP_JUMP_IF_FALSE, (o))
 #define rak_jump_if_true_instr(o)    rak_instr_fmt4(RAK_OP_JUMP_IF_TRUE, (o))
@@ -78,6 +79,7 @@ typedef enum
   RAK_OP_GET_ELEMENT,
   RAK_OP_GET_FIELD,
   RAK_OP_UNPACK_ELEMENTS,
+  RAK_OP_UNPACK_FIELDS,
   RAK_OP_JUMP,
   RAK_OP_JUMP_IF_FALSE,
   RAK_OP_JUMP_IF_TRUE,

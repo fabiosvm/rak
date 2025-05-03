@@ -155,8 +155,10 @@ println(x); // 1
 
 Rak allows destructuring in `let` statements. This means you can extract values from compound values into separate variables.
 
+Look at the following example where we destructure an array:
+
 ```rs
-let [x, y] = [1, 2];
+let [x, y] = [1, 2, 3];
 println(x); // 1
 println(y); // 2
 
@@ -169,7 +171,20 @@ let [x, y, z] = [1, 2];
 println(z); // nil
 ```
 
-> **Note:** Destructuring is currently only supported for Array values.
+You can use the placeholder `_` to ignore values you don't need.
+
+```rs
+let [_, x] = [1, 2, 3];
+println(x); // 2
+```
+
+Now, let's destructure a record:
+
+```rs
+let {y, z} = {x: 1, y: 2, z: 3};
+println(y); // 2
+println(z); // 3
+```
 
 ## Assignment
 

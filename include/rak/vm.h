@@ -44,6 +44,7 @@ static inline void rak_vm_pop(RakVM *vm);
 static inline void rak_vm_get_element(RakVM *vm, RakError *err);
 static inline void rak_vm_get_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
 static inline void rak_vm_unpack_elements(RakVM *vm, uint8_t n, RakError *err);
+static inline void rak_vm_unpack_fields(RakVM *vm, uint8_t n, RakError *err);
 static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx);
 static inline void rak_vm_set(RakVM *vm, uint8_t idx, RakValue val);
 static inline void rak_vm_set_value(RakVM *vm, uint8_t idx, RakValue val);
@@ -374,6 +375,35 @@ static inline void rak_vm_unpack_elements(RakVM *vm, uint8_t n, RakError *err)
     slots[i] = rak_nil_value();
   --vm->vstk.top;
   rak_array_release(arr);
+}
+
+static inline void rak_vm_unpack_fields(RakVM *vm, uint8_t n, RakError *err)
+{
+  RakValue *slots = &rak_stack_get(&vm->vstk, n);
+  RakValue val = slots[0];
+  if (!rak_is_record(val))
+  {
+    rak_error_set(err, "cannot unpack fields from value of type %s",
+      rak_type_to_cstr(val.type));
+    return;
+  }
+  RakRecord *rec = rak_as_record(val);
+  for (int i = 0; i < n; ++i)
+  {
+    RakString *name = rak_as_string(slots[i + 1]);
+    int idx = rak_record_index_of(rec, name);
+    if (idx == -1)
+    {
+      rak_error_set(err, "record has no field named '%.*s'",
+        rak_string_len(name), rak_string_chars(name));
+      return;
+    }
+    RakValue _val = rak_record_get(rec, idx).val;
+    slots[i] = _val;
+    rak_value_retain(_val);
+  }
+  --vm->vstk.top;
+  rak_record_release(rec);
 }
 
 static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx)
