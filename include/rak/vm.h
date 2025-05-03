@@ -353,7 +353,7 @@ static inline void rak_vm_get_field(RakVM *vm, RakChunk *chunk, uint8_t idx, Rak
 
 static inline void rak_vm_unpack_elements(RakVM *vm, uint8_t n, RakError *err)
 {
-  RakValue *slots = &rak_stack_get(&vm->vstk, 0);
+  RakValue *slots = &rak_stack_get(&vm->vstk, n);
   RakValue val = slots[0];
   if (!rak_is_array(val))
   {
@@ -363,21 +363,16 @@ static inline void rak_vm_unpack_elements(RakVM *vm, uint8_t n, RakError *err)
   }
   RakArray *arr = rak_as_array(val);
   int len = rak_array_len(arr);
-  val = rak_array_get(arr, 0);
-  slots[0] = val;
-  rak_value_retain(val);
-  for (int i = 1; i < n && i < len; ++i)
+  for (int i = 0; i < n && i < len; ++i)
   {
-    val = rak_array_get(arr, i);
-    rak_vm_push_value(vm, val, err);
-    if (!rak_is_ok(err)) goto end;
+    int idx = (int) rak_as_integer(slots[i + 1]);
+    RakValue _val = rak_array_get(arr, idx);
+    slots[i] = _val;
+    rak_value_retain(_val);
   }
   for (int i = len; i < n; ++i)
-  {
-    rak_vm_push_nil(vm, err);
-    if (!rak_is_ok(err)) break;
-  }
-end:
+    slots[i] = rak_nil_value();
+  --vm->vstk.top;
   rak_array_release(arr);
 }
 

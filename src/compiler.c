@@ -37,6 +37,8 @@
     rak_slice_set(&(c)->instrs, (o), (i)); \
   } while (0)
 
+#define is_blank_ident(t) ((t).len == 1 && (t).chars[0] == '_')
+
 typedef struct
 {
   RakToken tok;
@@ -201,17 +203,27 @@ static inline void compile_let_decl(Compiler *comp, RakChunk *chunk, RakError *e
   }
   RakToken tok = comp->lex.tok;
   next(comp, err);
+  bool isBlank = is_blank_ident(tok);
   if (match(comp, RAK_TOKEN_KIND_EQ))
   {
     next(comp, err);
     compile_expr(comp, chunk, err);
     if (!rak_is_ok(err)) return;
+    if (isBlank)
+    {
+      emit_instr(chunk, rak_pop_instr(), err);
+      if (!rak_is_ok(err)) return;
+      goto end;
+    }
     define_local(comp, tok, err);
+    if (!rak_is_ok(err)) return;
     goto end;
   }
+  if (isBlank) goto end;
   emit_instr(chunk, rak_push_nil_instr(), err);
   if (!rak_is_ok(err)) return;
   define_local(comp, tok, err);
+  if (!rak_is_ok(err)) return;
 end:
   consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
 }
@@ -219,24 +231,33 @@ end:
 static inline void compile_destruct(Compiler *comp, RakChunk *chunk, RakError *err)
 {
   next(comp, err);
-  RakStaticSlice(RakToken, UINT8_MAX) toks;
-  rak_static_slice_init(&toks);
+  RakStaticSlice(Symbol, UINT8_MAX) symbols;
+  rak_static_slice_init(&symbols);
   if (!match(comp, RAK_TOKEN_KIND_IDENT))
   {
     expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
     return;
   }
   RakToken tok = comp->lex.tok;
+  uint8_t idx = 0;
   for (;;)
   {
     next(comp, err);
-    if (rak_slice_is_full(&toks))
+    if (!is_blank_ident(tok))
     {
-      rak_error_set(err, "too many destructuring variables at %d:%d",
-        tok.ln, tok.col);
-      return;
+      if (rak_slice_is_full(&symbols))
+      {
+        rak_error_set(err, "too many destructuring variables at %d:%d",
+          tok.ln, tok.col);
+        return;
+      }
+      Symbol sym = {
+        .tok = tok,
+        .idx = idx
+      };
+      rak_slice_append(&symbols, sym);
     }
-    rak_slice_append(&toks, tok);
+    ++idx;
     if (!match(comp, RAK_TOKEN_KIND_COMMA)) break;
     next(comp, err);
     if (!match(comp, RAK_TOKEN_KIND_IDENT))
@@ -250,13 +271,15 @@ static inline void compile_destruct(Compiler *comp, RakChunk *chunk, RakError *e
   consume(comp, RAK_TOKEN_KIND_EQ, err);
   compile_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  for (int i = 0; i < toks.len; ++i)
+  for (int i = 0; i < symbols.len; ++i)
   {
-    RakToken _tok = toks.data[i];
-    define_local(comp, _tok, err);
+    Symbol sym = rak_slice_get(&symbols, i);
+    define_local(comp, sym.tok, err);
+    if (!rak_is_ok(err)) return;
+    emit_instr(chunk, rak_push_int_instr(sym.idx), err);
     if (!rak_is_ok(err)) return;
   }
-  emit_instr(chunk, rak_unpack_elements_instr((uint8_t) toks.len), err);
+  emit_instr(chunk, rak_unpack_elements_instr((uint8_t) symbols.len), err);
 }
 
 static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err)
