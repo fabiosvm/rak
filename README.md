@@ -52,13 +52,13 @@ This project uses [CMake](https://cmake.org) and includes a build script to simp
 Use `rak` to run a script by reading it from standard input.
 
 ```
-./build/rak < examples/hailstone.rak
+./build/rak examples/hailstone.rak
 ```
 
 You can use the `-c` flag to compile a script into bytecode and display it without executing.
 
 ```
-./build/rak -c < examples/hello.rak
+./build/rak -c examples/hello.rak
 ```
 
 Output:

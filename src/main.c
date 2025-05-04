@@ -14,11 +14,14 @@
 #include <string.h>
 #include <rak.h>
 
-#define SOURCE_MAX_LEN ((int) 1 << 12)
-
 static void shutdown(int sig);
+static bool has_opt(int argc, const char *argv[], const char *opt);
+static const char *get_arg(int argc, const char *argv[], int idx);
 static void check_error(RakError *err);
-static void read(RakString *source);
+static void read_from_stdin(RakString *source);
+static void read_from_file(RakString *source, const char *filename, RakError *err);
+static FILE *open_file(const char *filename, RakError *err);
+static int file_size(FILE *fp);
 static void run(RakVM *vm, RakChunk *chunk, RakError *err);
 
 static void shutdown(int sig)
@@ -28,6 +31,26 @@ static void shutdown(int sig)
   exit(EXIT_SUCCESS);
 }
 
+static bool has_opt(int argc, const char *argv[], const char *opt)
+{
+  for (int i = 1; i < argc; ++i)
+    if (!strcmp(argv[i], opt))
+      return true;
+  return false;
+}
+
+static const char *get_arg(int argc, const char *argv[], int idx)
+{
+  int j = 0;
+  for (int i = 1; i < argc; ++i)
+  {
+    if (argv[i][0] == '-') continue;
+    if (j == idx) return argv[i];
+    ++j;
+  }
+  return NULL;
+}
+
 static void check_error(RakError *err)
 {
   if (rak_is_ok(err)) return;
@@ -35,10 +58,10 @@ static void check_error(RakError *err)
   exit(EXIT_FAILURE);
 }
 
-static void read(RakString *source)
+static void read_from_stdin(RakString *source)
 {
   RakError err = rak_ok();
-  rak_string_init_with_capacity(source, SOURCE_MAX_LEN, &err);
+  rak_string_init(source, &err);
   check_error(&err);
   char c = (char) fgetc(stdin);
   while (c != EOF)
@@ -49,6 +72,45 @@ static void read(RakString *source)
   }
   rak_string_inplace_append_cstr(source, 1, "\0", &err);
   check_error(&err);
+}
+
+static void read_from_file(RakString *source, const char *filename, RakError *err)
+{
+  FILE *fp = open_file(filename, err);
+  check_error(err);
+  int len = file_size(fp);
+  rak_string_init_with_capacity(source, len, err);
+  check_error(err);
+  int _len = (int) fread(rak_string_chars(source), 1, len, fp);
+  if (_len != len)
+  {
+    rak_error_set(err, "cannot read file %s", filename);
+    fclose(fp);
+    return;
+  }
+  source->slice.len = len;
+  fclose(fp);
+}
+
+static FILE *open_file(const char *filename, RakError *err)
+{
+  FILE *fp = NULL;
+#ifdef _WIN32
+  fopen_s(&fp, filename, "r");
+#else
+  fp = fopen(filename, "r");
+#endif
+  if (!fp)
+    rak_error_set(err, "cannot open file %s", filename);
+  return fp;
+}
+
+static int file_size(FILE *fp)
+{
+  fseek(fp, 0, SEEK_END);
+  int size = (int) ftell(fp);
+  fseek(fp, 0, SEEK_SET);
+  return size;
 }
 
 static void run(RakVM *vm, RakChunk *chunk, RakError *err)
@@ -66,13 +128,20 @@ int main(int argc, const char *argv[])
   signal(SIGINT, shutdown);
   RakError err = rak_ok();
   RakString source;
-  read(&source);
+  const char *filename = get_arg(argc, argv, 0);
+  if (filename)
+  {
+    read_from_file(&source, filename, &err);
+    check_error(&err);
+  }
+  else
+    read_from_stdin(&source);
   RakChunk chunk;
   rak_chunk_init(&chunk, &err);
   check_error(&err);
   rak_compile(rak_string_chars(&source), &chunk, &err);
   check_error(&err);
-  if (argc > 1 && !strcmp(argv[1], "-c"))
+  if (has_opt(argc, argv, "-c"))
   {
     rak_dump_chunk(&chunk);
     goto end;
