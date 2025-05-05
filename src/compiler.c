@@ -639,7 +639,7 @@ static inline void compile_assign_expr_cont(Compiler *comp, RakChunk *chunk, Rak
     if (!rak_is_ok(err)) return;
     if (instr)
     {
-      emit_instr(chunk, rak_fetch_element_instr(), err);
+      emit_instr(chunk, rak_load_element_instr(), err);
       if (!rak_is_ok(err)) return;
       compile_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
@@ -690,7 +690,7 @@ static inline void compile_assign_expr_cont(Compiler *comp, RakChunk *chunk, Rak
   if (!rak_is_ok(err)) return;
   if (instr)
   {
-    emit_instr(chunk, rak_fetch_field_instr(idx), err);
+    emit_instr(chunk, rak_load_field_instr(idx), err);
     if (!rak_is_ok(err)) return;
     compile_expr(comp, chunk, err);
     if (!rak_is_ok(err)) return;

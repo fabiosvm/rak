@@ -44,10 +44,12 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   case RAK_OP_POP:             cstr = "POP";             break;
   case RAK_OP_GET_ELEMENT:     cstr = "GET_ELEMENT";     break;
   case RAK_OP_SET_ELEMENT:     cstr = "SET_ELEMENT";     break;
+  case RAK_OP_LOAD_ELEMENT:    cstr = "LOAD_ELEMENT";    break;
   case RAK_OP_FETCH_ELEMENT:   cstr = "FETCH_ELEMENT";   break;
   case RAK_OP_UPDATE_ELEMENT:  cstr = "UPDATE_ELEMENT";  break;
   case RAK_OP_GET_FIELD:       cstr = "GET_FIELD";       break;
   case RAK_OP_PUT_FIELD:       cstr = "PUT_FIELD";       break;
+  case RAK_OP_LOAD_FIELD:      cstr = "LOAD_FIELD";      break;
   case RAK_OP_FETCH_FIELD:     cstr = "FETCH_FIELD";     break;
   case RAK_OP_UPDATE_FIELD:    cstr = "UPDATE_FIELD";    break;
   case RAK_OP_UNPACK_ELEMENTS: cstr = "UNPACK_ELEMENTS"; break;
