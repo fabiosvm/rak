@@ -200,10 +200,10 @@ void rak_record_inplace_put(RakRecord *rec, RakString *name, RakValue val, RakEr
 
 void rak_record_inplace_set(RakRecord *rec, int idx, RakValue val)
 {
-  RakRecordField field = rak_record_get(rec, idx);
+  RakRecordField *field = &rak_record_get(rec, idx);
   rak_value_retain(val);
-  rak_value_release(field.val);
-  field.val = val;
+  rak_value_release(field->val);
+  field->val = val;
 }
 
 void rak_record_inplace_remove_at(RakRecord *rec, int idx)

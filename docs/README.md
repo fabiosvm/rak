@@ -459,6 +459,24 @@ You can also use the `append` to add elements to the end of an array.
 println(a); // [false, 3.14, "foo", 4]
 ```
 
+Rak allows you to use the `&` operator to mutate arrays. This means you can modify individual elements directly.
+
+```rs
+let a = [1, 2, 3];
+&a[0] = 4;
+println(a); // [4, 2, 3]
+```
+
+Rak allows mutation of compound values and sharing of references for performance reasons, but ensures that mutation effects are never shared between references.
+
+```rs
+let a = [1, 2, 3];
+let b = a;
+&b[0] = 4;
+println(a); // [1, 2, 3]
+println(b); // [4, 2, 3]
+```
+
 As strings, the `+` operator can also be used to concatenate arrays.
 
 ```rs
@@ -506,7 +524,7 @@ println(len(r)); // 2
 Records are ordered collections of key-value pairs, enclosed in curly braces `{}`. Each key is a string, and each value can be of any type. They are commonly used to represent structured data, similar to objects or dictionaries in other languages.
 
 ```rs
-let r = {
+let jedi = {
   name: "Yoda",
   age: 900,
   species: "Unknown"
@@ -516,14 +534,36 @@ let r = {
 To access the values in a record, use the `[]` or `.` operator.
 
 ```rs
-println(r["name"]); // Yoda
-println(r.age); // 900
+println(jedi["name"]); // Yoda
+println(jedi.age); // 900
+```
+
+If you try to access a field that does not exist, Rak will panic.
+
+```rs
+println(jedi.level); // ERROR: record has no field named 'level'
 ```
 
 Use `len` to get the number of fields in a record.
 
 ```rs
-println(len(r)); // 3
+println(len(jedi)); // 3
+```
+
+You can also use the `&` operator with `[]` or `.` to mutate records.
+
+```rs
+&jedi["age"] = 990;
+println(jedi.age); // 990
+&jedi.age = 1000;
+println(jedi.age); // 1000
+```
+
+New fields can be added to a record.
+
+```rs
+&jedi.level = "master";
+println(jedi); // {name: Yoda, age: 1000, species: Unknown, level: master}
 ```
 
 ## Closures

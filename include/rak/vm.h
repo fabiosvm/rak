@@ -36,13 +36,20 @@ static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, Ra
 static inline void rak_vm_load_global(RakVM *vm, uint8_t idx, RakError *err);
 static inline void rak_vm_load_local(RakVM *vm, RakValue *slots, uint8_t idx, RakError *err);
 static inline void rak_vm_store_local(RakVM *vm, RakValue *slots, uint8_t idx);
+static inline void rak_vm_fetch_local(RakVM *vm, RakValue *slots, uint8_t idx, RakError *err);
 static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err);
 static inline void rak_vm_new_range(RakVM *vm, RakError *err);
 static inline void rak_vm_new_record(RakVM *vm, uint8_t len, RakError *err);
 static inline void rak_vm_dup(RakVM *vm, RakError *err);
 static inline void rak_vm_pop(RakVM *vm);
 static inline void rak_vm_get_element(RakVM *vm, RakError *err);
+static inline void rak_vm_set_element(RakVM *vm, RakError *err);
+static inline void rak_vm_fetch_element(RakVM *vm, RakError *err);
+static inline void rak_vm_update_element(RakVM *vm, RakError *err);
 static inline void rak_vm_get_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
+static inline void rak_vm_put_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
+static inline void rak_vm_fetch_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
+static inline void rak_vm_update_field(RakVM *vm, RakError *err);
 static inline void rak_vm_unpack_elements(RakVM *vm, uint8_t n, RakError *err);
 static inline void rak_vm_unpack_fields(RakVM *vm, uint8_t n, RakError *err);
 static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx);
@@ -130,6 +137,14 @@ static inline void rak_vm_store_local(RakVM *vm, RakValue *slots, uint8_t idx)
   --vm->vstk.top;
 }
 
+static inline void rak_vm_fetch_local(RakVM *vm, RakValue *slots, uint8_t idx, RakError *err)
+{
+  RakValue val = slots[idx];
+  if (rak_is_object(val) && rak_as_object(val)->refCount > 1)
+    val.flags |= RAK_FLAG_SHARED;
+  rak_vm_push_value(vm, val, err);
+}
+
 static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err)
 {
   RakArray *arr = rak_array_new_with_capacity(len, err);
@@ -165,8 +180,8 @@ static inline void rak_vm_new_range(RakVM *vm, RakError *err)
   RakRange *range = rak_range_new(start, end, err);
   if (!rak_is_ok(err)) return;
   RakValue res = rak_range_value(range);
-  rak_object_retain(rak_as_object(res));
   rak_stack_set(&vm->vstk, 1, res);
+  rak_object_retain(&range->obj);
   rak_vm_pop(vm);
 }
 
@@ -190,10 +205,10 @@ static inline void rak_vm_new_record(RakVM *vm, uint8_t len, RakError *err)
     int idx = rak_record_index_of(rec, name);
     if (idx >= 0)
     {
-      RakRecordField field = rak_record_get(rec, idx);
+      RakRecordField *field = &rak_record_get(rec, idx);
       rak_value_retain(val);
-      rak_value_release(field.val);
-      field.val = val;
+      rak_value_release(field->val);
+      field->val = val;
       continue;
     }
     RakRecordField field = {
@@ -230,20 +245,20 @@ static inline void rak_vm_get_element(RakVM *vm, RakError *err)
   if (rak_is_string(val1))
   {
     RakString *str = rak_as_string(val1);
-    if (rak_is_range(val2))
+    if (!rak_is_range(val2))
     {
-      RakRange *range = rak_as_range(val2);
-      int start = (int) range->start;
-      int end = (int) range->end;
-      RakString *_str = rak_string_slice(str, start, end, err);
-      if (!rak_is_ok(err)) return;
-      RakValue res = rak_string_value(_str);
-      rak_vm_set_object(vm, 1, res);
-      rak_vm_pop(vm);
+      rak_error_set(err, "cannot index string with value of type %s",
+        rak_type_to_cstr(val2.type));
       return;
     }
-    rak_error_set(err, "cannot index string with value of type %s",
-      rak_type_to_cstr(val2.type));
+    RakRange *range = rak_as_range(val2);
+    int start = (int) range->start;
+    int end = (int) range->end;
+    RakString *_str = rak_string_slice(str, start, end, err);
+    if (!rak_is_ok(err)) return;
+    RakValue res = rak_string_value(_str);
+    rak_vm_set_object(vm, 1, res);
+    rak_vm_pop(vm);
     return;
   }
   if (rak_is_array(val1))
@@ -267,67 +282,221 @@ static inline void rak_vm_get_element(RakVM *vm, RakError *err)
       rak_vm_pop(vm);
       return;
     }
-    if (rak_is_range(val2))
+    if (!rak_is_range(val2))
     {
-      RakRange *range = rak_as_range(val2);
-      int start = (int) range->start;
-      int end = (int) range->end;
-      RakArray *_arr = rak_array_slice(arr, start, end, err);
-      if (!rak_is_ok(err)) return;
-      RakValue res = rak_array_value(_arr);
-      rak_vm_set_object(vm, 1, res);
-      rak_vm_pop(vm);
+      rak_error_set(err, "cannot index array with value of type %s",
+        rak_type_to_cstr(val2.type));
       return;
     }
-    rak_error_set(err, "cannot index array with value of type %s",
-      rak_type_to_cstr(val2.type));
+    RakRange *range = rak_as_range(val2);
+    int start = (int) range->start;
+    int end = (int) range->end;
+    RakArray *_arr = rak_array_slice(arr, start, end, err);
+    if (!rak_is_ok(err)) return;
+    RakValue res = rak_array_value(_arr);
+    rak_vm_set_object(vm, 1, res);
+    rak_vm_pop(vm);
     return;
   }
   if (rak_is_range(val1))
   {
     RakRange *range = rak_as_range(val1);
-    if (rak_is_number(val2))
+    if (!rak_is_number(val2) || !rak_is_integer(val2))
     {
-      if (!rak_is_integer(val2))
-      {
-        rak_error_set(err, "cannot index range with non-integer number");
-        return;
-      }
-      int64_t idx = rak_as_integer(val2);
-      if (idx < 0 || idx >= rak_range_len(range))
-      {
-        rak_error_set(err, "index out of bounds");
-        return;
-      }
-      RakValue res = rak_number_value(rak_range_get(range, (int) idx));
-      rak_vm_set_value(vm, 1, res);
-      rak_vm_pop(vm);
+      rak_error_set(err, "cannot index range with non-integer number");
       return;
     }
+    int64_t idx = rak_as_integer(val2);
+    if (idx < 0 || idx >= rak_range_len(range))
+    {
+      rak_error_set(err, "index out of bounds");
+      return;
+    }
+    RakValue res = rak_number_value(rak_range_get(range, (int) idx));
+    rak_vm_set_value(vm, 1, res);
+    rak_vm_pop(vm);
+    return;
   }
-  if (rak_is_record(val1))
+  if (!rak_is_record(val1))
   {
-    RakRecord *rec = rak_as_record(val1);
-    if (rak_is_string(val2))
-    {
-      RakString *name = rak_as_string(val2);
-      int idx = rak_record_index_of(rec, name);
-      if (idx == -1)
-      {
-        rak_error_set(err, "record has no field named '%.*s'",
-          rak_string_len(name), rak_string_chars(name));
-        return;
-      }
-      RakValue res = rak_record_get(rec, idx).val;
-      rak_vm_set_value(vm, 1, res);
-      rak_vm_pop(vm);
-      return;
-    }
+    rak_error_set(err, "cannot index value of type %s",
+      rak_type_to_cstr(val1.type));
+    return;
+  }
+  RakRecord *rec = rak_as_record(val1);
+  if (!rak_is_string(val2))
+  {
     rak_error_set(err, "cannot index record with value of type %s",
       rak_type_to_cstr(val2.type));
     return;
   }
-  rak_error_set(err, "cannot index value of type %s", rak_type_to_cstr(val1.type));
+  RakString *name = rak_as_string(val2);
+  int idx = rak_record_index_of(rec, name);
+  if (idx == -1)
+  {
+    rak_error_set(err, "record has no field named '%.*s'",
+      rak_string_len(name), rak_string_chars(name));
+    return;
+  }
+  RakValue res = rak_record_get(rec, idx).val;
+  rak_vm_set_value(vm, 1, res);
+  rak_vm_pop(vm);
+}
+
+static inline void rak_vm_set_element(RakVM *vm, RakError *err)
+{
+  RakValue val1 = rak_vm_get(vm, 2);
+  RakValue val2 = rak_vm_get(vm, 1);
+  RakValue val3 = rak_vm_get(vm, 0);
+  if (rak_is_array(val1))
+  {
+    RakArray *arr = rak_as_array(val1);
+    if (!rak_is_number(val2) || !rak_is_integer(val2))
+    {
+      rak_error_set(err, "cannot index array with non-integer number");
+      return;
+    }
+    int64_t idx = rak_as_integer(val2);
+    if (idx < 0 || idx >= rak_array_len(arr))
+    {
+      rak_error_set(err, "index out of bounds");
+      return;
+    }
+    if (rak_is_shared(val1))
+    {
+      RakArray *_arr = rak_array_set(arr, (int) idx, val3, err);
+      if (!rak_is_ok(err)) return;
+      RakValue res = rak_array_value(_arr);
+      rak_vm_set_object(vm, 2, res);
+      rak_value_release(val3);
+      vm->vstk.top -= 2;
+      return;
+    }
+    rak_array_inplace_set(arr, (int) idx, val3);
+    rak_value_release(val3);
+    vm->vstk.top -= 2;
+    return;
+  }
+  if (!rak_is_record(val1))
+  {
+    rak_error_set(err, "cannot index value of type %s",
+      rak_type_to_cstr(val1.type));
+    return;
+  }
+  RakRecord *rec = rak_as_record(val1);
+  if (!rak_is_string(val2))
+  {
+    rak_error_set(err, "cannot index record with value of type %s",
+      rak_type_to_cstr(val2.type));
+    return;
+  }
+  RakString *name = rak_as_string(val2);
+  if (rak_is_shared(val1))
+  {
+    RakRecord *_rec = rak_record_put(rec, name, val3, err);
+    if (!rak_is_ok(err)) return;
+    RakValue res = rak_record_value(_rec);
+    rak_vm_set_object(vm, 2, res);
+    rak_value_release(val3);
+    vm->vstk.top -= 2;
+    return;
+  }
+  rak_record_inplace_put(rec, name, val3, err);
+  if (!rak_is_ok(err)) return;
+  rak_value_release(val3);
+  vm->vstk.top -= 2;
+}
+
+static inline void rak_vm_fetch_element(RakVM *vm, RakError *err)
+{
+  RakValue val1 = rak_vm_get(vm, 1);
+  RakValue val2 = rak_vm_get(vm, 0);
+  if (rak_is_array(val1))
+  {
+    RakArray *arr = rak_as_array(val1);
+    if (!rak_is_number(val2) || !rak_is_integer(val2))
+    {
+      rak_error_set(err, "cannot index array with non-integer number");
+      return;
+    }
+    int64_t idx = rak_as_integer(val2);
+    if (idx < 0 || idx >= rak_array_len(arr))
+    {
+      rak_error_set(err, "index out of bounds");
+      return;
+    }
+    RakValue res = rak_array_get(arr, (int) idx);
+    if (rak_is_shared(val1) || (rak_is_object(res) && rak_as_object(res)->refCount > 1))
+      res.flags |= RAK_FLAG_SHARED;
+    rak_vm_push_value(vm, res, err);
+    return;
+  }
+  if (!rak_is_record(val1))
+  {
+    rak_error_set(err, "cannot index value of type %s", rak_type_to_cstr(val1.type));
+    return;
+  }
+  RakRecord *rec = rak_as_record(val1);
+  if (!rak_is_string(val2))
+  {
+    rak_error_set(err, "cannot index record with value of type %s",
+      rak_type_to_cstr(val2.type));
+    return;
+  }
+  RakString *name = rak_as_string(val2);
+  int idx = rak_record_index_of(rec, name);
+  if (idx == -1)
+  {
+    rak_error_set(err, "record has no field named '%.*s'",
+      rak_string_len(name), rak_string_chars(name));
+    return;
+  }
+  rak_stack_set(&vm->vstk, 0, rak_number_value(idx));
+  rak_string_release(name);
+  RakValue res = rak_record_get(rec, idx).val;
+  if (rak_is_shared(val1) || (rak_is_object(res) && rak_as_object(res)->refCount > 1))
+    res.flags |= RAK_FLAG_SHARED;
+  rak_vm_push_value(vm, res, err);
+}
+
+static inline void rak_vm_update_element(RakVM *vm, RakError *err)
+{
+  RakValue val1 = rak_vm_get(vm, 2);
+  RakValue val2 = rak_vm_get(vm, 1);
+  RakValue val3 = rak_vm_get(vm, 0);
+  int idx = (int) rak_as_number(val2);
+  if (rak_is_array(val1))
+  {
+    RakArray *arr = rak_as_array(val1);
+    if (rak_is_shared(val1))
+    {
+      RakArray *_arr = rak_array_set(arr, idx, val3, err);
+      if (!rak_is_ok(err)) return;
+      RakValue res = rak_array_value(_arr);
+      rak_vm_set_object(vm, 2, res);
+      rak_value_release(val3);
+      vm->vstk.top -= 2;
+      return;
+    }
+    rak_array_inplace_set(arr, idx, val3);
+    rak_value_release(val3);
+    vm->vstk.top -= 2;
+    return;
+  }
+  RakRecord *rec = rak_as_record(val1);
+  if (rak_is_shared(val1))
+  {
+    RakRecord *_rec = rak_record_set(rec, idx, val3, err);
+    if (!rak_is_ok(err)) return;
+    RakValue res = rak_record_value(_rec);
+    rak_vm_set_object(vm, 2, res);
+    rak_value_release(val3);
+    vm->vstk.top -= 2;
+    return;
+  }
+  rak_record_inplace_set(rec, idx, val3);
+  rak_value_release(val3);
+  vm->vstk.top -= 2;
 }
 
 static inline void rak_vm_get_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err)
@@ -335,7 +504,7 @@ static inline void rak_vm_get_field(RakVM *vm, RakChunk *chunk, uint8_t idx, Rak
   RakValue val = rak_vm_get(vm, 0);
   if (!rak_is_record(val))
   {
-    rak_error_set(err, "cannot get field from value of type %s",
+    rak_error_set(err, "cannot index value of type %s",
       rak_type_to_cstr(val.type));
     return;
   }
@@ -350,6 +519,82 @@ static inline void rak_vm_get_field(RakVM *vm, RakChunk *chunk, uint8_t idx, Rak
   }
   RakValue res = rak_record_get(rec, _idx).val;
   rak_vm_set_value(vm, 0, res);
+}
+
+static inline void rak_vm_put_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err)
+{
+  RakValue val1 = rak_vm_get(vm, 1);
+  RakValue val2 = rak_vm_get(vm, 0);
+  if (!rak_is_record(val1))
+  {
+    rak_error_set(err, "cannot index value of type %s",
+      rak_type_to_cstr(val1.type));
+    return;
+  }
+  RakRecord *rec = rak_as_record(val1);
+  RakString *name = rak_as_string(rak_slice_get(&chunk->consts, idx));
+  if (rak_is_shared(val1))
+  {
+    RakRecord *_rec = rak_record_put(rec, name, val2, err);
+    if (!rak_is_ok(err)) return;
+    RakValue res = rak_record_value(_rec);
+    rak_vm_set_object(vm, 1, res);
+    rak_value_release(val2);
+    --vm->vstk.top;
+    return;
+  }
+  rak_record_inplace_put(rec, name, val2, err);
+  if (!rak_is_ok(err)) return;
+  rak_value_release(val2);
+  --vm->vstk.top;
+}
+
+static inline void rak_vm_fetch_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err)
+{
+  RakValue val = rak_vm_get(vm, 0);
+  if (!rak_is_record(val))
+  {
+    rak_error_set(err, "cannot index value of type %s",
+      rak_type_to_cstr(val.type));
+    return;
+  }
+  RakRecord *rec = rak_as_record(val);
+  RakString *name = rak_as_string(rak_slice_get(&chunk->consts, idx));
+  int _idx = rak_record_index_of(rec, name);
+  if (_idx == -1)
+  {
+    rak_error_set(err, "record has no field named '%.*s'",
+      rak_string_len(name), rak_string_chars(name));
+    return;
+  }
+  rak_vm_push(vm, rak_number_value(_idx), err);
+  if (!rak_is_ok(err)) return;
+  RakValue res = rak_record_get(rec, _idx).val;
+  if (rak_is_shared(val) || (rak_is_object(res) && rak_as_object(res)->refCount > 1))
+    res.flags |= RAK_FLAG_SHARED;
+  rak_vm_push_value(vm, res, err);
+}
+
+static inline void rak_vm_update_field(RakVM *vm, RakError *err)
+{
+  RakValue val1 = rak_vm_get(vm, 2);
+  RakValue val2 = rak_vm_get(vm, 1);
+  RakValue val3 = rak_vm_get(vm, 0);
+  RakRecord *rec = rak_as_record(val1);
+  int idx = (int) rak_as_number(val2);
+  if (rak_is_shared(val1))
+  {
+    RakRecord *_rec = rak_record_set(rec, idx, val3, err);
+    if (!rak_is_ok(err)) return;
+    RakValue res = rak_record_value(_rec);
+    rak_vm_set_object(vm, 2, res);
+    rak_value_release(val3);
+    vm->vstk.top -= 2;
+    return;
+  }
+  rak_record_inplace_set(rec, idx, val3);
+  rak_value_release(val3);
+  vm->vstk.top -= 2;
 }
 
 static inline void rak_vm_unpack_elements(RakVM *vm, uint8_t n, RakError *err)

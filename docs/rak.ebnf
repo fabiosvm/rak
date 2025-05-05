@@ -39,7 +39,11 @@ expr_stmt         ::= expr ";"
 
 expr              ::= assign_expr | or_expr
 
-assign_expr       ::= "&" IDENT ( "=" | "+=" | "-=" | "*=" | "/=" | "%=" ) expr
+assign_expr       ::= "&" IDENT ( "=" expr | assign_op expr | assign_expr_cont )
+
+assign_op         ::= "+=" | "-=" | "*=" | "/=" | "%="
+
+assign_expr_cont  ::= ( "[" expr "]" | "." IDENT ) ( "=" expr | assign_op expr | assign_expr_cont )
 
 or_expr           ::= and_expr or_expr_cont
 

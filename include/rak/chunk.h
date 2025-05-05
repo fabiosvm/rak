@@ -35,13 +35,20 @@
 #define rak_load_global_instr(i)     rak_instr_fmt1(RAK_OP_LOAD_GLOBAL, (i))
 #define rak_load_local_instr(i)      rak_instr_fmt1(RAK_OP_LOAD_LOCAL, (i))
 #define rak_store_local_instr(i)     rak_instr_fmt1(RAK_OP_STORE_LOCAL, (i))
+#define rak_fetch_local_instr(i)     rak_instr_fmt1(RAK_OP_FETCH_LOCAL, (i))
 #define rak_new_array_instr(n)       rak_instr_fmt1(RAK_OP_NEW_ARRAY, (n))
 #define rak_new_range_instr()        rak_instr_fmt0(RAK_OP_NEW_RANGE)
 #define rak_new_record_instr(n)      rak_instr_fmt1(RAK_OP_NEW_RECORD, (n))
 #define rak_dup_instr()              rak_instr_fmt0(RAK_OP_DUP)
 #define rak_pop_instr()              rak_instr_fmt0(RAK_OP_POP)
 #define rak_get_element_instr()      rak_instr_fmt0(RAK_OP_GET_ELEMENT)
+#define rak_set_element_instr()      rak_instr_fmt0(RAK_OP_SET_ELEMENT)
+#define rak_fetch_element_instr()    rak_instr_fmt0(RAK_OP_FETCH_ELEMENT)
+#define rak_update_element_instr()   rak_instr_fmt0(RAK_OP_UPDATE_ELEMENT)
 #define rak_get_field_instr(i)       rak_instr_fmt1(RAK_OP_GET_FIELD, (i))
+#define rak_put_field_instr(i)       rak_instr_fmt1(RAK_OP_PUT_FIELD, (i))
+#define rak_fetch_field_instr(i)     rak_instr_fmt1(RAK_OP_FETCH_FIELD, (i))
+#define rak_update_field_instr()     rak_instr_fmt0(RAK_OP_UPDATE_FIELD)
 #define rak_unpack_elements_instr(n) rak_instr_fmt1(RAK_OP_UNPACK_ELEMENTS, (n))
 #define rak_unpack_fields_instr(n)   rak_instr_fmt1(RAK_OP_UNPACK_FIELDS, (n))
 #define rak_jump_instr(o)            rak_instr_fmt4(RAK_OP_JUMP, (o))
@@ -71,13 +78,20 @@ typedef enum
   RAK_OP_LOAD_GLOBAL,
   RAK_OP_LOAD_LOCAL,
   RAK_OP_STORE_LOCAL,
+  RAK_OP_FETCH_LOCAL,
   RAK_OP_NEW_ARRAY,
   RAK_OP_NEW_RANGE,
   RAK_OP_NEW_RECORD,
   RAK_OP_DUP,
   RAK_OP_POP,
   RAK_OP_GET_ELEMENT,
+  RAK_OP_SET_ELEMENT,
+  RAK_OP_FETCH_ELEMENT,
+  RAK_OP_UPDATE_ELEMENT,
   RAK_OP_GET_FIELD,
+  RAK_OP_PUT_FIELD,
+  RAK_OP_FETCH_FIELD,
+  RAK_OP_UPDATE_FIELD,
   RAK_OP_UNPACK_ELEMENTS,
   RAK_OP_UNPACK_FIELDS,
   RAK_OP_JUMP,

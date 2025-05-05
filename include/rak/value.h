@@ -16,6 +16,7 @@
 
 #define RAK_FLAG_FALSY  (1 << 0)
 #define RAK_FLAG_OBJECT (1 << 1)
+#define RAK_FLAG_SHARED (1 << 2)
 
 #define RAK_NUMBER_EPSILON (1e-9)
 #define RAK_INTEGER_MIN    (-9007199254740992LL)
@@ -51,6 +52,7 @@
 #define rak_is_closure(v) ((v).type == RAK_TYPE_CLOSURE)
 #define rak_is_falsy(v)   ((v).flags & RAK_FLAG_FALSY)
 #define rak_is_object(v)  ((v).flags & RAK_FLAG_OBJECT)
+#define rak_is_shared(v)  ((v).flags & RAK_FLAG_SHARED)
 
 #define rak_object_init(o) \
   do { \

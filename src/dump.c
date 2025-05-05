@@ -31,6 +31,10 @@ void rak_dump_chunk(RakChunk *chunk)
     case RAK_OP_DUP:
     case RAK_OP_POP:
     case RAK_OP_GET_ELEMENT:
+    case RAK_OP_SET_ELEMENT:
+    case RAK_OP_FETCH_ELEMENT:
+    case RAK_OP_UPDATE_ELEMENT:
+    case RAK_OP_UPDATE_FIELD:
     case RAK_OP_EQ:
     case RAK_OP_GT:
     case RAK_OP_LT:
@@ -48,9 +52,12 @@ void rak_dump_chunk(RakChunk *chunk)
     case RAK_OP_LOAD_GLOBAL:
     case RAK_OP_LOAD_LOCAL:
     case RAK_OP_STORE_LOCAL:
+    case RAK_OP_FETCH_LOCAL:
     case RAK_OP_NEW_ARRAY:
     case RAK_OP_NEW_RECORD:
     case RAK_OP_GET_FIELD:
+    case RAK_OP_PUT_FIELD:
+    case RAK_OP_FETCH_FIELD:
     case RAK_OP_UNPACK_ELEMENTS:
     case RAK_OP_UNPACK_FIELDS:
     case RAK_OP_CALL:
