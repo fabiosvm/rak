@@ -82,6 +82,21 @@ To clean the build files, run the clean script:
 ./clean.sh
 ```
 
+## Running Test Cases
+
+### Dependencies
+- **Python 3.9 or later** must be installed.
+- Install required Python packages `pip install -r requirements.txt`. Note that currently the only dependency is pyYAML, which is commonly pre-installed in most Linux OS.
+
+### Running Tests
+- Execute the appropriate script for your OS:
+  - Linux/macOS: `./tests.sh`
+  - Windows: `test.bat`
+
+- Available command line options:
+  - `-q` or `--quiet`: Suppress detailed output, showing only test summary.
+  - `<filter_string>`: Run only tests containing this string. Helpful when debugging specific cases.
+
 ## Documentation
 
 Documentation is available at [docs/README.md](docs/README.md).
