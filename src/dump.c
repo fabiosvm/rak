@@ -56,6 +56,7 @@ void rak_dump_chunk(RakChunk *chunk)
     case RAK_OP_FETCH_LOCAL:
     case RAK_OP_NEW_ARRAY:
     case RAK_OP_NEW_RECORD:
+    case RAK_OP_NEW_CLOSURE:
     case RAK_OP_GET_FIELD:
     case RAK_OP_PUT_FIELD:
     case RAK_OP_LOAD_FIELD:

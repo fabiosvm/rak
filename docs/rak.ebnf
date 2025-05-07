@@ -3,12 +3,14 @@ chunk             ::= stmt* EOF
 
 stmt              ::= block
                     | let_decl
+                    | fn_decl
                     | if_stmt
                     | loop_stmt
                     | while_stmt
                     | do_while_stmt
                     | break_stmt
                     | continue_stmt
+                    | return_stmt
                     | expr_stmt
 
 block             ::= "{" stmt* "}"
@@ -20,6 +22,10 @@ destruct_elements ::= "[" ident_list "]" "=" expr
 ident_list        ::= IDENT ( "," IDENT )*
 
 destruct_fields   ::= "{" ident_list "}" "=" expr
+
+fn_decl           ::= "fn" IDENT params block
+
+params           ::= "(" ( IDENT ( "," IDENT )* )? ")"
 
 if_stmt           ::= "if" let_decl? expr block if_stmt_cont
 
@@ -34,6 +40,8 @@ do_while_stmt     ::= "do" block "while" expr ";"
 break_stmt        ::= "break" ";"
 
 continue_stmt     ::= "continue" ";"
+
+return_stmt       ::= "return" expr? ";"
 
 expr_stmt         ::= expr ";"
 
@@ -76,6 +84,7 @@ subscr            ::= "[" expr "]" | "." IDENT
 prim_expr         ::= "nil" | "false" | "true" | NUMBER | STRING | IDENT
                     | array
                     | record
+                    | fn
                     | if_expr
                     | group
 
@@ -84,6 +93,8 @@ array             ::= "[" expr_list? "]"
 record            ::= "{" ( field ( "," field )* )? "}"
 
 field             ::= IDENT ":" expr
+
+fn                ::= "fn" params block
 
 if_expr           ::= "if" expr block_expr if_expr_cont
 

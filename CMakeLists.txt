@@ -14,6 +14,11 @@ else()
   add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 endif()
 
+if(NOT MSVC)
+  add_compile_options("$<$<CONFIG:Debug>:-fsanitize=address>")
+  add_link_options("$<$<CONFIG:Debug>:-fsanitize=address>")
+endif()
+
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 add_executable("${PROJECT_NAME}"

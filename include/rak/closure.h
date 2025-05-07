@@ -12,40 +12,56 @@
 #define RAK_CLOSURE_H
 
 #include "chunk.h"
-
-typedef enum
-{
-  RAK_CLOSURE_KIND_FUNCTION,
-  RAK_CLOSURE_KIND_NATIVE_FUNCTION
-} RakClosureKind;
+#include "string.h"
 
 typedef struct
 {
-  RakObject obj;
-  RakChunk  chunk;
+  RakObject  obj;
+  RakString *name;
+  int        arity;
+} RakCallable;
+
+typedef struct RakFunction
+{
+  RakCallable                    callable;
+  RakChunk                       chunk;
+  RakSlice(struct RakFunction *) nested;
 } RakFunction;
 
 struct RakVM;
 
-typedef void (*RakNativeFunction)(struct RakVM *, RakValue *, RakError *);
+typedef void (*RakNativeFunctionCall)(struct RakVM *, RakValue *, RakError *);
 
 typedef struct
 {
-  RakObject      obj;
-  int            arity;
-  RakClosureKind kind;
-  union 
-  {
-    RakFunction       *fn;
-    RakNativeFunction  native;
-  } as;
+  RakCallable           callable;
+  RakNativeFunctionCall call;
+} RakNativeFunction;
+
+typedef enum
+{
+  RAK_CALLABLE_KIND_FUNCTION,
+  RAK_CALLABLE_KIND_NATIVE_FUNCTION
+} RakCallableKind;
+
+typedef struct
+{
+  RakObject        obj;
+  RakCallableKind  kind;
+  RakCallable     *callable;
 } RakClosure;
 
-RakFunction *rak_function_new(RakError *err);
+void rak_callable_init(RakCallable *callable, RakString *name, int arity);
+void rak_callable_deinit(RakCallable *callable);
+RakFunction *rak_function_new(RakString *name, int arity, RakError *err);
 void rak_function_free(RakFunction *fn);
 void rak_function_release(RakFunction *fn);
-RakClosure *rak_closure_new_function(int arity, RakFunction *fn, RakError *err);
-RakClosure *rak_closure_new_native_function(int arity, RakNativeFunction native, RakError *err);
+void rak_function_append_nested(RakFunction *fn, RakFunction *nested, RakError *err);
+RakNativeFunction *rak_native_function_new(RakString *name, int arity,
+  RakNativeFunctionCall call, RakError *err);
+void rak_native_function_free(RakNativeFunction *native);
+void rak_native_function_release(RakNativeFunction *native);
+RakClosure *rak_closure_new(RakCallableKind kind, RakCallable *callable, RakError *err);
 void rak_closure_free(RakClosure *cl);
 void rak_closure_release(RakClosure *cl);
 

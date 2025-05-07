@@ -28,6 +28,7 @@ static void do_fetch_local(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *sl
 static void do_new_array(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_range(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_record(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_new_closure(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_dup(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_pop(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_get_element(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -72,6 +73,7 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_NEW_ARRAY]       = do_new_array,
   [RAK_OP_NEW_RANGE]       = do_new_range,
   [RAK_OP_NEW_RECORD]      = do_new_record,
+  [RAK_OP_NEW_CLOSURE]     = do_new_closure,
   [RAK_OP_DUP]             = do_dup,
   [RAK_OP_POP]             = do_pop,
   [RAK_OP_GET_ELEMENT]     = do_get_element,
@@ -154,7 +156,8 @@ static void do_push_int(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots
 static void do_load_const(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   uint8_t idx = rak_instr_a(*ip);
-  rak_vm_load_const(vm, &cl->as.fn->chunk, idx, err);
+  RakChunk *chunk = &((RakFunction *) &cl->callable)->chunk;
+  rak_vm_load_const(vm, chunk, idx, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, cl, ip + 1, slots, err);
 }
@@ -213,6 +216,14 @@ static void do_new_record(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slo
   dispatch(vm, cl, ip + 1, slots, err);
 }
 
+static void do_new_closure(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  uint8_t idx = rak_instr_a(*ip);
+  rak_vm_new_closure(vm, cl, idx, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(vm, cl, ip + 1, slots, err);
+}
+
 static void do_dup(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   rak_vm_dup(vm, err);
@@ -264,7 +275,8 @@ static void do_update_element(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue 
 static void do_get_field(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   uint8_t idx = rak_instr_a(*ip);
-  rak_vm_get_field(vm, &cl->as.fn->chunk, idx, err);
+  RakChunk *chunk = &((RakFunction *) &cl->callable)->chunk;
+  rak_vm_get_field(vm, chunk, idx, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, cl, ip + 1, slots, err);
 }
@@ -272,7 +284,8 @@ static void do_get_field(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slot
 static void do_put_field(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   uint8_t idx = rak_instr_a(*ip);
-  rak_vm_put_field(vm, &cl->as.fn->chunk, idx, err);
+  RakChunk *chunk = &((RakFunction *) &cl->callable)->chunk;
+  rak_vm_put_field(vm, chunk, idx, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, cl, ip + 1, slots, err);
 }
@@ -280,7 +293,8 @@ static void do_put_field(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slot
 static void do_load_field(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   uint8_t idx = rak_instr_a(*ip);
-  rak_vm_load_field(vm, &cl->as.fn->chunk, idx, err);
+  RakChunk *chunk = &((RakFunction *) &cl->callable)->chunk;
+  rak_vm_load_field(vm, chunk, idx, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, cl, ip + 1, slots, err);
 }
@@ -288,7 +302,8 @@ static void do_load_field(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slo
 static void do_fetch_field(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   uint8_t idx = rak_instr_a(*ip);
-  rak_vm_fetch_field(vm, &cl->as.fn->chunk, idx, err);
+  RakChunk *chunk = &((RakFunction *) &cl->callable)->chunk;
+  rak_vm_fetch_field(vm, chunk, idx, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, cl, ip + 1, slots, err);
 }
@@ -319,7 +334,8 @@ static void do_unpack_fields(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *
 static void do_jump(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   uint16_t off = rak_instr_ab(*ip);
-  ip = &cl->as.fn->chunk.instrs.data[off];
+  RakChunk *chunk = &((RakFunction *) &cl->callable)->chunk;
+  ip = &chunk->instrs.data[off];
   dispatch(vm, cl, ip, slots, err);
 }
 
@@ -327,7 +343,8 @@ static void do_jump_if_false(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *
 {
   uint16_t off = rak_instr_ab(*ip);
   RakValue val = rak_vm_get(vm, 0);
-  ip = rak_is_falsy(val) ? cl->as.fn->chunk.instrs.data + off : ip + 1;
+  RakChunk *chunk = &((RakFunction *) &cl->callable)->chunk;
+  ip = rak_is_falsy(val) ? chunk->instrs.data + off : ip + 1;
   dispatch(vm, cl, ip, slots, err);
 }
 
@@ -335,7 +352,8 @@ static void do_jump_if_true(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *s
 {
   uint16_t off = rak_instr_ab(*ip);
   RakValue val = rak_vm_get(vm, 0);
-  ip = rak_is_falsy(val) ? ip + 1 : cl->as.fn->chunk.instrs.data + off;
+  RakChunk *chunk = &((RakFunction *) &cl->callable)->chunk;
+  ip = rak_is_falsy(val) ? ip + 1 : chunk->instrs.data + off;
   dispatch(vm, cl, ip, slots, err);
 }
 
@@ -443,7 +461,7 @@ void rak_vm_deinit(RakVM *vm)
 
 void rak_vm_run(RakVM *vm, RakFunction *fn, RakError *err)
 {
-  RakClosure *cl = rak_closure_new_function(0, fn, err);
+  RakClosure *cl = rak_closure_new(RAK_CALLABLE_KIND_FUNCTION, &fn->callable, err);
   if (!rak_is_ok(err)) return;
   rak_vm_push_object(vm, rak_closure_value(cl), err);
   if (!rak_is_ok(err))
@@ -464,14 +482,14 @@ void rak_vm_resume(RakVM *vm, RakError *err)
     RakClosure *cl = frame.cl;
     uint32_t *ip = frame.ip;
     RakValue *slots = frame.slots;
-    if (cl->kind == RAK_CLOSURE_KIND_FUNCTION)
+    if (cl->kind == RAK_CALLABLE_KIND_FUNCTION)
     {
       dispatch(vm, cl, ip, slots, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
-    RakNativeFunction native = cl->as.native;
-    native(vm, slots, err);
+    RakNativeFunctionCall call = ((RakNativeFunction *) cl->callable)->call;
+    call(vm, slots, err);
     if (!rak_is_ok(err)) return;
   }
 }
