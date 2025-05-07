@@ -22,7 +22,7 @@ static void read_from_stdin(RakString *source);
 static void read_from_file(RakString *source, const char *filename, RakError *err);
 static FILE *open_file(const char *filename, RakError *err);
 static int file_size(FILE *fp);
-static void run(RakVM *vm, RakChunk *chunk, RakError *err);
+static void run(RakVM *vm, RakFunction *fn, RakError *err);
 
 static void shutdown(int sig)
 {
@@ -113,13 +113,13 @@ static int file_size(FILE *fp)
   return size;
 }
 
-static void run(RakVM *vm, RakChunk *chunk, RakError *err)
+static void run(RakVM *vm, RakFunction *fn, RakError *err)
 {
-  rak_vm_init(vm, RAK_VM_VSTK_DEFAULT_SIZE, err);
+  rak_vm_init(vm, RAK_VM_VSTK_DEFAULT_SIZE, RAK_VM_CSTK_DEFAULT_SIZE, err);
   check_error(err);
   rak_builtin_load_globals(vm, err);
   check_error(err);
-  rak_vm_run(vm, chunk, err);
+  rak_vm_run(vm, fn, err);
   check_error(err);
 }
 
@@ -136,22 +136,18 @@ int main(int argc, const char *argv[])
   }
   else
     read_from_stdin(&source);
-  RakChunk chunk;
-  rak_chunk_init(&chunk, &err);
-  check_error(&err);
-  rak_compile(rak_string_chars(&source), &chunk, &err);
+  RakFunction *fn = rak_compile(rak_string_chars(&source), &err);
   check_error(&err);
   if (has_opt(argc, argv, "-c"))
   {
-    rak_dump_chunk(&chunk);
-    goto end;
+    rak_dump_chunk(&fn->chunk);
+    rak_string_deinit(&source);
+    return EXIT_SUCCESS;
   }
   RakVM vm;
-  run(&vm, &chunk, &err);
+  run(&vm, fn, &err);
   check_error(&err);
   rak_vm_deinit(&vm);
-end:
-  rak_chunk_deinit(&chunk);
   rak_string_deinit(&source);
   return EXIT_SUCCESS;
 }

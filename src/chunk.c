@@ -68,7 +68,7 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   case RAK_OP_NOT:             cstr = "NOT";             break;
   case RAK_OP_NEG:             cstr = "NEG";             break;
   case RAK_OP_CALL:            cstr = "CALL";            break;
-  case RAK_OP_HALT:            cstr = "HALT";            break;
+  case RAK_OP_RETURN:          cstr = "RETURN";          break;
   }
   return cstr;
 }

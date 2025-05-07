@@ -11,13 +11,19 @@
 #ifndef RAK_CLOSURE_H
 #define RAK_CLOSURE_H
 
-#include <stdbool.h>
-#include "value.h"
+#include "chunk.h"
 
 typedef enum
 {
+  RAK_CLOSURE_KIND_FUNCTION,
   RAK_CLOSURE_KIND_NATIVE_FUNCTION
 } RakClosureKind;
+
+typedef struct
+{
+  RakObject obj;
+  RakChunk  chunk;
+} RakFunction;
 
 struct RakVM;
 
@@ -30,12 +36,17 @@ typedef struct
   RakClosureKind kind;
   union 
   {
-    RakNativeFunction native;
+    RakFunction       *fn;
+    RakNativeFunction  native;
   } as;
 } RakClosure;
 
+RakFunction *rak_function_new(RakError *err);
+void rak_function_free(RakFunction *fn);
+void rak_function_release(RakFunction *fn);
+RakClosure *rak_closure_new_function(int arity, RakFunction *fn, RakError *err);
 RakClosure *rak_closure_new_native_function(int arity, RakNativeFunction native, RakError *err);
-void rak_closure_free(RakClosure *closure);
-void rak_closure_release(RakClosure *closure);
+void rak_closure_free(RakClosure *cl);
+void rak_closure_release(RakClosure *cl);
 
 #endif // RAK_CLOSURE_H

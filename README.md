@@ -65,12 +65,13 @@ Output:
 
 ```
 1 constant(s)
-5 instruction(s)
+6 instruction(s)
 [0000] LOAD_GLOBAL     33
 [0001] LOAD_CONST      0
 [0002] CALL            1
 [0003] POP
-[0004] HALT
+[0004] PUSH_NIL
+[0005] RETURN
 ```
 
 ## Cleaning

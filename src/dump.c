@@ -46,7 +46,7 @@ void rak_dump_chunk(RakChunk *chunk)
     case RAK_OP_MOD:
     case RAK_OP_NOT:
     case RAK_OP_NEG:
-    case RAK_OP_HALT:
+    case RAK_OP_RETURN:
       printf("%-15s\n", rak_opcode_to_cstr(op));
       break;
     case RAK_OP_LOAD_CONST:

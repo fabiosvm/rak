@@ -132,7 +132,9 @@ static inline void compile_chunk(Compiler *comp, RakChunk *chunk, RakError *err)
   }
   end_scope(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  emit_instr(chunk, rak_halt_instr(), err);
+  emit_instr(chunk, rak_push_nil_instr(), err);
+  if (!rak_is_ok(err)) return;
+  emit_instr(chunk, rak_return_instr(), err);
 }
 
 static inline void compile_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -1398,11 +1400,16 @@ static inline void expected_token_error(RakError *err, RakTokenKind kind, RakTok
     rak_token_kind_to_cstr(kind), tok.len, tok.chars, tok.ln, tok.col);
 }
 
-void rak_compile(char *source, RakChunk *chunk, RakError *err)
+RakFunction *rak_compile(char *source, RakError *err)
 {
   Compiler comp;
   compiler_init(&comp);
   rak_lexer_init(&comp.lex, source, err);
-  if (!rak_is_ok(err)) return;
-  compile_chunk(&comp, chunk, err);
+  if (!rak_is_ok(err)) return NULL;
+  RakFunction *fn = rak_function_new(err);
+  if (!rak_is_ok(err)) return NULL;
+  compile_chunk(&comp, &fn->chunk, err);
+  if (rak_is_ok(err)) return fn;
+  rak_function_free(fn);
+  return NULL;
 }

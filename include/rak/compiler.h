@@ -11,8 +11,8 @@
 #ifndef RAK_COMPILER_H
 #define RAK_COMPILER_H
 
-#include "chunk.h"
+#include "closure.h"
 
-void rak_compile(char *source, RakChunk *chunk, RakError *err);
+RakFunction *rak_compile(char *source, RakError *err);
 
 #endif // RAK_COMPILER_H

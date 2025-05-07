@@ -13,17 +13,25 @@
 
 #include <math.h>
 #include "array.h"
-#include "chunk.h"
 #include "closure.h"
 #include "range.h"
 #include "record.h"
 #include "stack.h"
 
 #define RAK_VM_VSTK_DEFAULT_SIZE (1024)
+#define RAK_VM_CSTK_DEFAULT_SIZE (128)
+
+typedef struct
+{
+  RakClosure *cl;
+  uint32_t   *ip;
+  RakValue   *slots;
+} RakCallFrame;
 
 typedef struct RakVM
 {
-  RakStack(RakValue) vstk;
+  RakStack(RakValue)     vstk;
+  RakStack(RakCallFrame) cstk;
 } RakVM;
 
 static inline void rak_vm_push(RakVM *vm, RakValue val, RakError *err);
@@ -69,10 +77,12 @@ static inline void rak_vm_mod(RakVM *vm, RakError *err);
 static inline void rak_vm_not(RakVM *vm);
 static inline void rak_vm_neg(RakVM *vm, RakError *err);
 static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err);
+static inline void rak_vm_return(RakVM *vm, RakValue *slots);
 
-void rak_vm_init(RakVM *vm, int vstkSize, RakError *err);
+void rak_vm_init(RakVM *vm, int vstkSize, int cstkSize, RakError *err);
 void rak_vm_deinit(RakVM *vm);
-void rak_vm_run(RakVM *vm, RakChunk *chunk, RakError *err);
+void rak_vm_run(RakVM *vm, RakFunction *fn, RakError *err);
+void rak_vm_resume(RakVM *vm, RakError *err);
 
 static inline void rak_vm_push(RakVM *vm, RakValue val, RakError *err)
 {
@@ -939,8 +949,13 @@ static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err)
     rak_error_set(err, "cannot call non-closure value");
     return;
   }
-  RakClosure *closure = rak_as_closure(val);
-  int arity = closure->arity;
+  if (rak_stack_is_full(&vm->cstk))
+  {
+    rak_error_set(err, "too many nested calls");
+    return;
+  }
+  RakClosure *cl = rak_as_closure(val);
+  int arity = cl->arity;
   while (nargs > arity)
   {
     rak_vm_pop(vm);
@@ -952,14 +967,29 @@ static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err)
     if (!rak_is_ok(err)) return;
     ++nargs;
   }
-  RakNativeFunction native = closure->as.native;
-  native(vm, slots, err);
-  if (!rak_is_ok(err)) return;
-  rak_closure_release(closure);
+  uint32_t *ip = NULL;
+  if (cl->kind == RAK_CLOSURE_KIND_FUNCTION)
+  {
+    RakFunction *fn = cl->as.fn;
+    ip = fn->chunk.instrs.data;
+  }
+  RakCallFrame frame = {
+    .cl = cl,
+    .ip = ip,
+    .slots = slots
+  };
+  rak_stack_push(&vm->cstk, frame);
+}
+
+static inline void rak_vm_return(RakVM *vm, RakValue *slots)
+{
+  RakClosure *cl = rak_as_closure(slots[0]);
   slots[0] = rak_vm_get(vm, 0);
+  rak_closure_release(cl);
   rak_stack_pop(&vm->vstk);
   while (vm->vstk.top > slots)
     rak_vm_pop(vm);
+  rak_stack_pop(&vm->cstk);
 }
 
 #endif // RAK_VM_H
