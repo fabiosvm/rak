@@ -9,6 +9,7 @@ stmt              ::= block
                     | do_while_stmt
                     | break_stmt
                     | continue_stmt
+                    | return_stmt
                     | expr_stmt
 
 block             ::= "{" stmt* "}"
@@ -34,6 +35,8 @@ do_while_stmt     ::= "do" block "while" expr ";"
 break_stmt        ::= "break" ";"
 
 continue_stmt     ::= "continue" ";"
+
+return_stmt       ::= "return" expr? ";"
 
 expr_stmt         ::= expr ";"
 

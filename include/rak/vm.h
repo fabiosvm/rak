@@ -968,9 +968,9 @@ static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err)
     ++nargs;
   }
   uint32_t *ip = NULL;
-  if (cl->kind == RAK_CLOSURE_KIND_FUNCTION)
+  if (cl->kind == RAK_CALLABLE_KIND_FUNCTION)
   {
-    RakFunction *fn = cl->as.fn;
+    RakFunction *fn = (RakFunction *) cl->callable;
     ip = fn->chunk.instrs.data;
   }
   RakCallFrame frame = {

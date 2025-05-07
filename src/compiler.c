@@ -78,6 +78,7 @@ static inline void compile_while_stmt(Compiler *comp, RakChunk *chunk, RakError 
 static inline void compile_do_while_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_break_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_continue_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline void compile_return_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_expr_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_expr(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_assign_expr(Compiler *comp, RakChunk *chunk, RakError *err);
@@ -177,6 +178,11 @@ static inline void compile_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
   if (match(comp, RAK_TOKEN_KIND_CONTINUE_KW))
   {
     compile_continue_stmt(comp, chunk, err);
+    return;
+  }
+  if (match(comp, RAK_TOKEN_KIND_RETURN_KW))
+  {
+    compile_return_stmt(comp, chunk, err);
     return;
   }
   compile_expr_stmt(comp, chunk, err);
@@ -514,6 +520,23 @@ static inline void compile_continue_stmt(Compiler *comp, RakChunk *chunk, RakErr
     return;
   }
   emit_instr(chunk, rak_jump_instr(loop->off), err);
+}
+
+static inline void compile_return_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
+{
+  next(comp, err);
+  if (match(comp, RAK_TOKEN_KIND_SEMICOLON))
+  {
+    next(comp, err);
+    emit_instr(chunk, rak_push_nil_instr(), err);
+    if (!rak_is_ok(err)) return;
+    emit_instr(chunk, rak_return_instr(), err);
+    return;
+  }
+  compile_expr(comp, chunk, err);
+  if (!rak_is_ok(err)) return;
+  consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
+  emit_instr(chunk, rak_return_instr(), err);
 }
 
 static inline void compile_expr_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -1212,14 +1235,8 @@ static inline void compile_field(Compiler *comp, RakChunk *chunk, RakError *err)
     return;
   }
   emit_instr(chunk, rak_load_const_instr(idx), err);
-  if (!rak_is_ok(err))
-  {
-    rak_string_free(name);
-    return;
-  }
+  if (!rak_is_ok(err)) return;
   compile_expr(comp, chunk, err);
-  if (rak_is_ok(err)) return;
-  rak_string_free(name);
 }
 
 static inline void compile_if_expr(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err)
@@ -1406,7 +1423,7 @@ RakFunction *rak_compile(char *source, RakError *err)
   compiler_init(&comp);
   rak_lexer_init(&comp.lex, source, err);
   if (!rak_is_ok(err)) return NULL;
-  RakFunction *fn = rak_function_new(err);
+  RakFunction *fn = rak_function_new(0, err);
   if (!rak_is_ok(err)) return NULL;
   compile_chunk(&comp, &fn->chunk, err);
   if (rak_is_ok(err)) return fn;

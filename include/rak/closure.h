@@ -13,39 +13,51 @@
 
 #include "chunk.h"
 
-typedef enum
-{
-  RAK_CLOSURE_KIND_FUNCTION,
-  RAK_CLOSURE_KIND_NATIVE_FUNCTION
-} RakClosureKind;
-
 typedef struct
 {
   RakObject obj;
-  RakChunk  chunk;
+  int       arity;
+} RakCallable;
+
+typedef struct
+{
+  RakCallable callable;
+  RakChunk    chunk;
 } RakFunction;
 
 struct RakVM;
 
-typedef void (*RakNativeFunction)(struct RakVM *, RakValue *, RakError *);
+typedef void (*RakNativeFunctionCall)(struct RakVM *, RakValue *, RakError *);
 
 typedef struct
 {
-  RakObject      obj;
-  int            arity;
-  RakClosureKind kind;
-  union 
-  {
-    RakFunction       *fn;
-    RakNativeFunction  native;
-  } as;
+  RakCallable           callable;
+  RakNativeFunctionCall call;
+} RakNativeFunction;
+
+typedef enum
+{
+  RAK_CALLABLE_KIND_FUNCTION,
+  RAK_CALLABLE_KIND_NATIVE_FUNCTION
+} RakCallableKind;
+
+typedef struct
+{
+  RakObject        obj;
+  int              arity;
+  RakCallableKind  kind;
+  RakCallable     *callable;
 } RakClosure;
 
-RakFunction *rak_function_new(RakError *err);
+void rak_callable_init(RakCallable *callable, int arity);
+RakFunction *rak_function_new(int arity, RakError *err);
 void rak_function_free(RakFunction *fn);
 void rak_function_release(RakFunction *fn);
-RakClosure *rak_closure_new_function(int arity, RakFunction *fn, RakError *err);
-RakClosure *rak_closure_new_native_function(int arity, RakNativeFunction native, RakError *err);
+RakNativeFunction *rak_native_function_new(int arity, RakNativeFunctionCall call,
+  RakError *err);
+void rak_native_function_free(RakNativeFunction *native);
+void rak_native_function_release(RakNativeFunction *native);
+RakClosure *rak_closure_new(RakCallableKind kind, RakCallable *callable, RakError *err);
 void rak_closure_free(RakClosure *cl);
 void rak_closure_release(RakClosure *cl);
 
