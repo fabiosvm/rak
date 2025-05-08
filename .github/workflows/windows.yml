@@ -13,5 +13,9 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
+
     - name: Building
       run: ${{ github.workspace }}\build.bat
+
+    - name: Checking Python version
+      run: python --version
