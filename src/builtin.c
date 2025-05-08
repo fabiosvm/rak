@@ -50,7 +50,7 @@ static const char *globals[] = {
   "println"
 };
 
-static inline void push_builtin_function(RakVM *vm, int arity,
+static inline void push_builtin_function(RakVM *vm, const char *name, int arity,
   RakNativeFunctionCall call, RakError *err);
 
 static void type_native_call(RakVM *vm, RakValue *slots, RakError *err);
@@ -75,11 +75,17 @@ static void is_empty_native_call(RakVM *vm, RakValue *slots, RakError *err);
 static void print_native_call(RakVM *vm, RakValue *slots, RakError *err);
 static void println_native_call(RakVM *vm, RakValue *slots, RakError *err);
 
-static inline void push_builtin_function(RakVM *vm, int arity,
+static inline void push_builtin_function(RakVM *vm, const char *name, int arity,
   RakNativeFunctionCall call, RakError *err)
 {
-  RakNativeFunction *native = rak_native_function_new(arity, call, err);
+  RakString *_name = rak_string_new_from_cstr(-1, name, err);
   if (!rak_is_ok(err)) return;
+  RakNativeFunction *native = rak_native_function_new(_name, arity, call, err);
+  if (!rak_is_ok(err))
+  {
+    rak_string_free(_name);
+    return;
+  }
   RakClosure *cl = rak_closure_new(RAK_CALLABLE_KIND_NATIVE_FUNCTION, &native->callable, err);
   if (!rak_is_ok(err))
   {
@@ -421,47 +427,47 @@ void rak_builtin_load_globals(RakVM *vm, RakError *err)
   if (!rak_is_ok(err)) return;
   rak_vm_push_number(vm, RAK_INTEGER_MAX, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, type_native_call, err);
+  push_builtin_function(vm, globals[13], 1, type_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, is_nil_native_call, err);
+  push_builtin_function(vm, globals[14], 1, is_nil_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, is_bool_native_call, err);
+  push_builtin_function(vm, globals[15], 1, is_bool_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, is_number_native_call, err);
+  push_builtin_function(vm, globals[16], 1, is_number_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, is_integer_native_call, err);
+  push_builtin_function(vm, globals[17], 1, is_integer_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, is_string_native_call, err);
+  push_builtin_function(vm, globals[18], 1, is_string_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, is_array_native_call, err);
+  push_builtin_function(vm, globals[19], 1, is_array_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, is_range_native_call, err);
+  push_builtin_function(vm, globals[20], 1, is_range_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, is_record_native_call, err);
+  push_builtin_function(vm, globals[21], 1, is_record_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, is_closure_native_call, err);
+  push_builtin_function(vm, globals[22], 1, is_closure_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, is_falsy_native_call, err);
+  push_builtin_function(vm, globals[23], 1, is_falsy_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, is_object_native_call, err);
+  push_builtin_function(vm, globals[24], 1, is_object_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, ptr_native_call, err);
+  push_builtin_function(vm, globals[25], 1, ptr_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, ref_count_native_call, err);
+  push_builtin_function(vm, globals[26], 1, ref_count_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 3, make_array_native_call, err);
+  push_builtin_function(vm, globals[27], 3, make_array_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 2, append_native_call, err);
+  push_builtin_function(vm, globals[28], 2, append_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, cap_native_call, err);
+  push_builtin_function(vm, globals[29], 1, cap_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, len_native_call, err);
+  push_builtin_function(vm, globals[30], 1, len_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, is_empty_native_call, err);
+  push_builtin_function(vm, globals[31], 1, is_empty_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, print_native_call, err);
+  push_builtin_function(vm, globals[32], 1, print_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(vm, 1, println_native_call, err);
+  push_builtin_function(vm, globals[33], 1, println_native_call, err);
 }
 
 int rak_builtin_resolve_global(int len, char *chars)

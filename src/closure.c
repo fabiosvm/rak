@@ -11,17 +11,26 @@
 #include "rak/closure.h"
 #include "rak/memory.h"
 
-void rak_callable_init(RakCallable *callable, int arity)
+void rak_callable_init(RakCallable *callable, RakString *name, int arity)
 {
   rak_object_init(&callable->obj);
+  callable->name = name;
+  if (name) rak_object_retain(&name->obj);
   callable->arity = arity;
 }
 
-RakFunction *rak_function_new(int arity, RakError *err)
+void rak_callable_deinit(RakCallable *callable)
+{
+  RakString *name = callable->name;
+  if (!name) return;
+  rak_string_release(name);
+}
+
+RakFunction *rak_function_new(RakString *name, int arity, RakError *err)
 {
   RakFunction *fn = rak_memory_alloc(sizeof(*fn), err);
   if (!rak_is_ok(err)) return NULL;
-  rak_callable_init(&fn->callable, arity);
+  rak_callable_init(&fn->callable, name, arity);
   rak_chunk_init(&fn->chunk, err);
   if (rak_is_ok(err)) return fn;
   rak_memory_free(fn);
@@ -30,6 +39,7 @@ RakFunction *rak_function_new(int arity, RakError *err)
 
 void rak_function_free(RakFunction *fn)
 {
+  rak_callable_deinit(&fn->callable);
   rak_chunk_deinit(&fn->chunk);
   rak_memory_free(fn);
 }
@@ -42,18 +52,19 @@ void rak_function_release(RakFunction *fn)
   rak_function_free(fn);
 }
 
-RakNativeFunction *rak_native_function_new(int arity, RakNativeFunctionCall call,
-  RakError *err)
+RakNativeFunction *rak_native_function_new(RakString *name, int arity,
+  RakNativeFunctionCall call, RakError *err)
 {
   RakNativeFunction *native = rak_memory_alloc(sizeof(*native), err);
   if (!rak_is_ok(err)) return NULL;
-  rak_callable_init(&native->callable, arity);
+  rak_callable_init(&native->callable, name, arity);
   native->call = call;
   return native;
 }
 
 void rak_native_function_free(RakNativeFunction *native)
 {
+  rak_callable_deinit(&native->callable);
   rak_memory_free(native);
 }
 

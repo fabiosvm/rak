@@ -1423,8 +1423,14 @@ RakFunction *rak_compile(char *source, RakError *err)
   compiler_init(&comp);
   rak_lexer_init(&comp.lex, source, err);
   if (!rak_is_ok(err)) return NULL;
-  RakFunction *fn = rak_function_new(0, err);
+  RakString *name = rak_string_new_from_cstr(-1, "main", err);
   if (!rak_is_ok(err)) return NULL;
+  RakFunction *fn = rak_function_new(name, 0, err);
+  if (!rak_is_ok(err))
+  {
+    rak_string_free(name);
+    return NULL;
+  }
   compile_chunk(&comp, &fn->chunk, err);
   if (rak_is_ok(err)) return fn;
   rak_function_free(fn);

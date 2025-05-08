@@ -12,11 +12,13 @@
 #define RAK_CLOSURE_H
 
 #include "chunk.h"
+#include "string.h"
 
 typedef struct
 {
-  RakObject obj;
-  int       arity;
+  RakObject  obj;
+  RakString *name;
+  int        arity;
 } RakCallable;
 
 typedef struct
@@ -49,12 +51,13 @@ typedef struct
   RakCallable     *callable;
 } RakClosure;
 
-void rak_callable_init(RakCallable *callable, int arity);
-RakFunction *rak_function_new(int arity, RakError *err);
+void rak_callable_init(RakCallable *callable, RakString *name, int arity);
+void rak_callable_deinit(RakCallable *callable);
+RakFunction *rak_function_new(RakString *name, int arity, RakError *err);
 void rak_function_free(RakFunction *fn);
 void rak_function_release(RakFunction *fn);
-RakNativeFunction *rak_native_function_new(int arity, RakNativeFunctionCall call,
-  RakError *err);
+RakNativeFunction *rak_native_function_new(RakString *name, int arity,
+  RakNativeFunctionCall call, RakError *err);
 void rak_native_function_free(RakNativeFunction *native);
 void rak_native_function_release(RakNativeFunction *native);
 RakClosure *rak_closure_new(RakCallableKind kind, RakCallable *callable, RakError *err);
