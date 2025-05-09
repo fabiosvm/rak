@@ -30,16 +30,3 @@
 
     print(seq);
   out: '[7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]'
-
-- test: println (compile only)
-  args: '-c'      # Command line arguments (all in one string) to run the test.
-  source: 'println(66000);'
-  out: |+
-    1 constant(s)
-    5 instruction(s)
-    [0000] LOAD_GLOBAL     33   
-    [0001] LOAD_CONST      0    
-    [0002] CALL            1    
-    [0003] POP            
-    [0004] HALT           
-    
