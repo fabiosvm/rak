@@ -86,7 +86,7 @@ static inline void push_builtin_function(RakVM *vm, const char *name, int arity,
     rak_string_free(_name);
     return;
   }
-  RakClosure *cl = rak_closure_new(RAK_CALLABLE_KIND_NATIVE_FUNCTION, &native->callable, err);
+  RakClosure *cl = rak_closure_new(RAK_CALLABLE_TYPE_NATIVE_FUNCTION, &native->callable, err);
   if (!rak_is_ok(err))
   {
     rak_native_function_free(native);

@@ -28,6 +28,7 @@ static void do_fetch_local(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *sl
 static void do_new_array(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_range(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_record(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_new_closure(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_dup(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_pop(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_get_element(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -72,6 +73,7 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_NEW_ARRAY]       = do_new_array,
   [RAK_OP_NEW_RANGE]       = do_new_range,
   [RAK_OP_NEW_RECORD]      = do_new_record,
+  [RAK_OP_NEW_CLOSURE]     = do_new_closure,
   [RAK_OP_DUP]             = do_dup,
   [RAK_OP_POP]             = do_pop,
   [RAK_OP_GET_ELEMENT]     = do_get_element,
@@ -210,6 +212,15 @@ static void do_new_record(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slo
 {
   uint8_t n = rak_instr_a(*ip);
   rak_vm_new_record(vm, n, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(vm, cl, ip + 1, slots, err);
+}
+
+static void do_new_closure(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  uint8_t idx = rak_instr_a(*ip);
+  RakFunction *fn = (RakFunction *) cl->callable;
+  rak_vm_new_closure(vm, fn, idx, err);
   if (!rak_is_ok(err)) return;
   dispatch(vm, cl, ip + 1, slots, err);
 }
@@ -451,7 +462,7 @@ void rak_vm_deinit(RakVM *vm)
 
 void rak_vm_run(RakVM *vm, RakFunction *fn, RakError *err)
 {
-  RakClosure *cl = rak_closure_new(RAK_CALLABLE_KIND_FUNCTION, &fn->callable, err);
+  RakClosure *cl = rak_closure_new(RAK_CALLABLE_TYPE_FUNCTION, &fn->callable, err);
   if (!rak_is_ok(err)) return;
   rak_vm_push_object(vm, rak_closure_value(cl), err);
   if (!rak_is_ok(err))
@@ -472,7 +483,7 @@ void rak_vm_resume(RakVM *vm, RakError *err)
     RakClosure *cl = frame.cl;
     uint32_t *ip = frame.ip;
     RakValue *slots = frame.slots;
-    if (cl->kind == RAK_CALLABLE_KIND_FUNCTION)
+    if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
     {
       dispatch(vm, cl, ip, slots, err);
       if (!rak_is_ok(err)) return;

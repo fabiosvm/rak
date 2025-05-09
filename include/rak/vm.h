@@ -48,6 +48,7 @@ static inline void rak_vm_fetch_local(RakVM *vm, RakValue *slots, uint8_t idx, R
 static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err);
 static inline void rak_vm_new_range(RakVM *vm, RakError *err);
 static inline void rak_vm_new_record(RakVM *vm, uint8_t len, RakError *err);
+static inline void rak_vm_new_closure(RakVM *vm, RakFunction *fn, uint8_t idx, RakError *err);
 static inline void rak_vm_dup(RakVM *vm, RakError *err);
 static inline void rak_vm_pop(RakVM *vm);
 static inline void rak_vm_get_element(RakVM *vm, RakError *err);
@@ -235,6 +236,17 @@ static inline void rak_vm_new_record(RakVM *vm, uint8_t len, RakError *err)
   slots[0] = rak_record_value(rec);
   rak_object_retain(&rec->obj);
   vm->vstk.top -= n;
+}
+
+static inline void rak_vm_new_closure(RakVM *vm, RakFunction *fn, uint8_t idx, RakError *err)
+{
+  RakFunction *_fn = rak_slice_get(&fn->nested, idx);
+  RakClosure *cl = rak_closure_new(RAK_CALLABLE_TYPE_FUNCTION, &_fn->callable, err);
+  if (!rak_is_ok(err)) return;
+  RakValue val = rak_closure_value(cl);
+  rak_vm_push_object(vm, val, err);
+  if (rak_is_ok(err)) return;
+  rak_closure_free(cl);
 }
 
 static inline void rak_vm_dup(RakVM *vm, RakError *err)
@@ -968,7 +980,7 @@ static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err)
     ++nargs;
   }
   uint32_t *ip = NULL;
-  if (cl->kind == RAK_CALLABLE_KIND_FUNCTION)
+  if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
   {
     RakFunction *fn = (RakFunction *) cl->callable;
     ip = fn->chunk.instrs.data;

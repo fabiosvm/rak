@@ -21,10 +21,11 @@ typedef struct
   int        arity;
 } RakCallable;
 
-typedef struct
+typedef struct RakFunction
 {
-  RakCallable callable;
-  RakChunk    chunk;
+  RakCallable                    callable;
+  RakChunk                       chunk;
+  RakSlice(struct RakFunction *) nested;
 } RakFunction;
 
 struct RakVM;
@@ -39,15 +40,15 @@ typedef struct
 
 typedef enum
 {
-  RAK_CALLABLE_KIND_FUNCTION,
-  RAK_CALLABLE_KIND_NATIVE_FUNCTION
-} RakCallableKind;
+  RAK_CALLABLE_TYPE_FUNCTION,
+  RAK_CALLABLE_TYPE_NATIVE_FUNCTION
+} RakCallableType;
 
 typedef struct
 {
   RakObject        obj;
   int              arity;
-  RakCallableKind  kind;
+  RakCallableType  type;
   RakCallable     *callable;
 } RakClosure;
 
@@ -56,11 +57,12 @@ void rak_callable_deinit(RakCallable *callable);
 RakFunction *rak_function_new(RakString *name, int arity, RakError *err);
 void rak_function_free(RakFunction *fn);
 void rak_function_release(RakFunction *fn);
+void rak_function_append_nested(RakFunction *fn, RakFunction *nested, RakError *err);
 RakNativeFunction *rak_native_function_new(RakString *name, int arity,
   RakNativeFunctionCall call, RakError *err);
 void rak_native_function_free(RakNativeFunction *native);
 void rak_native_function_release(RakNativeFunction *native);
-RakClosure *rak_closure_new(RakCallableKind kind, RakCallable *callable, RakError *err);
+RakClosure *rak_closure_new(RakCallableType type, RakCallable *callable, RakError *err);
 void rak_closure_free(RakClosure *cl);
 void rak_closure_release(RakClosure *cl);
 

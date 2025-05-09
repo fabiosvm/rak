@@ -32,7 +32,16 @@ RakFunction *rak_function_new(RakString *name, int arity, RakError *err)
   if (!rak_is_ok(err)) return NULL;
   rak_callable_init(&fn->callable, name, arity);
   rak_chunk_init(&fn->chunk, err);
+  if (!rak_is_ok(err))
+  {
+    rak_callable_deinit(&fn->callable);
+    rak_memory_free(fn);
+    return NULL;
+  }
+  rak_slice_init(&fn->nested, err);
   if (rak_is_ok(err)) return fn;
+  rak_callable_deinit(&fn->callable);
+  rak_chunk_deinit(&fn->chunk);
   rak_memory_free(fn);
   return NULL;
 }
@@ -41,6 +50,12 @@ void rak_function_free(RakFunction *fn)
 {
   rak_callable_deinit(&fn->callable);
   rak_chunk_deinit(&fn->chunk);
+  for (int i = 0; i < fn->nested.len; ++i)
+  {
+    RakFunction *nested = rak_slice_get(&fn->nested, i);
+    rak_function_release(nested);
+  }
+  rak_slice_deinit(&fn->nested);
   rak_memory_free(fn);
 }
 
@@ -50,6 +65,18 @@ void rak_function_release(RakFunction *fn)
   --obj->refCount;
   if (obj->refCount) return;
   rak_function_free(fn);
+}
+
+void rak_function_append_nested(RakFunction *fn, RakFunction *nested, RakError *err)
+{
+  if (fn->nested.len == UINT8_MAX)
+  {
+    rak_error_set(err, "too many nested functions");
+    return;
+  }
+  rak_slice_ensure_append(&fn->nested, nested, err);
+  if (!rak_is_ok(err)) return;
+  rak_object_retain(&nested->callable.obj);
 }
 
 RakNativeFunction *rak_native_function_new(RakString *name, int arity,
@@ -76,12 +103,12 @@ void rak_native_function_release(RakNativeFunction *native)
   rak_native_function_free(native);
 }
 
-RakClosure *rak_closure_new(RakCallableKind kind, RakCallable *callable, RakError *err)
+RakClosure *rak_closure_new(RakCallableType type, RakCallable *callable, RakError *err)
 {
   RakClosure *cl = rak_memory_alloc(sizeof(*cl), err);
   if (!rak_is_ok(err)) return NULL;
   rak_object_init(&cl->obj);
-  cl->kind = kind;
+  cl->type = type;
   cl->callable = callable;
   rak_object_retain(&callable->obj);
   return cl;
@@ -89,7 +116,7 @@ RakClosure *rak_closure_new(RakCallableKind kind, RakCallable *callable, RakErro
 
 void rak_closure_free(RakClosure *cl)
 {
-  if (cl->kind == RAK_CALLABLE_KIND_FUNCTION)
+  if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
   {
     RakFunction *fn = (RakFunction *) cl->callable;
     rak_function_release(fn);

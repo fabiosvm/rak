@@ -39,6 +39,7 @@
 #define rak_new_array_instr(n)       rak_instr_fmt1(RAK_OP_NEW_ARRAY, (n))
 #define rak_new_range_instr()        rak_instr_fmt0(RAK_OP_NEW_RANGE)
 #define rak_new_record_instr(n)      rak_instr_fmt1(RAK_OP_NEW_RECORD, (n))
+#define rak_new_closure_instr(i)     rak_instr_fmt1(RAK_OP_NEW_CLOSURE, (i))
 #define rak_dup_instr()              rak_instr_fmt0(RAK_OP_DUP)
 #define rak_pop_instr()              rak_instr_fmt0(RAK_OP_POP)
 #define rak_get_element_instr()      rak_instr_fmt0(RAK_OP_GET_ELEMENT)
@@ -84,6 +85,7 @@ typedef enum
   RAK_OP_NEW_ARRAY,
   RAK_OP_NEW_RANGE,
   RAK_OP_NEW_RECORD,
+  RAK_OP_NEW_CLOSURE,
   RAK_OP_DUP,
   RAK_OP_POP,
   RAK_OP_GET_ELEMENT,
