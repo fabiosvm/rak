@@ -1,0 +1,89 @@
+- test: if else / if let statement (1)
+  source: |
+    let a=10;
+    let b=20;
+    if a < 0 { println("a < 0 is true"); } else { println("a < 0 is false"); }
+    if let c=444; b > 0 { print("b > 0 is true and c is "); println(c); }
+  out: |
+    a < 0 is false
+    b > 0 is true and c is 444
+
+- test: if else / if let statement (2)
+  source: |
+    let a=-10;
+    let b=20;
+    if a < 0 { println("a < 0 is true"); } else { println("a < 0 is false"); }
+    if let c=444; b > 0 { print("b > 0 is true and c is "); println(c); }
+  out: |
+    a < 0 is true
+    b > 0 is true and c is 444
+
+- test: else if let statement
+  source: |
+    let a=10;
+    let b=20;
+    print(a); print(" "); println(b);
+    if let a=666; b < 0 { print("b < 0 is true. Local a is "); println(a); } else if let a = 777; b > 0 { print("b < 0 is false and b > 0 is true. Local a is "); println(a); }
+    &a=-10;&b=-20;
+    print(a); print(" "); println(b);
+    if let a=666; b < 0 { print("b < 0 is true. Local a is "); println(a); } else if let a = 777; b > 0 { print("b < 0 is false and b > 0 is true. Local a is "); println(a); }
+    print(a); print(" "); println(b);
+  out: |
+    10 20
+    b < 0 is false and b > 0 is true. Local a is 777
+    -10 -20
+    b < 0 is true. Local a is 666
+    -10 -20
+
+
+- test: All if else let statements
+  source: |
+    let a=10;
+    let b=20;
+
+    print("a="); print(a); print(" :: b="); println(b); 
+    if a > 0 { println(" 5. a > 0 is true"); }
+    if a < 0 { println(" 6. a < 0 is true"); } else { println(" 6. a < 0 is false"); }
+    if a < 0 { println(" 7. a < 0 is true"); } else if b > 0 { println(" 7. a < 0 is false and b > 0 is true"); }
+    if let a=444; b > 0 { print(" 8. b > 0 is true and local a is "); println(a); }
+    if let a=555; b < 0 { println(" 9. b < 0 is true"); } else { print(" 9. b < 0 is false. Local a is "); println(a); }
+    if let a=666; b < 0 { println("10. b < 0 is true"); } else if let a = 777; b > 0 { print("10. b < 0 is false and b > 0 is true. Local a is "); println(a); } else { print("10. b = 0. Local a is "); println(a); }
+
+    &a=-10;&b=-20;
+    print("a="); print(a); print(" :: b="); println(b); 
+    if a > 0 { println("14. a > 0 is true"); }
+    if a < 0 { println("15. a < 0 is true"); } else { println("15. a < 0 is false"); }
+    if a < 0 { println("16. a < 0 is true"); } else if b > 0 { println("16. a < 0 is false and b > 0 is true"); }
+    if let a=444; b > 0 { print("17. b > 0 is true and local a is "); println(a); }
+    if let a=555; b < 0 { println("18. b < 0 is true"); } else { print("18. b < 0 is false. Local a is "); println(a); }
+    if let a=666; b < 0 { println("19. b < 0 is true"); } else if let a = 777; b > 0 { print("19. b < 0 is false and b > 0 is true. Local a is "); println(a); } else { print("19. b = 0. Local a is "); println(a); }
+
+    &a=10;&b=0;
+    print("a="); print(a); print(" :: b="); println(b); 
+    if a > 0 { println("23. a > 0 is true"); }
+    if a < 0 { println("24. a < 0 is true"); } else { println("24. a < 0 is false"); }
+    if a < 0 { println("25. a < 0 is true"); } else if b > 0 { println("25. a < 0 is false and b > 0 is true"); }
+    if let a=444; b > 0 { print("26. b > 0 is true and local a is "); println(a); }
+    if let a=555; b < 0 { println("27. b < 0 is true"); } else { print("27. b < 0 is false. Local a is "); println(a); }
+    if let a=666; b < 0 { println("28. b < 0 is true"); } else if let a = 777; b > 0 { print("28. b < 0 is false and b > 0 is true. Local a is "); println(a); } else { print("28. b = 0. Local a is "); println(a); }
+
+    print("a="); print(a); print(" :: b="); println(b);
+  out: |
+    a=10 :: b=20
+     5. a > 0 is true
+     6. a < 0 is false
+     7. a < 0 is false and b > 0 is true
+     8. b > 0 is true and local a is 444
+     9. b < 0 is false. Local a is 555
+    10. b < 0 is false and b > 0 is true. Local a is 777
+    a=-10 :: b=-20
+    15. a < 0 is true
+    16. a < 0 is true
+    18. b < 0 is true
+    19. b < 0 is true
+    a=10 :: b=0
+    23. a > 0 is true
+    24. a < 0 is false
+    27. b < 0 is false. Local a is 555
+    28. b = 0. Local a is 777
+    a=10 :: b=0

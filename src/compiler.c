@@ -365,6 +365,8 @@ static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *of
   if (!rak_is_ok(err)) return;
   uint32_t instr = rak_jump_if_false_instr((uint16_t) chunk->instrs.len);
   patch_instr(chunk, jump1, instr);
+  if (!rak_is_ok(err)) return;
+  emit_instr(chunk, rak_pop_instr(), err);
   uint16_t _off;
   compile_if_stmt_cont(comp, chunk, &_off, err);
   if (!rak_is_ok(err)) return;
@@ -378,17 +380,14 @@ static inline void compile_if_stmt_cont(Compiler *comp, RakChunk *chunk, uint16_
 {
   if (!match(comp, RAK_TOKEN_KIND_ELSE_KW))
   {
-    emit_instr(chunk, rak_pop_instr(), err);
-    if (!rak_is_ok(err)) return;
     *off = (uint16_t) chunk->instrs.len;
     return;
   }
   next(comp, err);
   if (match(comp, RAK_TOKEN_KIND_IF_KW))
   {
-    emit_instr(chunk, rak_pop_instr(), err);
-    if (!rak_is_ok(err)) return;
     compile_if_stmt(comp, chunk, off, err);
+    *off = (uint16_t) chunk->instrs.len;
     return;
   }
   if (!match(comp, RAK_TOKEN_KIND_LBRACE))
