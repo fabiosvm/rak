@@ -967,7 +967,7 @@ static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err)
     return;
   }
   RakClosure *cl = rak_as_closure(val);
-  int arity = cl->arity;
+  int arity = cl->callable->arity;
   while (nargs > arity)
   {
     rak_vm_pop(vm);

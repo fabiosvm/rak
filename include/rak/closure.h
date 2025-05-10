@@ -47,7 +47,6 @@ typedef enum
 typedef struct
 {
   RakObject        obj;
-  int              arity;
   RakCallableType  type;
   RakCallable     *callable;
 } RakClosure;
@@ -57,7 +56,7 @@ void rak_callable_deinit(RakCallable *callable);
 RakFunction *rak_function_new(RakString *name, int arity, RakError *err);
 void rak_function_free(RakFunction *fn);
 void rak_function_release(RakFunction *fn);
-void rak_function_append_nested(RakFunction *fn, RakFunction *nested, RakError *err);
+uint8_t rak_function_append_nested(RakFunction *fn, RakFunction *nested, RakError *err);
 RakNativeFunction *rak_native_function_new(RakString *name, int arity,
   RakNativeFunctionCall call, RakError *err);
 void rak_native_function_free(RakNativeFunction *native);

@@ -67,16 +67,18 @@ void rak_function_release(RakFunction *fn)
   rak_function_free(fn);
 }
 
-void rak_function_append_nested(RakFunction *fn, RakFunction *nested, RakError *err)
+uint8_t rak_function_append_nested(RakFunction *fn, RakFunction *nested, RakError *err)
 {
-  if (fn->nested.len == UINT8_MAX)
+  int idx = fn->nested.len;
+  if (idx > UINT8_MAX)
   {
     rak_error_set(err, "too many nested functions");
-    return;
+    return 0;
   }
   rak_slice_ensure_append(&fn->nested, nested, err);
-  if (!rak_is_ok(err)) return;
+  if (!rak_is_ok(err)) return 0;
   rak_object_retain(&nested->callable.obj);
+  return (uint8_t) idx;
 }
 
 RakNativeFunction *rak_native_function_new(RakString *name, int arity,
