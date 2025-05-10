@@ -21,22 +21,17 @@ Rak offers the following key features:
 
 ## What does Rak look like?
 
-The following is an example of a simple script that prints a hailstone sequence:
+The following is an example of a Fibonacci function:
 
 ```rs
-let n = 7;
-
-let seq = [n];
-while n != 1 {
-  if n % 2 == 0 {
-    &n /= 2;
-  } else {
-    &n = n * 3 + 1;
+fn fib(n) {
+  if n < 2 {
+    reutnr n;
   }
-  &seq += [n];
+  return fib(n - 1) + fib(n - 2);
 }
 
-println(seq);
+println(fib(8)); // 21
 ```
 
 ## Building
@@ -52,7 +47,7 @@ This project uses [CMake](https://cmake.org) and includes a build script to simp
 Use `rak` to run a script by reading it from standard input.
 
 ```
-./build/rak examples/hailstone.rak
+./build/rak examples/fib.rak
 ```
 
 You can use the `-c` flag to compile a script into bytecode and display it without executing.
@@ -64,22 +59,14 @@ You can use the `-c` flag to compile a script into bytecode and display it witho
 Output:
 
 ```
-1 constant(s)
-6 instruction(s)
+; main
+; 0 parameter(s), 1 constant(s), 6 instruction(s), 0 function(s)
 [0000] LOAD_GLOBAL     33
 [0001] LOAD_CONST      0
 [0002] CALL            1
 [0003] POP
 [0004] PUSH_NIL
 [0005] RETURN
-```
-
-## Cleaning
-
-To clean the build files, run the clean script:
-
-```
-./clean.sh
 ```
 
 ## Testing
@@ -98,6 +85,14 @@ Now you can run the tests:
 
 ```
 ./tests.sh
+```
+
+## Cleaning
+
+To clean the build files, run the clean script:
+
+```
+./clean.sh
 ```
 
 > **Note:** Windows users may need to run `.bat` files instead of `.sh` files.

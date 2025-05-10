@@ -65,10 +65,12 @@ The following keywords are reserved and cannot be used as identifiers:
 - `do`
 - `else`
 - `false`
+- `fn`
 - `if`
 - `let`
 - `loop`
 - `nil`
+- `return`
 - `true`
 - `while`
 
@@ -567,5 +569,58 @@ println(jedi); // {name: Yoda, age: 1000, species: Unknown, level: master}
 ```
 
 ## Closures
+
+Every function in Rak is a closure. This means that they are first-class citizens, can be passed as arguments, returned from other functions, and can capture values from their surrounding scope. To define a closure, use the `fn` keyword followed by the name, parameters, and the statement block.
+
+```rs
+fn add(x, y) {
+  return x + y;
+}
+```
+
+> **Note:** The `return` keyword is used to return a value from a closure. If you omit it, `nil` is returned by default.
+
+You can call a closure by using its name followed by parentheses `()` and passing the arguments inside.
+
+```rs
+println(add(1, 2)); // 3
+```
+
+> **Note:** The return value of `println` is discarded because it is called in a statement.
+
+Like other values, closures can be assigned to variables.
+
+```rs
+let sub = fn(x, y) {
+  return x - y;
+};
+println(sub(5, 2)); // 3
+```
+
+> **Note:** Support for anonymous closures has not been implemented yet.
+
+You can also pass closures as arguments to other closures.
+
+```rs
+fn apply(f, x, y) {
+  return f(x, y);
+}
+println(apply(add, 1, 2)); // 3
+println(apply(sub, 7, 3)); // 4
+```
+
+Returning a closure from another closure.
+
+```rs
+fn make_adder(x) {
+  return fn(y) {
+    return x + y;
+  };
+}
+let add5 = make_adder(5);
+println(add5(2)); // 7
+```
+
+## Built-in functions
 
 > (Documentation for this section is coming soon.)

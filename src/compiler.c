@@ -13,18 +13,18 @@
 #include "rak/builtin.h"
 #include "rak/lexer.h"
 
-#define match(c, t) ((c)->lex.tok.kind == (t))
+#define match(c, t) ((c)->lex->tok.kind == (t))
 
 #define next(c, e) \
   do { \
-    rak_lexer_next(&(c)->lex, (e)); \
+    rak_lexer_next((c)->lex, (e)); \
     if (!rak_is_ok(e)) return; \
   } while (0)
 
 #define consume(c, t, e) \
   do { \
     if (!match((c), (t))) { \
-      expected_token_error((e), (t), (c)->lex.tok); \
+      expected_token_error((e), (t), (c)->lex->tok); \
       return; \
     } \
     next((c), (e)); \
@@ -55,15 +55,19 @@ typedef struct Loop
 
 typedef RakStaticSlice(Symbol, UINT8_MAX) SymbolSlice;
 
-typedef struct
+typedef struct Compiler
 {
-  SymbolSlice  symbols;
-  RakLexer     lex;
-  int          scopeDepth;
-  Loop        *loop;
+  struct Compiler *parent;
+  RakLexer        *lex;
+  SymbolSlice      symbols;
+  int              scopeDepth;
+  Loop            *loop;
+  RakFunction     *fn;
 } Compiler;
 
-static inline void compiler_init(Compiler *comp);
+static inline void compiler_init(Compiler *comp, Compiler *parent, RakLexer *lex,
+  RakString *fnName, int arity, RakError *err);
+static inline void compiler_deinit(Compiler *comp);
 static inline void compile_chunk(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_block(Compiler *comp, RakChunk *chunk, RakError *err);
@@ -71,6 +75,8 @@ static inline void compile_let_decl(Compiler *comp, RakChunk *chunk, RakError *e
 static inline void compile_destruct_elements(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_ident_list(Compiler *comp, SymbolSlice *symbols, RakError *err);
 static inline void compile_destruct_fields(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline void compile_fn_decl(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline void compile_params(Compiler *comp, RakError *err);
 static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err);
 static inline void compile_if_stmt_cont(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err);
 static inline void compile_loop_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
@@ -116,11 +122,23 @@ static inline bool ident_equals(RakToken tok1, RakToken tok2);
 static inline void unexpected_token_error(RakError *err, RakToken tok);
 static inline void expected_token_error(RakError *err, RakTokenKind kind, RakToken tok);
 
-static inline void compiler_init(Compiler *comp)
+static inline void compiler_init(Compiler *comp, Compiler *parent, RakLexer *lex,
+  RakString *fnName, int arity, RakError *err)
 {
+  comp->parent = parent;
+  comp->lex = lex;
   rak_static_slice_init(&comp->symbols);
   comp->scopeDepth = -1;
   comp->loop = NULL;
+  RakFunction *fn = rak_function_new(fnName, arity, err);
+  if (!rak_is_ok(err)) return;
+  comp->fn = fn;
+  rak_object_retain(&fn->callable.obj);
+}
+
+static inline void compiler_deinit(Compiler *comp)
+{
+  rak_function_release(comp->fn);
 }
 
 static inline void compile_chunk(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -148,6 +166,11 @@ static inline void compile_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
   if (match(comp, RAK_TOKEN_KIND_LET_KW))
   {
     compile_let_decl(comp, chunk, err);
+    return;
+  }
+  if (match(comp, RAK_TOKEN_KIND_FN_KW))
+  {
+    compile_fn_decl(comp, chunk, err);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_IF_KW))
@@ -218,10 +241,10 @@ static inline void compile_let_decl(Compiler *comp, RakChunk *chunk, RakError *e
   }
   if (!match(comp, RAK_TOKEN_KIND_IDENT))
   {
-    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex->tok);
     return;
   }
-  RakToken tok = comp->lex.tok;
+  RakToken tok = comp->lex->tok;
   next(comp, err);
   bool isBlank = is_blank_ident(tok);
   if (match(comp, RAK_TOKEN_KIND_EQ))
@@ -274,10 +297,10 @@ static inline void compile_ident_list(Compiler *comp, SymbolSlice *symbols, RakE
 {
   if (!match(comp, RAK_TOKEN_KIND_IDENT))
   {
-    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex->tok);
     return;
   }
-  RakToken tok = comp->lex.tok;
+  RakToken tok = comp->lex->tok;
   uint8_t idx = 0;
   for (;;)
   {
@@ -301,10 +324,10 @@ static inline void compile_ident_list(Compiler *comp, SymbolSlice *symbols, RakE
     next(comp, err);
     if (!match(comp, RAK_TOKEN_KIND_IDENT))
     {
-      expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+      expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex->tok);
       return;
     }
-    tok = comp->lex.tok;
+    tok = comp->lex->tok;
   }
 }
 
@@ -339,6 +362,95 @@ static inline void compile_destruct_fields(Compiler *comp, RakChunk *chunk, RakE
   emit_instr(chunk, rak_unpack_fields_instr((uint8_t) symbols.len), err);
 }
 
+static inline void compile_fn_decl(Compiler *comp, RakChunk *chunk, RakError *err)
+{
+  next(comp, err);
+  if (!match(comp, RAK_TOKEN_KIND_IDENT))
+  {
+    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex->tok);
+    return;
+  }
+  RakToken tok = comp->lex->tok;
+  next(comp, err);
+  RakString *name = rak_string_new_from_cstr(tok.len, tok.chars, err);
+  if (!rak_is_ok(err)) return;
+  Compiler _comp;
+  compiler_init(&_comp, comp, comp->lex, name, 0, err);
+  if (!rak_is_ok(err))
+  {
+    rak_string_free(name);
+    return;
+  }
+  define_local(&_comp, tok, err);
+  if (!rak_is_ok(err)) goto fail;
+  compile_params(&_comp, err);
+  if (!rak_is_ok(err)) goto fail;
+  if (!match(&_comp, RAK_TOKEN_KIND_LBRACE))
+  {
+    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, _comp.lex->tok);
+    goto fail;
+  }
+  RakChunk *_chunk = &_comp.fn->chunk;
+  compile_block(&_comp, _chunk, err);
+  if (!rak_is_ok(err)) goto fail;
+  emit_instr(_chunk, rak_push_nil_instr(), err);
+  if (!rak_is_ok(err)) goto fail;
+  emit_instr(_chunk, rak_return_instr(), err);
+  if (!rak_is_ok(err)) goto fail;
+  uint8_t idx = rak_function_append_nested(comp->fn, _comp.fn, err);
+  if (!rak_is_ok(err)) goto fail;
+  emit_instr(chunk, rak_new_closure_instr(idx), err);
+  if (!rak_is_ok(err)) goto fail;
+  define_local(comp, tok, err);
+  return;
+fail:
+  compiler_deinit(&_comp);
+}
+
+static inline void compile_params(Compiler *comp, RakError *err)
+{
+  consume(comp, RAK_TOKEN_KIND_LPAREN, err);
+  RakCallable *callable = &comp->fn->callable;
+  if (match(comp, RAK_TOKEN_KIND_RPAREN))
+  {
+    next(comp, err);
+    callable->arity = 0;
+    return;
+  }
+  if (!match(comp, RAK_TOKEN_KIND_IDENT))
+  {
+    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex->tok);
+    return;
+  }
+  RakToken tok = comp->lex->tok;
+  next(comp, err);
+  define_local(comp, tok, err);
+  if (!rak_is_ok(err)) return;
+  int arity = 1;
+  while (match(comp, RAK_TOKEN_KIND_COMMA))
+  {
+    next(comp, err);
+    if (!match(comp, RAK_TOKEN_KIND_IDENT))
+    {
+      expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex->tok);
+      return;
+    }
+    tok = comp->lex->tok;
+    next(comp, err);
+    if (arity == UINT8_MAX)
+    {
+      rak_error_set(err, "too many function parameters at %d:%d",
+        tok.ln, tok.col);
+      return;
+    }
+    define_local(comp, tok, err);
+    if (!rak_is_ok(err)) return;
+    ++arity;
+  }
+  consume(comp, RAK_TOKEN_KIND_RPAREN, err);
+  callable->arity = arity;
+}
+
 static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err)
 {
   next(comp, err);
@@ -356,7 +468,7 @@ static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *of
   if (!rak_is_ok(err)) return;
   if (!match(comp, RAK_TOKEN_KIND_LBRACE))
   {
-    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex.tok);
+    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex->tok);
     return;
   }
   compile_block(comp, chunk, err);
@@ -392,7 +504,7 @@ static inline void compile_if_stmt_cont(Compiler *comp, RakChunk *chunk, uint16_
   }
   if (!match(comp, RAK_TOKEN_KIND_LBRACE))
   {
-    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex.tok);
+    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex->tok);
     return;
   }
   compile_block(comp, chunk, err);
@@ -408,7 +520,7 @@ static inline void compile_loop_stmt(Compiler *comp, RakChunk *chunk, RakError *
   uint16_t off = (uint16_t) chunk->instrs.len;
   if (!match(comp, RAK_TOKEN_KIND_LBRACE))
   {
-    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex.tok);
+    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex->tok);
     return;
   }
   compile_block(comp, chunk, err);
@@ -438,7 +550,7 @@ static inline void compile_while_stmt(Compiler *comp, RakChunk *chunk, RakError 
   if (!rak_is_ok(err)) return;
   if (!match(comp, RAK_TOKEN_KIND_LBRACE))
   {
-    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex.tok);
+    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex->tok);
     return;
   }
   compile_block(comp, chunk, err);
@@ -461,7 +573,7 @@ static inline void compile_do_while_stmt(Compiler *comp, RakChunk *chunk, RakErr
   uint16_t off = (uint16_t) chunk->instrs.len;
   if (!match(comp, RAK_TOKEN_KIND_LBRACE))
   {
-    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex.tok);
+    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex->tok);
     return;
   }
   compile_block(comp, chunk, err);
@@ -485,7 +597,7 @@ static inline void compile_do_while_stmt(Compiler *comp, RakChunk *chunk, RakErr
 
 static inline void compile_break_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
 {
-  RakToken tok = comp->lex.tok;
+  RakToken tok = comp->lex->tok;
   next(comp, err);
   consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
   Loop *loop = comp->loop;
@@ -508,7 +620,7 @@ static inline void compile_break_stmt(Compiler *comp, RakChunk *chunk, RakError 
 
 static inline void compile_continue_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
 {
-  RakToken tok = comp->lex.tok;
+  RakToken tok = comp->lex->tok;
   next(comp, err);
   consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
   Loop *loop = comp->loop;
@@ -561,10 +673,10 @@ static inline void compile_assign_expr(Compiler *comp, RakChunk *chunk, RakError
   next(comp, err);
   if (!match(comp, RAK_TOKEN_KIND_IDENT))
   {
-    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex->tok);
     return;
   }
-  RakToken tok = comp->lex.tok;
+  RakToken tok = comp->lex->tok;
   next(comp, err);
   int idx = resolve_local(comp, tok);
   if (!rak_is_ok(err)) return;
@@ -574,7 +686,6 @@ static inline void compile_assign_expr(Compiler *comp, RakChunk *chunk, RakError
       tok.len, tok.chars, tok.ln, tok.col);
     return;
   }
-  uint8_t _idx = (uint8_t) idx + 1;
   if (match(comp, RAK_TOKEN_KIND_EQ))
   {
     next(comp, err);
@@ -582,7 +693,7 @@ static inline void compile_assign_expr(Compiler *comp, RakChunk *chunk, RakError
     if (!rak_is_ok(err)) return;
     emit_instr(chunk, rak_dup_instr(), err);
     if (!rak_is_ok(err)) return;
-    emit_instr(chunk, rak_store_local_instr(_idx), err);
+    emit_instr(chunk, rak_store_local_instr(idx), err);
     return;
   }
   uint32_t instr = 0;
@@ -590,7 +701,7 @@ static inline void compile_assign_expr(Compiler *comp, RakChunk *chunk, RakError
   if (!rak_is_ok(err)) return;
   if (instr)
   {
-    emit_instr(chunk, rak_load_local_instr(_idx), err);
+    emit_instr(chunk, rak_load_local_instr(idx), err);
     if (!rak_is_ok(err)) return;
     compile_expr(comp, chunk, err);
     if (!rak_is_ok(err)) return;
@@ -598,21 +709,21 @@ static inline void compile_assign_expr(Compiler *comp, RakChunk *chunk, RakError
     if (!rak_is_ok(err)) return;
     emit_instr(chunk, rak_dup_instr(), err);
     if (!rak_is_ok(err)) return;
-    emit_instr(chunk, rak_store_local_instr(_idx), err);
+    emit_instr(chunk, rak_store_local_instr(idx), err);
     return;
   }
-  emit_instr(chunk, rak_fetch_local_instr(_idx), err);
+  emit_instr(chunk, rak_fetch_local_instr(idx), err);
   if (!rak_is_ok(err)) return;
   compile_assign_expr_cont(comp, chunk, err);
   if (!rak_is_ok(err)) return;
   emit_instr(chunk, rak_dup_instr(), err);
   if (!rak_is_ok(err)) return;
-  emit_instr(chunk, rak_store_local_instr(_idx), err);
+  emit_instr(chunk, rak_store_local_instr(idx), err);
 }
 
 static inline void compile_assign_op(Compiler *comp, uint32_t *instr, RakError *err)
 {
-  RakTokenKind kind = comp->lex.tok.kind;
+  RakTokenKind kind = comp->lex->tok.kind;
   if (kind == RAK_TOKEN_KIND_PLUSEQ)
   {
     next(comp, err);
@@ -681,16 +792,16 @@ static inline void compile_assign_expr_cont(Compiler *comp, RakChunk *chunk, Rak
   }
   if (!match(comp, RAK_TOKEN_KIND_DOT))
   {
-    unexpected_token_error(err, comp->lex.tok);
+    unexpected_token_error(err, comp->lex->tok);
     return;
   }
   next(comp, err);
   if (!match(comp, RAK_TOKEN_KIND_IDENT))
   {
-    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex->tok);
     return;
   }
-  RakToken tok = comp->lex.tok;
+  RakToken tok = comp->lex->tok;
   next(comp, err);
   RakString *str = rak_string_new_from_cstr(tok.len, tok.chars, err);
   if (!rak_is_ok(err)) return;
@@ -999,7 +1110,7 @@ static inline void compile_call(Compiler *comp, RakChunk *chunk, bool *ok, RakEr
     if (nargs > UINT8_MAX)
     {
       rak_error_set(err, "too many arguments to call at %d:%d",
-        comp->lex.tok.ln, comp->lex.tok.col);
+        comp->lex->tok.ln, comp->lex->tok.col);
       return;
     }
     emit_instr(chunk, rak_call_instr((uint8_t) nargs), err);
@@ -1043,10 +1154,10 @@ static inline void compile_subscr(Compiler *comp, RakChunk *chunk, bool *ok, Rak
     next(comp, err);
     if (!match(comp, RAK_TOKEN_KIND_IDENT))
     {
-      expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+      expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex->tok);
       return;
     }
-    RakToken tok = comp->lex.tok;
+    RakToken tok = comp->lex->tok;
     next(comp, err);
     RakString *str = rak_string_new_from_cstr(tok.len, tok.chars, err);
     if (!rak_is_ok(err)) return;
@@ -1087,7 +1198,7 @@ static inline void compile_prim_expr(Compiler *comp, RakChunk *chunk, RakError *
   }
   if (match(comp, RAK_TOKEN_KIND_NUMBER))
   {
-    RakToken tok = comp->lex.tok;
+    RakToken tok = comp->lex->tok;
     next(comp, err);
     RakValue val = rak_number_value_from_cstr(tok.len, tok.chars, err);
     if (!rak_is_ok(err)) return;
@@ -1106,7 +1217,7 @@ static inline void compile_prim_expr(Compiler *comp, RakChunk *chunk, RakError *
   }
   if (match(comp, RAK_TOKEN_KIND_STRING))
   {
-    RakToken tok = comp->lex.tok;
+    RakToken tok = comp->lex->tok;
     next(comp, err);
     RakString *str = rak_string_new_from_cstr(tok.len, tok.chars, err);
     if (!rak_is_ok(err)) return;
@@ -1122,12 +1233,12 @@ static inline void compile_prim_expr(Compiler *comp, RakChunk *chunk, RakError *
   }
   if (match(comp, RAK_TOKEN_KIND_IDENT))
   {
-    RakToken tok = comp->lex.tok;
+    RakToken tok = comp->lex->tok;
     next(comp, err);
     int idx = resolve_local(comp, tok);
     if (idx != -1)
     {
-      emit_instr(chunk, rak_load_local_instr((uint8_t) idx + 1), err);
+      emit_instr(chunk, rak_load_local_instr((uint8_t) idx), err);
       return;
     }
     idx = rak_builtin_resolve_global(tok.len, tok.chars);
@@ -1160,7 +1271,7 @@ static inline void compile_prim_expr(Compiler *comp, RakChunk *chunk, RakError *
     compile_group(comp, chunk, err);
     return;
   }
-  unexpected_token_error(err, comp->lex.tok);
+  unexpected_token_error(err, comp->lex->tok);
 }
 
 static inline void compile_array(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -1179,7 +1290,7 @@ static inline void compile_array(Compiler *comp, RakChunk *chunk, RakError *err)
   if (len > UINT8_MAX)
   {
     rak_error_set(err, "array length too long at %d:%d",
-      comp->lex.tok.ln, comp->lex.tok.col);
+      comp->lex->tok.ln, comp->lex->tok.col);
     return;
   }
   emit_instr(chunk, rak_new_array_instr((uint8_t) len), err);
@@ -1208,7 +1319,7 @@ static inline void compile_record(Compiler *comp, RakChunk *chunk, RakError *err
   if (len > UINT8_MAX)
   {
     rak_error_set(err, "record length too long at %d:%d",
-      comp->lex.tok.ln, comp->lex.tok.col);
+      comp->lex->tok.ln, comp->lex->tok.col);
     return;
   }
   emit_instr(chunk, rak_new_record_instr((uint8_t) len), err);
@@ -1218,10 +1329,10 @@ static inline void compile_field(Compiler *comp, RakChunk *chunk, RakError *err)
 {
   if (!match(comp, RAK_TOKEN_KIND_IDENT))
   {
-    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex.tok);
+    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex->tok);
     return;
   }
-  RakToken tok = comp->lex.tok;
+  RakToken tok = comp->lex->tok;
   next(comp, err);
   consume(comp, RAK_TOKEN_KIND_COLON, err);
   RakString *name = rak_string_new_from_cstr(tok.len, tok.chars, err);
@@ -1418,20 +1529,30 @@ static inline void expected_token_error(RakError *err, RakTokenKind kind, RakTok
 
 RakFunction *rak_compile(char *source, RakError *err)
 {
+  RakLexer lex;
+  rak_lexer_init(&lex, source, err);
+  if (!rak_is_ok(err)) return NULL;
+  RakString *fnName = rak_string_new_from_cstr(-1, "main", err);
+  if (!rak_is_ok(err)) return NULL;
   Compiler comp;
-  compiler_init(&comp);
-  rak_lexer_init(&comp.lex, source, err);
-  if (!rak_is_ok(err)) return NULL;
-  RakString *name = rak_string_new_from_cstr(-1, "main", err);
-  if (!rak_is_ok(err)) return NULL;
-  RakFunction *fn = rak_function_new(name, 0, err);
+  compiler_init(&comp, NULL, &lex, fnName, 0, err);
   if (!rak_is_ok(err))
   {
-    rak_string_free(name);
+    rak_string_free(fnName);
     return NULL;
   }
-  compile_chunk(&comp, &fn->chunk, err);
-  if (rak_is_ok(err)) return fn;
-  rak_function_free(fn);
+  RakToken tok = {
+    .len = rak_string_len(fnName),
+    .chars = rak_string_chars(fnName)
+  };
+  define_local(&comp, tok, err);
+  if (!rak_is_ok(err))
+  {
+    compiler_deinit(&comp);
+    return NULL;
+  }
+  compile_chunk(&comp, &comp.fn->chunk, err);
+  if (rak_is_ok(err)) return comp.fn;
+  compiler_deinit(&comp);
   return NULL;
 }
