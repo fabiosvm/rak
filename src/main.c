@@ -89,6 +89,8 @@ static void read_from_file(RakString *source, const char *filename, RakError *er
     return;
   }
   source->slice.len = len;
+  rak_string_inplace_append_cstr(source, 1, "\0", err);
+  check_error(err);
   fclose(fp);
 }
 
@@ -96,7 +98,7 @@ static FILE *open_file(const char *filename, RakError *err)
 {
   FILE *fp = NULL;
 #ifdef _WIN32
-  fopen_s(&fp, filename, "r");
+  fopen_s(&fp, filename, "rb");
 #else
   fp = fopen(filename, "r");
 #endif
