@@ -26,7 +26,7 @@ The following is an example of a Fibonacci function:
 ```rs
 fn fib(n) {
   if n < 2 {
-    reutnr n;
+    return n;
   }
   return fib(n - 1) + fib(n - 2);
 }
