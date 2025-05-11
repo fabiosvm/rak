@@ -142,7 +142,7 @@ int main(int argc, const char *argv[])
   check_error(&err);
   if (has_opt(argc, argv, "-c"))
   {
-    rak_dump_chunk(&fn->chunk);
+    rak_dump_function(fn);
     rak_string_deinit(&source);
     return EXIT_SUCCESS;
   }

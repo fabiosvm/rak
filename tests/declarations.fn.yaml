@@ -1,0 +1,51 @@
+- test: function declaration - empty
+  source: |
+    fn f() {}
+    let a = f();
+    println(a); 
+  out: |
+    nil
+
+- test: function declaration - return value
+  source: |
+    fn f() {
+      return 10;
+    }
+    let a = f();
+    println(a); 
+  out: |
+    10
+
+- test: function declaration - with arguments
+  source: |
+    fn f(a, b) {
+      return a + b;
+    }
+    let a = f(10, 20);
+    println(a); 
+  out: |
+    30
+
+- test: function declaration - with arguments and local variable
+  source: |
+    fn f(a, b) {
+      let c = 30;
+      return a + b + c;
+    }
+    let a = f(10, 20);
+    println(a); 
+  out: |
+    60
+
+- test: function declaration - recursion
+  source: |
+    fn f(n) {
+      if n == 0 {
+        return 1;
+      }
+      return n * f(n - 1);
+    }
+    let a = f(5);
+    println(a);
+  out: |
+    120

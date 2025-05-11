@@ -11,12 +11,19 @@
 #include "rak/dump.h"
 #include <stdio.h>
 
-void rak_dump_chunk(RakChunk *chunk)
+void rak_dump_function(RakFunction *fn)
 {
-  printf("%d constant(s)\n", chunk->consts.len);
-  int len = chunk->instrs.len;
-  printf("%d instruction(s)\n", len);
-  for (int i = 0; i < len; ++i)
+  RakChunk *chunk = &fn->chunk;
+  RakString *name = fn->callable.name;
+  if (name)
+    printf("; %.*s\n", rak_string_len(name), rak_string_chars(name));
+  else
+    printf("; <anonymous>\n");
+  int n = chunk->instrs.len;
+  int m = fn->nested.len;
+  printf("; %d parameter(s), %d constant(s), %d instruction(s), %d function(s)\n",
+    fn->callable.arity, chunk->consts.len, n, m);
+  for (int i = 0; i < n; ++i)
   {
     uint32_t instr = rak_slice_get(&chunk->instrs, i);
     RakOpcode op = rak_instr_opcode(instr);
@@ -81,4 +88,9 @@ void rak_dump_chunk(RakChunk *chunk)
     }
   }
   printf("\n");
+  for (int i = 0; i < m; ++i)
+  {
+    RakFunction *nested = rak_slice_get(&fn->nested, i);
+    rak_dump_function(nested);
+  }
 }

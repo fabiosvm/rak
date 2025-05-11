@@ -3,6 +3,7 @@ chunk             ::= stmt* EOF
 
 stmt              ::= block
                     | let_decl
+                    | fn_decl
                     | if_stmt
                     | loop_stmt
                     | while_stmt
@@ -21,6 +22,10 @@ destruct_elements ::= "[" ident_list "]" "=" expr
 ident_list        ::= IDENT ( "," IDENT )*
 
 destruct_fields   ::= "{" ident_list "}" "=" expr
+
+fn_decl           ::= "fn" IDENT params block
+
+params            ::= "(" ( IDENT ( "," IDENT )* )? ")"
 
 if_stmt           ::= "if" let_decl? expr block if_stmt_cont
 
