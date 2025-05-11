@@ -68,6 +68,7 @@
 #define rak_not_instr()              rak_instr_fmt0(RAK_OP_NOT)
 #define rak_neg_instr()              rak_instr_fmt0(RAK_OP_NEG)
 #define rak_call_instr(n)            rak_instr_fmt1(RAK_OP_CALL, (n))
+#define rak_tail_call_instr(n)       rak_instr_fmt1(RAK_OP_TAIL_CALL, (n))
 #define rak_return_instr()           rak_instr_fmt0(RAK_OP_RETURN)
 
 typedef enum
@@ -114,6 +115,7 @@ typedef enum
   RAK_OP_NOT,
   RAK_OP_NEG,
   RAK_OP_CALL,
+  RAK_OP_TAIL_CALL,
   RAK_OP_RETURN
 } RakOpcode;
 

@@ -121,6 +121,7 @@ static inline void define_local(Compiler *comp, RakToken tok, RakError *err);
 static inline void append_local(Compiler *comp, RakToken tok);
 static inline int resolve_local(Compiler *comp, RakToken tok);
 static inline bool ident_equals(RakToken tok1, RakToken tok2);
+static inline void emit_return(RakChunk *chunk, RakError *err);
 static inline void unexpected_token_error(RakError *err, RakToken tok);
 static inline void expected_token_error(RakError *err, RakTokenKind kind, RakToken tok);
 
@@ -652,7 +653,7 @@ static inline void compile_return_stmt(Compiler *comp, RakChunk *chunk, RakError
   compile_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
   consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
-  emit_instr(chunk, rak_return_instr(), err);
+  emit_return(chunk, err);
 }
 
 static inline void compile_expr_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -1547,6 +1548,21 @@ static inline bool ident_equals(RakToken tok1, RakToken tok2)
   int len = tok1.len;
   if (len != tok2.len) return false;
   return !memcmp(tok1.chars, tok2.chars, len);
+}
+
+static inline void emit_return(RakChunk *chunk, RakError *err)
+{
+  int off = chunk->instrs.len - 1;
+  uint32_t instr = rak_slice_get(&chunk->instrs, off);
+  RakOpcode op = rak_instr_opcode(instr);
+  if (op == RAK_OP_CALL)
+  {
+    uint8_t nargs = rak_instr_a(instr);
+    instr = rak_tail_call_instr(nargs);
+    rak_slice_set(&chunk->instrs, off, instr);
+    return;
+  }
+  emit_instr(chunk, rak_return_instr(), err);
 }
 
 static inline void unexpected_token_error(RakError *err, RakToken tok)

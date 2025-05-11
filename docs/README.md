@@ -619,6 +619,36 @@ let add = adder();
 println(add(5, 2)); // 7
 ```
 
+Recursion is also possible in Rak. A closure can call itself.
+
+```rs
+fn factorial(n) {
+  if n == 0 {
+    return 1;
+  }
+  return n * factorial(n - 1);
+}
+println(factorial(5)); // 120
+```
+
+Be careful with recursion, as it can lead to stack overflow if the recursion depth is too high.
+
+```rs
+println(factorial(130)); // ERROR: too many nested calls
+```
+
+To avoid this, maybe you can use a tail-recursive approach.
+
+```rs
+fn factorial(n, acc) {
+  if n == 0 {
+    return acc;
+  }
+  return factorial(n - 1, n * acc);
+}
+println(factorial(130, 1)); // 6.46686e+219
+```
+
 ## Built-in functions
 
 > (Documentation for this section is coming soon.)

@@ -71,6 +71,7 @@ void rak_dump_function(RakFunction *fn)
     case RAK_OP_UNPACK_ELEMENTS:
     case RAK_OP_UNPACK_FIELDS:
     case RAK_OP_CALL:
+    case RAK_OP_TAIL_CALL:
       {
         uint8_t a = rak_instr_a(instr);
         printf("%-15s %-5d\n", rak_opcode_to_cstr(op), a);

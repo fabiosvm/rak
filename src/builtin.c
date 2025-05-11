@@ -53,27 +53,27 @@ static const char *globals[] = {
 static inline void push_builtin_function(RakVM *vm, const char *name, int arity,
   RakNativeFunctionCall call, RakError *err);
 
-static void type_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void is_nil_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void is_bool_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void is_number_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void is_integer_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void is_string_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void is_array_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void is_range_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void is_record_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void is_closure_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void is_falsy_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void is_object_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void ptr_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void ref_count_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void make_array_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void append_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void cap_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void len_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void is_empty_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void print_native_call(RakVM *vm, RakValue *slots, RakError *err);
-static void println_native_call(RakVM *vm, RakValue *slots, RakError *err);
+static void type_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void is_nil_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void is_bool_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void is_number_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void is_integer_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void is_string_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void is_array_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void is_range_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void is_record_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void is_closure_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void is_falsy_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void is_object_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void ptr_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void ref_count_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void make_array_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void append_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void cap_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void len_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void is_empty_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void print_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void println_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
 
 static inline void push_builtin_function(RakVM *vm, const char *name, int arity,
   RakNativeFunctionCall call, RakError *err)
@@ -97,122 +97,122 @@ static inline void push_builtin_function(RakVM *vm, const char *name, int arity,
   rak_closure_free(cl);
 }
 
-static void type_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void type_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   rak_vm_push_number(vm, val.type, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void is_nil_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void is_nil_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   rak_vm_push_bool(vm, (bool) rak_is_nil(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void is_bool_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void is_bool_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   rak_vm_push_bool(vm, (bool) rak_is_bool(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void is_number_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void is_number_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   rak_vm_push_bool(vm, (bool) rak_is_number(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void is_integer_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void is_integer_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   bool data = (bool) (rak_is_number(val) && rak_is_integer(val));
   rak_vm_push_bool(vm, data, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void is_string_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void is_string_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   rak_vm_push_bool(vm, (bool) rak_is_string(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void is_array_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void is_array_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   rak_vm_push_bool(vm, (bool) rak_is_array(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void is_range_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void is_range_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   rak_vm_push_bool(vm, (bool) rak_is_range(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void is_record_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void is_record_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   rak_vm_push_bool(vm, (bool) rak_is_record(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void is_closure_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void is_closure_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   rak_vm_push_bool(vm, (bool) rak_is_closure(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void is_falsy_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void is_falsy_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   rak_vm_push_bool(vm, (bool) rak_is_falsy(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void is_object_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void is_object_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   rak_vm_push_bool(vm, (bool) rak_is_object(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void ptr_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void ptr_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   void *ptr = rak_is_object(val) ? val.opaque.ptr : NULL;
   rak_vm_push_number(vm, (double) (uintptr_t) ptr, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void ref_count_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void ref_count_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   int refCount = rak_is_object(val) ? rak_as_object(val)->refCount : -1;
   rak_vm_push_number(vm, refCount, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void make_array_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void make_array_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val1 = slots[1];
   RakValue val2 = slots[2];
@@ -222,7 +222,7 @@ static void make_array_native_call(RakVM *vm, RakValue *slots, RakError *err)
     if (!rak_is_ok(err)) return;
     rak_vm_push_object(vm, rak_array_value(arr), err);    
     if (!rak_is_ok(err)) return;
-    rak_vm_return(vm, slots);
+    rak_vm_return(vm, cl, slots);
     return;
   }
   if (!rak_is_number(val2) || !rak_is_integer(val2))
@@ -243,7 +243,7 @@ static void make_array_native_call(RakVM *vm, RakValue *slots, RakError *err)
     arr->slice.len = len;
     rak_vm_push_object(vm, rak_array_value(arr), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(vm, slots);
+    rak_vm_return(vm, cl, slots);
     return;
   }
   if (!rak_is_number(val3) || !rak_is_integer(val3))
@@ -261,10 +261,10 @@ static void make_array_native_call(RakVM *vm, RakValue *slots, RakError *err)
   arr->slice.len = len;
   rak_vm_push_object(vm, rak_array_value(arr), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void append_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void append_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   if (!rak_is_array(val))
@@ -279,10 +279,10 @@ static void append_native_call(RakVM *vm, RakValue *slots, RakError *err)
   if (!rak_is_ok(err)) return;
   rak_vm_push_object(vm, rak_array_value(_arr), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void cap_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void cap_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   if (rak_is_string(val))
@@ -290,7 +290,7 @@ static void cap_native_call(RakVM *vm, RakValue *slots, RakError *err)
     RakString *str = rak_as_string(val);
     rak_vm_push_number(vm, rak_string_cap(str), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(vm, slots);
+    rak_vm_return(vm, cl, slots);
     return;
   }
   if (rak_is_array(val))
@@ -298,7 +298,7 @@ static void cap_native_call(RakVM *vm, RakValue *slots, RakError *err)
     RakArray *arr = rak_as_array(val);
     rak_vm_push_number(vm, rak_array_cap(arr), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(vm, slots);
+    rak_vm_return(vm, cl, slots);
     return;
   }
   if (rak_is_record(val))
@@ -306,13 +306,13 @@ static void cap_native_call(RakVM *vm, RakValue *slots, RakError *err)
     RakRecord *rec = rak_as_record(val);
     rak_vm_push_number(vm, rak_record_cap(rec), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(vm, slots);
+    rak_vm_return(vm, cl, slots);
     return;
   }
   rak_error_set(err, "%s does not have a capacity", rak_type_to_cstr(val.type));
 }
 
-static void len_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void len_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   if (rak_is_string(val))
@@ -320,7 +320,7 @@ static void len_native_call(RakVM *vm, RakValue *slots, RakError *err)
     RakString *str = rak_as_string(val);
     rak_vm_push_number(vm, rak_string_len(str), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(vm, slots);
+    rak_vm_return(vm, cl, slots);
     return;
   }
   if (rak_is_array(val))
@@ -328,7 +328,7 @@ static void len_native_call(RakVM *vm, RakValue *slots, RakError *err)
     RakArray *arr = rak_as_array(val);
     rak_vm_push_number(vm, rak_array_len(arr), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(vm, slots);
+    rak_vm_return(vm, cl, slots);
     return;
   }
   if (rak_is_range(val))
@@ -336,7 +336,7 @@ static void len_native_call(RakVM *vm, RakValue *slots, RakError *err)
     RakRange *rng = rak_as_range(val);
     rak_vm_push_number(vm, rak_range_len(rng), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(vm, slots);
+    rak_vm_return(vm, cl, slots);
     return;
   }
   if (rak_is_record(val))
@@ -344,13 +344,13 @@ static void len_native_call(RakVM *vm, RakValue *slots, RakError *err)
     RakRecord *rec = rak_as_record(val);
     rak_vm_push_number(vm, rak_record_len(rec), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(vm, slots);
+    rak_vm_return(vm, cl, slots);
     return;
   }
   rak_error_set(err, "%s does not have a length", rak_type_to_cstr(val.type));
 }
 
-static void is_empty_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void is_empty_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   if (rak_is_string(val))
@@ -358,7 +358,7 @@ static void is_empty_native_call(RakVM *vm, RakValue *slots, RakError *err)
     RakString *str = rak_as_string(val);
     rak_vm_push_bool(vm, rak_string_is_empty(str), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(vm, slots);
+    rak_vm_return(vm, cl, slots);
     return;
   }
   if (rak_is_array(val))
@@ -366,7 +366,7 @@ static void is_empty_native_call(RakVM *vm, RakValue *slots, RakError *err)
     RakArray *arr = rak_as_array(val);
     rak_vm_push_bool(vm, rak_array_is_empty(arr), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(vm, slots);
+    rak_vm_return(vm, cl, slots);
     return;
   }
   if (rak_is_record(val))
@@ -374,29 +374,29 @@ static void is_empty_native_call(RakVM *vm, RakValue *slots, RakError *err)
     RakRecord *rec = rak_as_record(val);
     rak_vm_push_bool(vm, rak_record_is_empty(rec), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(vm, slots);
+    rak_vm_return(vm, cl, slots);
     return;
   }
   rak_error_set(err, "%s does not have a length", rak_type_to_cstr(val.type));
 }
 
-static void print_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void print_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   rak_value_print(val);
   rak_vm_push_nil(vm, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
-static void println_native_call(RakVM *vm, RakValue *slots, RakError *err)
+static void println_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
 {
   RakValue val = slots[1];
   rak_value_print(val);
   printf("\n");
   rak_vm_push_nil(vm, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
 void rak_builtin_load_globals(RakVM *vm, RakError *err)

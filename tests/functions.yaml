@@ -49,6 +49,18 @@
     println(a);
   out: |
     120
+- test: function declaration - tail recursion
+  source: |
+    fn f(n, a) {
+      if n == 0 {
+        return a;
+      }
+      return f(n - 1, a + 1);
+    }
+    let a = f(127, 1);
+    println(a);
+  out: |
+    128
 
 - test: anonymous function - empty
   source: |

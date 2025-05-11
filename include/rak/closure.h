@@ -30,7 +30,9 @@ typedef struct RakFunction
 
 struct RakVM;
 
-typedef void (*RakNativeFunctionCall)(struct RakVM *, RakValue *, RakError *);
+struct RakClosure;
+
+typedef void (*RakNativeFunctionCall)(struct RakVM *, struct RakClosure *, RakValue *, RakError *);
 
 typedef struct
 {
@@ -44,7 +46,7 @@ typedef enum
   RAK_CALLABLE_TYPE_NATIVE_FUNCTION
 } RakCallableType;
 
-typedef struct
+typedef struct RakClosure
 {
   RakObject        obj;
   RakCallableType  type;

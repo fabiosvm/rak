@@ -78,7 +78,8 @@ static inline void rak_vm_mod(RakVM *vm, RakError *err);
 static inline void rak_vm_not(RakVM *vm);
 static inline void rak_vm_neg(RakVM *vm, RakError *err);
 static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err);
-static inline void rak_vm_return(RakVM *vm, RakValue *slots);
+static inline void rak_vm_tail_call(RakVM *vm, RakValue *slots, uint8_t nargs, RakError *err);
+static inline void rak_vm_return(RakVM *vm, RakClosure *cl, RakValue *slots);
 
 void rak_vm_init(RakVM *vm, int vstkSize, int cstkSize, RakError *err);
 void rak_vm_deinit(RakVM *vm);
@@ -993,9 +994,50 @@ static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err)
   rak_stack_push(&vm->cstk, frame);
 }
 
-static inline void rak_vm_return(RakVM *vm, RakValue *slots)
+static inline void rak_vm_tail_call(RakVM *vm, RakValue *slots, uint8_t nargs, RakError *err)
 {
-  RakClosure *cl = rak_as_closure(slots[0]);
+  RakValue *_slots = &rak_stack_get(&vm->vstk, nargs);
+  RakValue val = _slots[0];
+  if (!rak_is_closure(val))
+  {
+    rak_error_set(err, "cannot call non-closure value");
+    return;
+  }
+  RakClosure *cl = rak_as_closure(val);
+  int arity = cl->callable->arity;
+  while (nargs > arity)
+  {
+    rak_vm_pop(vm);
+    --nargs;
+  }
+  while (nargs < arity)
+  {
+    rak_vm_push_nil(vm, err);
+    if (!rak_is_ok(err)) return;
+    ++nargs;
+  }
+  rak_closure_release(rak_as_closure(slots[0]));
+  slots[0] = _slots[0];
+  for (int i = 1; i <= arity; ++i)
+  {
+    RakValue _val = _slots[i];
+    rak_value_release(slots[i]);
+    slots[i] = _val;
+  }
+  vm->vstk.top = &slots[arity];
+  uint32_t *ip = NULL;
+  if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
+  {
+    RakFunction *fn = (RakFunction *) cl->callable;
+    ip = fn->chunk.instrs.data;
+  }
+  RakCallFrame *frame = &rak_stack_get(&vm->cstk, 0);
+  frame->cl = cl;
+  frame->ip = ip;
+}
+
+static inline void rak_vm_return(RakVM *vm, RakClosure *cl, RakValue *slots)
+{
   slots[0] = rak_vm_get(vm, 0);
   rak_closure_release(cl);
   rak_stack_pop(&vm->vstk);

@@ -57,6 +57,7 @@ static void do_mod(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, Rak
 static void do_not(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_neg(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_call(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_tail_call(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_return(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 
 static InstrHandler dispatchTable[] = {
@@ -102,6 +103,7 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_NOT]             = do_not,
   [RAK_OP_NEG]             = do_neg,
   [RAK_OP_CALL]            = do_call,
+  [RAK_OP_TAIL_CALL]       = do_tail_call,
   [RAK_OP_RETURN]          = do_return
 };
 
@@ -436,12 +438,18 @@ static void do_call(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, Ra
   rak_vm_call(vm, n, err);
 }
 
-static void do_return(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+static void do_tail_call(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   (void) cl;
+  uint8_t n = rak_instr_a(*ip);
+  rak_vm_tail_call(vm, slots, n, err);
+}
+
+static void do_return(RakVM *vm, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
   (void) ip;
   (void) err;
-  rak_vm_return(vm, slots);
+  rak_vm_return(vm, cl, slots);
 }
 
 void rak_vm_init(RakVM *vm, int vstkSize, int cstkSize, RakError *err)
@@ -490,7 +498,7 @@ void rak_vm_resume(RakVM *vm, RakError *err)
       continue;
     }
     RakNativeFunction *native = (RakNativeFunction *) cl->callable;
-    native->call(vm, slots, err);
+    native->call(vm, cl, slots, err);
     if (!rak_is_ok(err)) return;
   }
 }
