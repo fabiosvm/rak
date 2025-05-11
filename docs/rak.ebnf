@@ -84,6 +84,7 @@ subscr            ::= "[" expr "]" | "." IDENT
 prim_expr         ::= "nil" | "false" | "true" | NUMBER | STRING | IDENT
                     | array
                     | record
+                    | fn
                     | if_expr
                     | group
 
@@ -92,6 +93,8 @@ array             ::= "[" expr_list? "]"
 record            ::= "{" ( field ( "," field )* )? "}"
 
 field             ::= IDENT ":" expr
+
+fn                ::= "fn" params block
 
 if_expr           ::= "if" expr block_expr if_expr_cont
 

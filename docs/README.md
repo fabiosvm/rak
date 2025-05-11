@@ -591,13 +591,11 @@ println(add(1, 2)); // 3
 Like other values, closures can be assigned to variables.
 
 ```rs
-let sub = fn(x, y) {
+let sub = fn (x, y) {
   return x - y;
 };
 println(sub(5, 2)); // 3
 ```
-
-> **Note:** Support for anonymous closures has not been implemented yet.
 
 You can also pass closures as arguments to other closures.
 
@@ -612,13 +610,13 @@ println(apply(sub, 7, 3)); // 4
 Returning a closure from another closure.
 
 ```rs
-fn make_adder(x) {
-  return fn(y) {
+fn adder() {
+  return fn (x, y) {
     return x + y;
   };
 }
-let add5 = make_adder(5);
-println(add5(2)); // 7
+let add = adder();
+println(add(5, 2)); // 7
 ```
 
 ## Built-in functions

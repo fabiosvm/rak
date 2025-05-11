@@ -49,3 +49,44 @@
     println(a);
   out: |
     120
+
+- test: anonymous function - empty
+  source: |
+    println(fn () {} ());
+  out: |
+    nil
+
+- test: anonymous function - let statement
+  source: |
+    let f = fn (a, b) {
+      return a + b;
+    };
+    let a = f(10, 20);
+    println(a); 
+  out: |
+    30
+
+- test: anonymous function - passing as argument
+  source: |
+    let add = fn (a, b) {
+      return a + b;
+    };
+    let apply = fn (f, a, b) {
+      return f(a, b);
+    };
+    let a = apply(add, 10, 20);
+    println(a);
+  out: |
+    30
+
+- test: anonymous function - returning a function
+  source: |
+    let adder = fn () {
+      return fn (x, y) {
+        return x + y;
+      };
+    };
+    let add = adder();
+    println(add(10, 20));
+  out: |
+    30
