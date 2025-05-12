@@ -1,0 +1,23 @@
+
+//
+// pi.rak
+//
+
+fn pi() {
+  let n = 1000000;
+  let d = 1;
+  let sum = 0;
+  let i = 0;
+  while i < n {
+    if i % 2 == 0 {
+      &sum += 4 / d;
+    } else {
+      &sum -= 4 / d;
+    }
+    &d += 2;
+    &i += 1;
+  }
+  return sum;
+}
+
+println(pi());

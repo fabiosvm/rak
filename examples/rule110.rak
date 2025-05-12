@@ -1,0 +1,64 @@
+
+//
+// rule110.rak
+//
+
+let size = 100;
+let prev = [];
+let i;
+
+&i = 0;
+while i < size - 1 {
+  &prev = append(prev, false);
+  &i += 1;
+}
+&prev = append(prev, true);
+
+fn calc(p, i) {
+  let prev = p[i - 1];
+  let curr = p[i];
+  let next = p[i + 1];
+  if (prev && curr && next) {
+    return false;
+  }
+  if (prev && curr && !next) {
+    return true;
+  }
+  if (prev && !curr && next) {
+    return true;
+  }
+  if (prev && !curr && !next) {
+    return false;
+  }
+  if (!prev && curr && next) {
+    return true;
+  }
+  if (!prev && curr && !next) {
+    return true;
+  }
+  if (!prev && !curr && next) {
+    return true;
+  }
+  return false;
+}
+
+&i = 0;
+while i < size {
+  let line = [false];
+  let j;
+  &j = 1;
+  while j < size - 1 {
+    &line = append(line, calc(prev, j));
+    &j += 1;
+  }
+  &line = append(line, false);
+  let output = "";
+  &j = 0;
+  while j < size {
+    &output += if line[j] { "*" } else { " " };
+    &j += 1;
+  }
+  println(output);
+  &prev = line;
+  &i += 1;
+}

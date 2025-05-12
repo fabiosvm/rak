@@ -1,0 +1,29 @@
+
+//
+// quick_sort.rak
+//
+
+fn sort(arr) {
+  let n = len(arr);
+  if n <= 1 {
+    return arr;
+  }
+  let pivot = arr[0];
+  let left = []; 
+  let right = [];
+  let i = 1;
+  while i < n {
+    if arr[i] < pivot {
+      &left = append(left, arr[i]);
+    } else {
+      &right = append(right, arr[i]);
+    }
+    &i += 1;
+  }
+  &arr = sort(left);
+  &arr = append(arr, pivot);
+  &arr += sort(right);
+  return arr;
+}
+
+println(sort([5, 2, 7, 3, 0, 1, 4, 6]));

@@ -1,0 +1,22 @@
+
+//
+// 100doors.rak
+//
+
+let square = 1;
+let incr = 3;
+
+println("The open doors are: ");
+
+let door = 1;
+while door <= 100 {
+  if door == square {
+    print(door);
+    print(" ");
+    &square += incr;
+    &incr += 2;
+  }
+  &door += 1;
+}
+
+println("");

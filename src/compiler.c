@@ -285,7 +285,8 @@ static inline void compile_destruct_elements(Compiler *comp, RakChunk *chunk, Ra
   consume(comp, RAK_TOKEN_KIND_EQ, err);
   compile_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  for (int i = 0; i < symbols.len; ++i)
+  int len = symbols.len;
+  for (int i = 0; i < len; ++i)
   {
     Symbol sym = rak_slice_get(&symbols, i);
     define_local(comp, sym.tok, err);
@@ -293,7 +294,7 @@ static inline void compile_destruct_elements(Compiler *comp, RakChunk *chunk, Ra
     emit_instr(chunk, rak_push_int_instr(sym.idx), err);
     if (!rak_is_ok(err)) return;
   }
-  emit_instr(chunk, rak_unpack_elements_instr((uint8_t) symbols.len), err);
+  emit_instr(chunk, rak_unpack_elements_instr((uint8_t) len), err);
 }
 
 static inline void compile_ident_list(Compiler *comp, SymbolSlice *symbols, RakError *err)
@@ -345,7 +346,8 @@ static inline void compile_destruct_fields(Compiler *comp, RakChunk *chunk, RakE
   consume(comp, RAK_TOKEN_KIND_EQ, err);
   compile_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  for (int i = 0; i < symbols.len; ++i)
+  int len = symbols.len;
+  for (int i = 0; i < len; ++i)
   {
     RakToken tok = rak_slice_get(&symbols, i).tok;
     define_local(comp, tok, err);
@@ -362,7 +364,7 @@ static inline void compile_destruct_fields(Compiler *comp, RakChunk *chunk, RakE
     emit_instr(chunk, rak_load_const_instr(idx), err);
     if (!rak_is_ok(err)) return;
   }
-  emit_instr(chunk, rak_unpack_fields_instr((uint8_t) symbols.len), err);
+  emit_instr(chunk, rak_unpack_fields_instr((uint8_t) len), err);
 }
 
 static inline void compile_fn_decl(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -660,7 +662,12 @@ static inline void compile_expr_stmt(Compiler *comp, RakChunk *chunk, RakError *
 {
   compile_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
+  if (!match(comp, RAK_TOKEN_KIND_SEMICOLON))
+  {
+    unexpected_token_error(err, comp->lex->tok);
+    return;
+  }
+  next(comp, err);
   emit_instr(chunk, rak_pop_instr(), err);
 }
 
