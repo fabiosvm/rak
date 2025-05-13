@@ -3,3 +3,4 @@
 .trash/
 .vscode/
 build/
+coverage/
