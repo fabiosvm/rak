@@ -1,5 +1,5 @@
 
-[![Ubuntu CI](https://github.com/fabiosvm/rak/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/fabiosvm/rak/actions/workflows/ubuntu.yml) [![macOS CI](https://github.com/fabiosvm/rak/actions/workflows/macos.yml/badge.svg)](https://github.com/fabiosvm/rak/actions/workflows/macos.yml) [![Windows CI](https://github.com/fabiosvm/rak/actions/workflows/windows.yml/badge.svg)](https://github.com/fabiosvm/rak/actions/workflows/windows.yml)
+[![Ubuntu CI](https://github.com/fabiosvm/rak/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/fabiosvm/rak/actions/workflows/ubuntu.yml) [![macOS CI](https://github.com/fabiosvm/rak/actions/workflows/macos.yml/badge.svg)](https://github.com/fabiosvm/rak/actions/workflows/macos.yml) [![Windows CI](https://github.com/fabiosvm/rak/actions/workflows/windows.yml/badge.svg)](https://github.com/fabiosvm/rak/actions/workflows/windows.yml) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d85735ffbdd44a7797df2160bed7621d)](https://app.codacy.com/gh/fabiosvm/rak/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
 # The Rak Programming Language
 

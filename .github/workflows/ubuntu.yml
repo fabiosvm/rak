@@ -14,8 +14,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Building
-      run: ${{ github.workspace }}/build.sh
+    - name: Building for coverage
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="--coverage"
+        cmake --build build
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -32,3 +34,16 @@ jobs:
 
     - name: Running tests
       run: ${{ github.workspace }}/test.sh
+
+    - name: Install lcov for coverage
+      run: sudo apt-get install lcov -y
+
+    - name: Generating coverage report
+      run: |
+        lcov --capture --directory build --output-file lcov.info
+
+    - name: Uploading coverage report
+      env:
+        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+      run: |
+        bash <(curl -Ls https://coverage.codacy.com/get.sh)
