@@ -651,4 +651,29 @@ println(factorial(130, 1)); // 6.46686e+219
 
 ## Built-in functions
 
-> (Documentation for this section is coming soon.)
+Rak provides a small set of built-in functions that are available in all scopes.
+
+| Function | Description |
+|---|---|
+| `type` | Returns a number representing the type of the value. |
+| `is_nil` | Returns `true` if the value is `Nil`. |
+| `is_bool` | Returns `true` if the value is a `Bool`. |
+| `is_number` | Returns `true` if the value is a `Number`. |
+| `is_integer` | Returns `true` if the value is a `Number` and is an integer. |
+| `is_string` | Returns `true` if the value is a `String`. |
+| `is_array` | Returns `true` if the value is an `Array`. |
+| `is_range` | Returns `true` if the value is a `Range`. |
+| `is_record` | Returns `true` if the value is a `Record`. |
+| `is_closure` | Returns `true` if the value is a `Closure`. |
+| `ptr` | Returns the memory address if value is an object. |
+| `ref_count` | Returns the reference count if value is an object. |
+| `make_array` | Creates a new array. |
+| `append` | Returns a new array with the value appended. |
+| `cap` | Returns the capacity of a compound value. |
+| `len` | Returns the length of a compound value. |
+| `is_empty` | Returns `true` if the compound value is empty. |
+| `print` | Prints the value to the console. |
+| `println` | Prints the value to the console and adds a newline. |
+| `panic` | Raises a panic with the given message. |
+
+> (Details about the built-in functions will be added later.)

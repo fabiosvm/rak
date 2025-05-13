@@ -47,7 +47,8 @@ static const char *globals[] = {
   "len",
   "is_empty",
   "print",
-  "println"
+  "println",
+  "panic"
 };
 
 static inline void push_builtin_function(RakVM *vm, const char *name, int arity,
@@ -74,6 +75,7 @@ static void len_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError
 static void is_empty_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
 static void print_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
 static void println_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
+static void panic_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err);
 
 static inline void push_builtin_function(RakVM *vm, const char *name, int arity,
   RakNativeFunctionCall call, RakError *err)
@@ -399,6 +401,20 @@ static void println_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakE
   rak_vm_return(vm, cl, slots);
 }
 
+static void panic_native_call(RakVM *vm, RakClosure *cl, RakValue *slots, RakError *err)
+{
+  RakValue val = slots[1];
+  if (!rak_is_string(val))
+  {
+    rak_error_set(err, "argument #1 must be a string, got %s",
+      rak_type_to_cstr(val.type));
+    return;
+  }
+  RakString *str = rak_as_string(val);
+  rak_error_set(err, "%.*s", rak_string_len(str), rak_string_chars(str));
+  rak_vm_return(vm, cl, slots);
+}
+
 void rak_builtin_load_globals(RakVM *vm, RakError *err)
 {
   rak_vm_push_number(vm, RAK_TYPE_NIL, err);
@@ -468,6 +484,8 @@ void rak_builtin_load_globals(RakVM *vm, RakError *err)
   push_builtin_function(vm, globals[32], 1, print_native_call, err);
   if (!rak_is_ok(err)) return;
   push_builtin_function(vm, globals[33], 1, println_native_call, err);
+  if (!rak_is_ok(err)) return;
+  push_builtin_function(vm, globals[34], 1, panic_native_call, err);
 }
 
 int rak_builtin_resolve_global(int len, char *chars)

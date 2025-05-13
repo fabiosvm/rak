@@ -1,0 +1,19 @@
+- test: panic
+  source: |
+    fn f() {
+      panic("something went wrong");
+    }
+    f();
+  out:
+    regex: "^ERROR: something went wrong"
+  exit_code: 1
+
+- test: panic - arity mismatch
+  source: |
+    fn f() {
+      panic();
+    }
+    f();
+  out:
+    regex: "^ERROR: argument #1 must be a string, got nil"
+  exit_code: 1
