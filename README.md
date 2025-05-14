@@ -87,6 +87,8 @@ Now you can run the tests:
 ./tests.sh
 ```
 
+To generate a test coverage report in Linux, run the `test-coverage.sh` file. You'll need at least one of the coverage tools: 'lcov' or 'gcovr'. After running the script, it will display the location of the generated HTML report
+
 ## Cleaning
 
 To clean the build files, run the clean script:
