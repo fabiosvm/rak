@@ -11,7 +11,7 @@
 #ifndef RAK_LEXER_H
 #define RAK_LEXER_H
 
-#include "value.h"
+#include "string.h"
 
 typedef enum
 {
@@ -77,15 +77,17 @@ typedef struct
 
 typedef struct
 {
-  char     *source;
-  char     *curr;
-  int       ln;
-  int       col;
-  RakToken  tok;
+  RakString *file;
+  RakString *source;
+  char      *curr;
+  int        ln;
+  int        col;
+  RakToken   tok;
 } RakLexer;
 
 const char *rak_token_kind_to_cstr(RakTokenKind kind);
-void rak_lexer_init(RakLexer *lex, char *source, RakError *err);
+void rak_lexer_init(RakLexer *lex, RakString *file, RakString *source, RakError *err);
+void rak_lexer_deinit(RakLexer *lex);
 void rak_lexer_next(RakLexer *lex, RakError *err);
 
 #endif // RAK_LEXER_H

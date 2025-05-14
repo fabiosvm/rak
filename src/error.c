@@ -11,6 +11,11 @@
 #include "rak/error.h"
 #include <stdio.h>
 
+void rak_error_init(RakError *err)
+{
+  err->ok = true;
+}
+
 void rak_error_set(RakError *err, const char *fmt, ...)
 {
   va_list args;
@@ -28,6 +33,5 @@ void rak_error_set_with_args(RakError *err, const char *fmt, va_list args)
 
 void rak_error_print(RakError *err)
 {
-  if (rak_is_ok(err)) return;
   fprintf(stderr, "ERROR: %s\n", err->cstr);
 }

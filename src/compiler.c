@@ -1595,10 +1595,10 @@ static inline void expected_token_error(RakError *err, RakTokenKind kind, RakTok
     rak_token_kind_to_cstr(kind), tok.len, tok.chars, tok.ln, tok.col);
 }
 
-RakFunction *rak_compile(char *source, RakError *err)
+RakFunction *rak_compile(RakString *file, RakString *source, RakError *err)
 {
   RakLexer lex;
-  rak_lexer_init(&lex, source, err);
+  rak_lexer_init(&lex, file, source, err);
   if (!rak_is_ok(err)) return NULL;
   RakString *fnName = rak_string_new_from_cstr(-1, "main", err);
   if (!rak_is_ok(err)) return NULL;
@@ -1616,6 +1616,7 @@ RakFunction *rak_compile(char *source, RakError *err)
   append_local(&comp, tok);
   compile_chunk(&comp, &comp.fn->chunk, err);
   if (rak_is_ok(err)) return comp.fn;
+  rak_lexer_deinit(&lex);
   compiler_deinit(&comp);
   return NULL;
 }

@@ -13,6 +13,6 @@
 
 #include "closure.h"
 
-RakFunction *rak_compile(char *source, RakError *err);
+RakFunction *rak_compile(RakString *file, RakString *source, RakError *err);
 
 #endif // RAK_COMPILER_H

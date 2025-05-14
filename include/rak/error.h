@@ -16,9 +16,7 @@
 
 #define RAK_ERROR_MAX_LEN (511)
 
-#define rak_ok() ((RakError) { .ok = true })
-
-#define rak_is_ok(e) ((e)->ok)
+#define rak_is_ok(e) (((RakError *) (e))->ok)
 
 typedef struct
 {
@@ -26,6 +24,7 @@ typedef struct
   char cstr[RAK_ERROR_MAX_LEN + 1];
 } RakError;
 
+void rak_error_init(RakError *err);
 void rak_error_set(RakError *err, const char *fmt, ...);
 void rak_error_set_with_args(RakError *err, const char *fmt, va_list args);
 void rak_error_print(RakError *err);

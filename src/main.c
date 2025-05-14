@@ -18,9 +18,9 @@ static void shutdown(int sig);
 static bool has_opt(int argc, const char *argv[], const char *opt);
 static const char *get_arg(int argc, const char *argv[], int idx);
 static void check_error(RakError *err);
-static void read_from_stdin(RakString *source);
-static void read_from_file(RakString *source, const char *filename, RakError *err);
-static FILE *open_file(const char *filename, RakError *err);
+static RakString *read_from_stdin(void);
+static RakString *read_from_file(const char *path, RakError *err);
+static FILE *open_file(const char *path, RakError *err);
 static int file_size(FILE *fp);
 static void run(RakVM *vm, RakFunction *fn, RakError *err);
 
@@ -58,10 +58,11 @@ static void check_error(RakError *err)
   exit(EXIT_FAILURE);
 }
 
-static void read_from_stdin(RakString *source)
+static RakString *read_from_stdin(void)
 {
-  RakError err = rak_ok();
-  rak_string_init(source, &err);
+  RakError err;
+  rak_error_init(&err);
+  RakString *source = rak_string_new(&err);
   check_error(&err);
   char c = (char) fgetc(stdin);
   while (c != EOF)
@@ -72,38 +73,41 @@ static void read_from_stdin(RakString *source)
   }
   rak_string_inplace_append_cstr(source, 1, "\0", &err);
   check_error(&err);
+  return source;
 }
 
-static void read_from_file(RakString *source, const char *filename, RakError *err)
+static RakString *read_from_file(const char *path, RakError *err)
 {
-  FILE *fp = open_file(filename, err);
+  FILE *fp = open_file(path, err);
   check_error(err);
   int len = file_size(fp);
-  rak_string_init_with_capacity(source, len, err);
+  RakString *source = rak_string_new_with_capacity(len, err);
   check_error(err);
   int _len = (int) fread(rak_string_chars(source), 1, len, fp);
   if (_len != len)
   {
-    rak_error_set(err, "cannot read file %s", filename);
+    rak_error_set(err, "cannot read file %s", path);
     fclose(fp);
-    return;
+    rak_string_free(source);
+    return NULL;
   }
   source->slice.len = len;
   rak_string_inplace_append_cstr(source, 1, "\0", err);
   check_error(err);
   fclose(fp);
+  return source;
 }
 
-static FILE *open_file(const char *filename, RakError *err)
+static FILE *open_file(const char *path, RakError *err)
 {
   FILE *fp = NULL;
 #ifdef _WIN32
-  fopen_s(&fp, filename, "rb");
+  fopen_s(&fp, path, "rb");
 #else
-  fp = fopen(filename, "r");
+  fp = fopen(path, "r");
 #endif
   if (!fp)
-    rak_error_set(err, "cannot open file %s", filename);
+    rak_error_set(err, "cannot open file %s", path);
   return fp;
 }
 
@@ -128,28 +132,34 @@ static void run(RakVM *vm, RakFunction *fn, RakError *err)
 int main(int argc, const char *argv[])
 {
   signal(SIGINT, shutdown);
-  RakError err = rak_ok();
-  RakString source;
-  const char *filename = get_arg(argc, argv, 0);
-  if (filename)
+  RakError err;
+  rak_error_init(&err);
+  RakString *file;
+  RakString *source;
+  const char *path = get_arg(argc, argv, 0);
+  if (path)
   {
-    read_from_file(&source, filename, &err);
+    file = rak_string_new_from_cstr(-1, path, &err);
+    check_error(&err);
+    source = read_from_file(path, &err);
     check_error(&err);
   }
   else
-    read_from_stdin(&source);
-  RakFunction *fn = rak_compile(rak_string_chars(&source), &err);
+  {
+    file = rak_string_new_from_cstr(-1, "<stdin>", &err);
+    check_error(&err);
+    source = read_from_stdin();
+  }
+  RakFunction *fn = rak_compile(file, source, &err);
   check_error(&err);
   if (has_opt(argc, argv, "-c"))
   {
     rak_dump_function(fn);
-    rak_string_deinit(&source);
     return EXIT_SUCCESS;
   }
   RakVM vm;
   run(&vm, fn, &err);
   check_error(&err);
   rak_vm_deinit(&vm);
-  rak_string_deinit(&source);
   return EXIT_SUCCESS;
 }

@@ -260,13 +260,22 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   return cstr;
 }
 
-void rak_lexer_init(RakLexer *lex, char *source, RakError *err)
+void rak_lexer_init(RakLexer *lex, RakString *file, RakString *source, RakError *err)
 {
+  lex->file = file;
+  rak_object_retain(&file->obj);
   lex->source = source;
-  lex->curr = lex->source;
+  rak_object_retain(&source->obj);
+  lex->curr = rak_string_chars(lex->source);
   lex->ln = 1;
   lex->col = 1;
   rak_lexer_next(lex, err);
+}
+
+void rak_lexer_deinit(RakLexer *lex)
+{
+  rak_string_release(lex->file);
+  rak_string_release(lex->source);
 }
 
 void rak_lexer_next(RakLexer *lex, RakError *err)

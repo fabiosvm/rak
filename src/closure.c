@@ -9,7 +9,6 @@
 //
 
 #include "rak/closure.h"
-#include "rak/memory.h"
 
 void rak_callable_init(RakCallable *callable, RakString *name, int arity)
 {
