@@ -667,7 +667,7 @@ Rak provides a small set of built-in functions that are available in all scopes.
 | `is_closure` | Returns `true` if the value is a `Closure`. |
 | `ptr` | Returns the memory address if value is an object. |
 | `ref_count` | Returns the reference count if value is an object. |
-| `make_array` | Creates a new array. |
+| `array` | Creates a new array. |
 | `append` | Returns a new array with the value appended. |
 | `cap` | Returns the capacity of a compound value. |
 | `len` | Returns the length of a compound value. |

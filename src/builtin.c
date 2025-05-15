@@ -42,7 +42,7 @@ static const char *globals[] = {
   "is_object",
   "ptr",
   "ref_count",
-  "make_array",
+  "array",
   "append",
   "cap",
   "len",
@@ -69,7 +69,7 @@ static void is_falsy_native_call(RakFiber *fiber, RakClosure *cl, int state, Rak
 static void is_object_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
 static void ptr_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
 static void ref_count_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void make_array_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
+static void array_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
 static void append_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
 static void cap_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
 static void len_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
@@ -229,7 +229,7 @@ static void ref_count_native_call(RakFiber *fiber, RakClosure *cl, int state, Ra
   rak_vm_return(fiber, cl, slots);
 }
 
-static void make_array_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void array_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val1 = slots[1];
@@ -494,7 +494,7 @@ void rak_builtin_load_globals(RakFiber *fiber, RakError *err)
   if (!rak_is_ok(err)) return;
   push_builtin_function(fiber, globals[26], 1, ref_count_native_call, err);
   if (!rak_is_ok(err)) return;
-  push_builtin_function(fiber, globals[27], 3, make_array_native_call, err);
+  push_builtin_function(fiber, globals[27], 3, array_native_call, err);
   if (!rak_is_ok(err)) return;
   push_builtin_function(fiber, globals[28], 2, append_native_call, err);
   if (!rak_is_ok(err)) return;

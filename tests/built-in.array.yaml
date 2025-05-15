@@ -1,0 +1,43 @@
+- test: array - without arguments
+  source: |
+    let a = array();
+    println(a);
+    println(len(a));
+    println(cap(a));
+  out: |
+    []
+    0
+    8
+
+- test: array - with one argument
+  source: |
+    let a = array(false);
+    println(a);
+    println(len(a));
+    println(cap(a));
+  out: |
+    []
+    0
+    8
+
+- test: array - with two arguments
+  source: |
+    let a = array(false, 10);
+    println(a);
+    println(len(a));
+    println(cap(a));
+  out: |
+    [false, false, false, false, false, false, false, false, false, false]
+    10
+    16
+
+- test: array - with the tree arguments
+  source: |
+    let a = array(false, 10, 20);
+    println(a);
+    println(len(a));
+    println(cap(a));
+  out: |
+    [false, false, false, false, false, false, false, false, false, false]
+    10
+    32
