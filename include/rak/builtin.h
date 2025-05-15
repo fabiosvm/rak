@@ -11,9 +11,9 @@
 #ifndef RAK_BUILTIN_H
 #define RAK_BUILTIN_H
 
-#include "vm.h"
+#include "fiber.h"
 
-void rak_builtin_load_globals(RakVM *vm, RakError *err);
+void rak_builtin_load_globals(RakFiber *fiber, RakError *err);
 int rak_builtin_resolve_global(int len, char *chars);
 
 #endif // RAK_BUILTIN_H

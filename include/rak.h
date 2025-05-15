@@ -18,6 +18,7 @@
 #include "rak/compiler.h"
 #include "rak/dump.h"
 #include "rak/error.h"
+#include "rak/fiber.h"
 #include "rak/lexer.h"
 #include "rak/memory.h"
 #include "rak/range.h"

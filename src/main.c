@@ -169,29 +169,30 @@ int main(int argc, const char *argv[])
     rak_function_free(fn);
     return EXIT_SUCCESS;
   }
-  RakVM vm;
-  rak_vm_init(&vm, RAK_VM_VSTK_DEFAULT_SIZE, RAK_VM_CSTK_DEFAULT_SIZE, &err);
+  RakFiber fiber;
+  rak_fiber_init(&fiber, RAK_FIBER_VSTK_DEFAULT_SIZE,
+    RAK_FIBER_CSTK_DEFAULT_SIZE, &err);
   if (!rak_is_ok(&err))
   {
     rak_error_print(&err);
     rak_function_free(fn);
     return EXIT_FAILURE;
   }
-  rak_builtin_load_globals(&vm, &err);
+  rak_builtin_load_globals(&fiber, &err);
   if (!rak_is_ok(&err))
   {
     rak_error_print(&err);
     rak_function_free(fn);
-    rak_vm_deinit(&vm);
+    rak_fiber_deinit(&fiber);
     return EXIT_FAILURE;
   }
-  rak_vm_run(&vm, fn, &err);
+  rak_fiber_run(&fiber, fn, &err);
   if (!rak_is_ok(&err))
   {
     rak_error_print(&err);
-    rak_vm_deinit(&vm);
+    rak_fiber_deinit(&fiber);
     return EXIT_FAILURE;
   }
-  rak_vm_deinit(&vm);
+  rak_fiber_deinit(&fiber);
   return EXIT_SUCCESS;
 }

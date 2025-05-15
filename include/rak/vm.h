@@ -11,178 +11,158 @@
 #ifndef RAK_VM_H
 #define RAK_VM_H
 
+#include "fiber.h"
 #include <math.h>
 #include "array.h"
-#include "closure.h"
 #include "range.h"
 #include "record.h"
-#include "stack.h"
 
-#define RAK_VM_VSTK_DEFAULT_SIZE (1024)
-#define RAK_VM_CSTK_DEFAULT_SIZE (128)
+static inline void rak_vm_push(RakFiber *fiber, RakValue val, RakError *err);
+static inline void rak_vm_push_nil(RakFiber *fiber, RakError *err);
+static inline void rak_vm_push_bool(RakFiber *fiber, bool b, RakError *err);
+static inline void rak_vm_push_number(RakFiber *fiber, double data, RakError *err);
+static inline void rak_vm_push_value(RakFiber *fiber, RakValue val, RakError *err);
+static inline void rak_vm_push_object(RakFiber *fiber, RakValue val, RakError *err);
+static inline void rak_vm_load_const(RakFiber *fiber, RakChunk *chunk, uint8_t idx, RakError *err);
+static inline void rak_vm_load_global(RakFiber *fiber, uint8_t idx, RakError *err);
+static inline void rak_vm_load_local(RakFiber *fiber, RakValue *slots, uint8_t idx, RakError *err);
+static inline void rak_vm_store_local(RakFiber *fiber, RakValue *slots, uint8_t idx);
+static inline void rak_vm_fetch_local(RakFiber *fiber, RakValue *slots, uint8_t idx, RakError *err);
+static inline void rak_vm_new_array(RakFiber *fiber, uint8_t len, RakError *err);
+static inline void rak_vm_new_range(RakFiber *fiber, RakError *err);
+static inline void rak_vm_new_record(RakFiber *fiber, uint8_t len, RakError *err);
+static inline void rak_vm_new_closure(RakFiber *fiber, RakFunction *fn, uint8_t idx, RakError *err);
+static inline void rak_vm_dup(RakFiber *fiber, RakError *err);
+static inline void rak_vm_pop(RakFiber *fiber);
+static inline void rak_vm_get_element(RakFiber *fiber, RakError *err);
+static inline void rak_vm_set_element(RakFiber *fiber, RakError *err);
+static inline void rak_vm_load_element(RakFiber *fiber, RakError *err);
+static inline void rak_vm_fetch_element(RakFiber *fiber, RakError *err);
+static inline void rak_vm_update_element(RakFiber *fiber, RakError *err);
+static inline void rak_vm_get_field(RakFiber *fiber, RakChunk *chunk, uint8_t idx, RakError *err);
+static inline void rak_vm_put_field(RakFiber *fiber, RakChunk *chunk, uint8_t idx, RakError *err);
+static inline void rak_vm_load_field(RakFiber *fiber, RakChunk *chunk, uint8_t idx, RakError *err);
+static inline void rak_vm_fetch_field(RakFiber *fiber, RakChunk *chunk, uint8_t idx, RakError *err);
+static inline void rak_vm_update_field(RakFiber *fiber, RakError *err);
+static inline void rak_vm_unpack_elements(RakFiber *fiber, uint8_t n, RakError *err);
+static inline void rak_vm_unpack_fields(RakFiber *fiber, uint8_t n, RakError *err);
+static inline RakValue rak_vm_get(RakFiber *fiber, uint8_t idx);
+static inline void rak_vm_set(RakFiber *fiber, uint8_t idx, RakValue val);
+static inline void rak_vm_set_value(RakFiber *fiber, uint8_t idx, RakValue val);
+static inline void rak_vm_set_object(RakFiber *fiber, uint8_t idx, RakValue val);
+static inline void rak_vm_eq(RakFiber *fiber);
+static inline void rak_vm_gt(RakFiber *fiber, RakError *err);
+static inline void rak_vm_lt(RakFiber *fiber, RakError *err);
+static inline void rak_vm_add(RakFiber *fiber, RakError *err);
+static inline void rak_vm_sub(RakFiber *fiber, RakError *err);
+static inline void rak_vm_mul(RakFiber *fiber, RakError *err);
+static inline void rak_vm_div(RakFiber *fiber, RakError *err);
+static inline void rak_vm_mod(RakFiber *fiber, RakError *err);
+static inline void rak_vm_not(RakFiber *fiber);
+static inline void rak_vm_neg(RakFiber *fiber, RakError *err);
+static inline void rak_vm_call(RakFiber *fiber, uint8_t nargs, RakError *err);
+static inline void rak_vm_tail_call(RakFiber *fiber, RakValue *slots, uint8_t nargs, RakError *err);
+static inline void rak_vm_return(RakFiber *fiber, RakClosure *cl, RakValue *slots);
 
-typedef struct
+void rak_vm_dispatch(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+
+static inline void rak_vm_push(RakFiber *fiber, RakValue val, RakError *err)
 {
-  RakClosure *cl;
-  uint32_t   *ip;
-  RakValue   *slots;
-} RakCallFrame;
-
-typedef struct RakVM
-{
-  RakStack(RakValue)     vstk;
-  RakStack(RakCallFrame) cstk;
-} RakVM;
-
-static inline void rak_vm_push(RakVM *vm, RakValue val, RakError *err);
-static inline void rak_vm_push_nil(RakVM *vm, RakError *err);
-static inline void rak_vm_push_bool(RakVM *vm, bool b, RakError *err);
-static inline void rak_vm_push_number(RakVM *vm, double data, RakError *err);
-static inline void rak_vm_push_value(RakVM *vm, RakValue val, RakError *err);
-static inline void rak_vm_push_object(RakVM *vm, RakValue val, RakError *err);
-static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
-static inline void rak_vm_load_global(RakVM *vm, uint8_t idx, RakError *err);
-static inline void rak_vm_load_local(RakVM *vm, RakValue *slots, uint8_t idx, RakError *err);
-static inline void rak_vm_store_local(RakVM *vm, RakValue *slots, uint8_t idx);
-static inline void rak_vm_fetch_local(RakVM *vm, RakValue *slots, uint8_t idx, RakError *err);
-static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err);
-static inline void rak_vm_new_range(RakVM *vm, RakError *err);
-static inline void rak_vm_new_record(RakVM *vm, uint8_t len, RakError *err);
-static inline void rak_vm_new_closure(RakVM *vm, RakFunction *fn, uint8_t idx, RakError *err);
-static inline void rak_vm_dup(RakVM *vm, RakError *err);
-static inline void rak_vm_pop(RakVM *vm);
-static inline void rak_vm_get_element(RakVM *vm, RakError *err);
-static inline void rak_vm_set_element(RakVM *vm, RakError *err);
-static inline void rak_vm_load_element(RakVM *vm, RakError *err);
-static inline void rak_vm_fetch_element(RakVM *vm, RakError *err);
-static inline void rak_vm_update_element(RakVM *vm, RakError *err);
-static inline void rak_vm_get_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
-static inline void rak_vm_put_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
-static inline void rak_vm_load_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
-static inline void rak_vm_fetch_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err);
-static inline void rak_vm_update_field(RakVM *vm, RakError *err);
-static inline void rak_vm_unpack_elements(RakVM *vm, uint8_t n, RakError *err);
-static inline void rak_vm_unpack_fields(RakVM *vm, uint8_t n, RakError *err);
-static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx);
-static inline void rak_vm_set(RakVM *vm, uint8_t idx, RakValue val);
-static inline void rak_vm_set_value(RakVM *vm, uint8_t idx, RakValue val);
-static inline void rak_vm_set_object(RakVM *vm, uint8_t idx, RakValue val);
-static inline void rak_vm_eq(RakVM *vm);
-static inline void rak_vm_gt(RakVM *vm, RakError *err);
-static inline void rak_vm_lt(RakVM *vm, RakError *err);
-static inline void rak_vm_add(RakVM *vm, RakError *err);
-static inline void rak_vm_sub(RakVM *vm, RakError *err);
-static inline void rak_vm_mul(RakVM *vm, RakError *err);
-static inline void rak_vm_div(RakVM *vm, RakError *err);
-static inline void rak_vm_mod(RakVM *vm, RakError *err);
-static inline void rak_vm_not(RakVM *vm);
-static inline void rak_vm_neg(RakVM *vm, RakError *err);
-static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err);
-static inline void rak_vm_tail_call(RakVM *vm, RakValue *slots, uint8_t nargs, RakError *err);
-static inline void rak_vm_return(RakVM *vm, RakClosure *cl, RakValue *slots);
-
-void rak_vm_init(RakVM *vm, int vstkSize, int cstkSize, RakError *err);
-void rak_vm_deinit(RakVM *vm);
-void rak_vm_run(RakVM *vm, RakFunction *fn, RakError *err);
-void rak_vm_resume(RakVM *vm, RakError *err);
-
-static inline void rak_vm_push(RakVM *vm, RakValue val, RakError *err)
-{
-  if (rak_stack_is_full(&vm->vstk))
+  if (rak_stack_is_full(&fiber->vstk))
   {
     rak_error_set(err, "stack overflow");
     return;
   }
-  rak_stack_push(&vm->vstk, val);
+  rak_stack_push(&fiber->vstk, val);
 }
 
-static inline void rak_vm_push_nil(RakVM *vm, RakError *err)
+static inline void rak_vm_push_nil(RakFiber *fiber, RakError *err)
 {
-  rak_vm_push(vm, rak_nil_value(), err);
+  rak_vm_push(fiber, rak_nil_value(), err);
 }
 
-static inline void rak_vm_push_bool(RakVM *vm, bool data, RakError *err)
+static inline void rak_vm_push_bool(RakFiber *fiber, bool data, RakError *err)
 {
-  rak_vm_push(vm, rak_bool_value(data), err);
+  rak_vm_push(fiber, rak_bool_value(data), err);
 }
 
-static inline void rak_vm_push_number(RakVM *vm, double data, RakError *err)
+static inline void rak_vm_push_number(RakFiber *fiber, double data, RakError *err)
 {
-  rak_vm_push(vm, rak_number_value(data), err);
+  rak_vm_push(fiber, rak_number_value(data), err);
 }
 
-static inline void rak_vm_push_value(RakVM *vm, RakValue val, RakError *err)
+static inline void rak_vm_push_value(RakFiber *fiber, RakValue val, RakError *err)
 {
-  rak_vm_push(vm, val, err);
+  rak_vm_push(fiber, val, err);
   if (!rak_is_ok(err)) return;
   rak_value_retain(val);
 }
 
-static inline void rak_vm_push_object(RakVM *vm, RakValue val, RakError *err)
+static inline void rak_vm_push_object(RakFiber *fiber, RakValue val, RakError *err)
 {
-  rak_vm_push(vm, val, err);
+  rak_vm_push(fiber, val, err);
   if (!rak_is_ok(err)) return;
   rak_object_retain(rak_as_object(val));
 }
 
-static inline void rak_vm_load_const(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err)
+static inline void rak_vm_load_const(RakFiber *fiber, RakChunk *chunk, uint8_t idx, RakError *err)
 {
   RakValue val = rak_slice_get(&chunk->consts, idx);
-  rak_vm_push_value(vm, val, err);
+  rak_vm_push_value(fiber, val, err);
 }
 
-static inline void rak_vm_load_global(RakVM *vm, uint8_t idx, RakError *err)
+static inline void rak_vm_load_global(RakFiber *fiber, uint8_t idx, RakError *err)
 {
-  RakValue val = vm->vstk.base[idx];
-  rak_vm_push_value(vm, val, err);
+  RakValue val = fiber->vstk.base[idx];
+  rak_vm_push_value(fiber, val, err);
 }
 
-static inline void rak_vm_load_local(RakVM *vm, RakValue *slots, uint8_t idx, RakError *err)
+static inline void rak_vm_load_local(RakFiber *fiber, RakValue *slots, uint8_t idx, RakError *err)
 {
   RakValue val = slots[idx];
-  rak_vm_push_value(vm, val, err);
+  rak_vm_push_value(fiber, val, err);
 }
 
-static inline void rak_vm_store_local(RakVM *vm, RakValue *slots, uint8_t idx)
+static inline void rak_vm_store_local(RakFiber *fiber, RakValue *slots, uint8_t idx)
 {
-  RakValue val = rak_vm_get(vm, 0);
+  RakValue val = rak_vm_get(fiber, 0);
   rak_value_release(slots[idx]);
   slots[idx] = val;
-  --vm->vstk.top;
+  --fiber->vstk.top;
 }
 
-static inline void rak_vm_fetch_local(RakVM *vm, RakValue *slots, uint8_t idx, RakError *err)
+static inline void rak_vm_fetch_local(RakFiber *fiber, RakValue *slots, uint8_t idx, RakError *err)
 {
   RakValue val = slots[idx];
   if (rak_is_object(val) && rak_as_object(val)->refCount > 1)
     val.flags |= RAK_FLAG_SHARED;
-  rak_vm_push_value(vm, val, err);
+  rak_vm_push_value(fiber, val, err);
 }
 
-static inline void rak_vm_new_array(RakVM *vm, uint8_t len, RakError *err)
+static inline void rak_vm_new_array(RakFiber *fiber, uint8_t len, RakError *err)
 {
   RakArray *arr = rak_array_new_with_capacity(len, err);
   if (!len)
   {
     RakValue res = rak_array_value(arr);
-    rak_vm_push_object(vm, res, err);
+    rak_vm_push_object(fiber, res, err);
     return;
   }
   int n = len - 1;
-  RakValue *slots = &rak_stack_get(&vm->vstk, n);
+  RakValue *slots = &rak_stack_get(&fiber->vstk, n);
   if (!rak_is_ok(err)) return;
   for (int i = 0; i < len; ++i)
     rak_slice_set(&arr->slice, i, slots[i]);
   arr->slice.len = len;
   slots[0] = rak_array_value(arr);
   rak_object_retain(&arr->obj);
-  vm->vstk.top -= n;
+  fiber->vstk.top -= n;
 }
 
-static inline void rak_vm_new_range(RakVM *vm, RakError *err)
+static inline void rak_vm_new_range(RakFiber *fiber, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 1);
-  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 1);
+  RakValue val2 = rak_vm_get(fiber, 0);
   if (!rak_is_number(val1) || !rak_is_number(val2)
    || !rak_is_integer(val1) || !rak_is_integer(val2))
   {
@@ -194,22 +174,22 @@ static inline void rak_vm_new_range(RakVM *vm, RakError *err)
   RakRange *range = rak_range_new(start, end, err);
   if (!rak_is_ok(err)) return;
   RakValue res = rak_range_value(range);
-  rak_stack_set(&vm->vstk, 1, res);
+  rak_stack_set(&fiber->vstk, 1, res);
   rak_object_retain(&range->obj);
-  rak_vm_pop(vm);
+  rak_vm_pop(fiber);
 }
 
-static inline void rak_vm_new_record(RakVM *vm, uint8_t len, RakError *err)
+static inline void rak_vm_new_record(RakFiber *fiber, uint8_t len, RakError *err)
 {
   RakRecord *rec = rak_record_new_with_capacity(len, err);
   if (!len)
   {
     RakValue res = rak_record_value(rec);
-    rak_vm_push_object(vm, res, err);
+    rak_vm_push_object(fiber, res, err);
     return;
   }
   int n = (len << 1) - 1;
-  RakValue *slots = &rak_stack_get(&vm->vstk, n);
+  RakValue *slots = &rak_stack_get(&fiber->vstk, n);
   if (!rak_is_ok(err)) return;
   for (int i = 0; i < len; ++i)
   {
@@ -236,37 +216,37 @@ static inline void rak_vm_new_record(RakVM *vm, uint8_t len, RakError *err)
   }
   slots[0] = rak_record_value(rec);
   rak_object_retain(&rec->obj);
-  vm->vstk.top -= n;
+  fiber->vstk.top -= n;
 }
 
-static inline void rak_vm_new_closure(RakVM *vm, RakFunction *fn, uint8_t idx, RakError *err)
+static inline void rak_vm_new_closure(RakFiber *fiber, RakFunction *fn, uint8_t idx, RakError *err)
 {
   RakFunction *_fn = rak_slice_get(&fn->nested, idx);
   RakClosure *cl = rak_closure_new(RAK_CALLABLE_TYPE_FUNCTION, &_fn->callable, err);
   if (!rak_is_ok(err)) return;
   RakValue val = rak_closure_value(cl);
-  rak_vm_push_object(vm, val, err);
+  rak_vm_push_object(fiber, val, err);
   if (rak_is_ok(err)) return;
   rak_closure_free(cl);
 }
 
-static inline void rak_vm_dup(RakVM *vm, RakError *err)
+static inline void rak_vm_dup(RakFiber *fiber, RakError *err)
 {
-  RakValue val = rak_vm_get(vm, 0);
-  rak_vm_push_value(vm, val, err);
+  RakValue val = rak_vm_get(fiber, 0);
+  rak_vm_push_value(fiber, val, err);
 }
 
-static inline void rak_vm_pop(RakVM *vm)
+static inline void rak_vm_pop(RakFiber *fiber)
 {
-  RakValue val = rak_vm_get(vm, 0);
-  rak_stack_pop(&vm->vstk);
+  RakValue val = rak_vm_get(fiber, 0);
+  rak_stack_pop(&fiber->vstk);
   rak_value_release(val);
 }
 
-static inline void rak_vm_get_element(RakVM *vm, RakError *err)
+static inline void rak_vm_get_element(RakFiber *fiber, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 1);
-  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 1);
+  RakValue val2 = rak_vm_get(fiber, 0);
   if (rak_is_string(val1))
   {
     RakString *str = rak_as_string(val1);
@@ -282,8 +262,8 @@ static inline void rak_vm_get_element(RakVM *vm, RakError *err)
     RakString *_str = rak_string_slice(str, start, end, err);
     if (!rak_is_ok(err)) return;
     RakValue res = rak_string_value(_str);
-    rak_vm_set_object(vm, 1, res);
-    rak_vm_pop(vm);
+    rak_vm_set_object(fiber, 1, res);
+    rak_vm_pop(fiber);
     return;
   }
   if (rak_is_array(val1))
@@ -303,8 +283,8 @@ static inline void rak_vm_get_element(RakVM *vm, RakError *err)
         return;
       }
       RakValue res = rak_array_get(arr, (int) idx);
-      rak_vm_set_value(vm, 1, res);
-      rak_vm_pop(vm);
+      rak_vm_set_value(fiber, 1, res);
+      rak_vm_pop(fiber);
       return;
     }
     if (!rak_is_range(val2))
@@ -319,8 +299,8 @@ static inline void rak_vm_get_element(RakVM *vm, RakError *err)
     RakArray *_arr = rak_array_slice(arr, start, end, err);
     if (!rak_is_ok(err)) return;
     RakValue res = rak_array_value(_arr);
-    rak_vm_set_object(vm, 1, res);
-    rak_vm_pop(vm);
+    rak_vm_set_object(fiber, 1, res);
+    rak_vm_pop(fiber);
     return;
   }
   if (rak_is_range(val1))
@@ -338,8 +318,8 @@ static inline void rak_vm_get_element(RakVM *vm, RakError *err)
       return;
     }
     RakValue res = rak_number_value(rak_range_get(range, (int) idx));
-    rak_vm_set_value(vm, 1, res);
-    rak_vm_pop(vm);
+    rak_vm_set_value(fiber, 1, res);
+    rak_vm_pop(fiber);
     return;
   }
   if (!rak_is_record(val1))
@@ -364,15 +344,15 @@ static inline void rak_vm_get_element(RakVM *vm, RakError *err)
     return;
   }
   RakValue res = rak_record_get(rec, idx).val;
-  rak_vm_set_value(vm, 1, res);
-  rak_vm_pop(vm);
+  rak_vm_set_value(fiber, 1, res);
+  rak_vm_pop(fiber);
 }
 
-static inline void rak_vm_set_element(RakVM *vm, RakError *err)
+static inline void rak_vm_set_element(RakFiber *fiber, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 2);
-  RakValue val2 = rak_vm_get(vm, 1);
-  RakValue val3 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 2);
+  RakValue val2 = rak_vm_get(fiber, 1);
+  RakValue val3 = rak_vm_get(fiber, 0);
   if (rak_is_array(val1))
   {
     RakArray *arr = rak_as_array(val1);
@@ -392,14 +372,14 @@ static inline void rak_vm_set_element(RakVM *vm, RakError *err)
       RakArray *_arr = rak_array_set(arr, (int) idx, val3, err);
       if (!rak_is_ok(err)) return;
       RakValue res = rak_array_value(_arr);
-      rak_vm_set_object(vm, 2, res);
+      rak_vm_set_object(fiber, 2, res);
       rak_value_release(val3);
-      vm->vstk.top -= 2;
+      fiber->vstk.top -= 2;
       return;
     }
     rak_array_inplace_set(arr, (int) idx, val3);
     rak_value_release(val3);
-    vm->vstk.top -= 2;
+    fiber->vstk.top -= 2;
     return;
   }
   if (!rak_is_record(val1))
@@ -421,21 +401,21 @@ static inline void rak_vm_set_element(RakVM *vm, RakError *err)
     RakRecord *_rec = rak_record_put(rec, name, val3, err);
     if (!rak_is_ok(err)) return;
     RakValue res = rak_record_value(_rec);
-    rak_vm_set_object(vm, 2, res);
+    rak_vm_set_object(fiber, 2, res);
     rak_value_release(val3);
-    vm->vstk.top -= 2;
+    fiber->vstk.top -= 2;
     return;
   }
   rak_record_inplace_put(rec, name, val3, err);
   if (!rak_is_ok(err)) return;
   rak_value_release(val3);
-  vm->vstk.top -= 2;
+  fiber->vstk.top -= 2;
 }
 
-static inline void rak_vm_load_element(RakVM *vm, RakError *err)
+static inline void rak_vm_load_element(RakFiber *fiber, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 1);
-  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 1);
+  RakValue val2 = rak_vm_get(fiber, 0);
   if (rak_is_array(val1))
   {
     RakArray *arr = rak_as_array(val1);
@@ -451,7 +431,7 @@ static inline void rak_vm_load_element(RakVM *vm, RakError *err)
       return;
     }
     RakValue res = rak_array_get(arr, (int) idx);
-    rak_vm_push_value(vm, res, err);
+    rak_vm_push_value(fiber, res, err);
     return;
   }
   if (!rak_is_record(val1))
@@ -474,16 +454,16 @@ static inline void rak_vm_load_element(RakVM *vm, RakError *err)
       rak_string_len(name), rak_string_chars(name));
     return;
   }
-  rak_stack_set(&vm->vstk, 0, rak_number_value(idx));
+  rak_stack_set(&fiber->vstk, 0, rak_number_value(idx));
   rak_string_release(name);
   RakValue res = rak_record_get(rec, idx).val;
-  rak_vm_push_value(vm, res, err);
+  rak_vm_push_value(fiber, res, err);
 }
 
-static inline void rak_vm_fetch_element(RakVM *vm, RakError *err)
+static inline void rak_vm_fetch_element(RakFiber *fiber, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 1);
-  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 1);
+  RakValue val2 = rak_vm_get(fiber, 0);
   if (rak_is_array(val1))
   {
     RakArray *arr = rak_as_array(val1);
@@ -501,7 +481,7 @@ static inline void rak_vm_fetch_element(RakVM *vm, RakError *err)
     RakValue res = rak_array_get(arr, (int) idx);
     if (rak_is_shared(val1) || (rak_is_object(res) && rak_as_object(res)->refCount > 1))
       res.flags |= RAK_FLAG_SHARED;
-    rak_vm_push_value(vm, res, err);
+    rak_vm_push_value(fiber, res, err);
     return;
   }
   if (!rak_is_record(val1))
@@ -524,19 +504,19 @@ static inline void rak_vm_fetch_element(RakVM *vm, RakError *err)
       rak_string_len(name), rak_string_chars(name));
     return;
   }
-  rak_stack_set(&vm->vstk, 0, rak_number_value(idx));
+  rak_stack_set(&fiber->vstk, 0, rak_number_value(idx));
   rak_string_release(name);
   RakValue res = rak_record_get(rec, idx).val;
   if (rak_is_shared(val1) || (rak_is_object(res) && rak_as_object(res)->refCount > 1))
     res.flags |= RAK_FLAG_SHARED;
-  rak_vm_push_value(vm, res, err);
+  rak_vm_push_value(fiber, res, err);
 }
 
-static inline void rak_vm_update_element(RakVM *vm, RakError *err)
+static inline void rak_vm_update_element(RakFiber *fiber, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 2);
-  RakValue val2 = rak_vm_get(vm, 1);
-  RakValue val3 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 2);
+  RakValue val2 = rak_vm_get(fiber, 1);
+  RakValue val3 = rak_vm_get(fiber, 0);
   int idx = (int) rak_as_number(val2);
   if (rak_is_array(val1))
   {
@@ -546,14 +526,14 @@ static inline void rak_vm_update_element(RakVM *vm, RakError *err)
       RakArray *_arr = rak_array_set(arr, idx, val3, err);
       if (!rak_is_ok(err)) return;
       RakValue res = rak_array_value(_arr);
-      rak_vm_set_object(vm, 2, res);
+      rak_vm_set_object(fiber, 2, res);
       rak_value_release(val3);
-      vm->vstk.top -= 2;
+      fiber->vstk.top -= 2;
       return;
     }
     rak_array_inplace_set(arr, idx, val3);
     rak_value_release(val3);
-    vm->vstk.top -= 2;
+    fiber->vstk.top -= 2;
     return;
   }
   RakRecord *rec = rak_as_record(val1);
@@ -562,19 +542,19 @@ static inline void rak_vm_update_element(RakVM *vm, RakError *err)
     RakRecord *_rec = rak_record_set(rec, idx, val3, err);
     if (!rak_is_ok(err)) return;
     RakValue res = rak_record_value(_rec);
-    rak_vm_set_object(vm, 2, res);
+    rak_vm_set_object(fiber, 2, res);
     rak_value_release(val3);
-    vm->vstk.top -= 2;
+    fiber->vstk.top -= 2;
     return;
   }
   rak_record_inplace_set(rec, idx, val3);
   rak_value_release(val3);
-  vm->vstk.top -= 2;
+  fiber->vstk.top -= 2;
 }
 
-static inline void rak_vm_get_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err)
+static inline void rak_vm_get_field(RakFiber *fiber, RakChunk *chunk, uint8_t idx, RakError *err)
 {
-  RakValue val = rak_vm_get(vm, 0);
+  RakValue val = rak_vm_get(fiber, 0);
   if (!rak_is_record(val))
   {
     rak_error_set(err, "cannot index value of type %s",
@@ -591,13 +571,13 @@ static inline void rak_vm_get_field(RakVM *vm, RakChunk *chunk, uint8_t idx, Rak
     return;
   }
   RakValue res = rak_record_get(rec, _idx).val;
-  rak_vm_set_value(vm, 0, res);
+  rak_vm_set_value(fiber, 0, res);
 }
 
-static inline void rak_vm_put_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err)
+static inline void rak_vm_put_field(RakFiber *fiber, RakChunk *chunk, uint8_t idx, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 1);
-  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 1);
+  RakValue val2 = rak_vm_get(fiber, 0);
   if (!rak_is_record(val1))
   {
     rak_error_set(err, "cannot index value of type %s",
@@ -611,20 +591,20 @@ static inline void rak_vm_put_field(RakVM *vm, RakChunk *chunk, uint8_t idx, Rak
     RakRecord *_rec = rak_record_put(rec, name, val2, err);
     if (!rak_is_ok(err)) return;
     RakValue res = rak_record_value(_rec);
-    rak_vm_set_object(vm, 1, res);
+    rak_vm_set_object(fiber, 1, res);
     rak_value_release(val2);
-    --vm->vstk.top;
+    --fiber->vstk.top;
     return;
   }
   rak_record_inplace_put(rec, name, val2, err);
   if (!rak_is_ok(err)) return;
   rak_value_release(val2);
-  --vm->vstk.top;
+  --fiber->vstk.top;
 }
 
-static inline void rak_vm_load_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err)
+static inline void rak_vm_load_field(RakFiber *fiber, RakChunk *chunk, uint8_t idx, RakError *err)
 {
-  RakValue val = rak_vm_get(vm, 0);
+  RakValue val = rak_vm_get(fiber, 0);
   if (!rak_is_record(val))
   {
     rak_error_set(err, "cannot index value of type %s",
@@ -640,15 +620,15 @@ static inline void rak_vm_load_field(RakVM *vm, RakChunk *chunk, uint8_t idx, Ra
       rak_string_len(name), rak_string_chars(name));
     return;
   }
-  rak_vm_push(vm, rak_number_value(_idx), err);
+  rak_vm_push(fiber, rak_number_value(_idx), err);
   if (!rak_is_ok(err)) return;
   RakValue res = rak_record_get(rec, _idx).val;
-  rak_vm_push_value(vm, res, err);
+  rak_vm_push_value(fiber, res, err);
 }
 
-static inline void rak_vm_fetch_field(RakVM *vm, RakChunk *chunk, uint8_t idx, RakError *err)
+static inline void rak_vm_fetch_field(RakFiber *fiber, RakChunk *chunk, uint8_t idx, RakError *err)
 {
-  RakValue val = rak_vm_get(vm, 0);
+  RakValue val = rak_vm_get(fiber, 0);
   if (!rak_is_record(val))
   {
     rak_error_set(err, "cannot index value of type %s",
@@ -664,19 +644,19 @@ static inline void rak_vm_fetch_field(RakVM *vm, RakChunk *chunk, uint8_t idx, R
       rak_string_len(name), rak_string_chars(name));
     return;
   }
-  rak_vm_push(vm, rak_number_value(_idx), err);
+  rak_vm_push(fiber, rak_number_value(_idx), err);
   if (!rak_is_ok(err)) return;
   RakValue res = rak_record_get(rec, _idx).val;
   if (rak_is_shared(val) || (rak_is_object(res) && rak_as_object(res)->refCount > 1))
     res.flags |= RAK_FLAG_SHARED;
-  rak_vm_push_value(vm, res, err);
+  rak_vm_push_value(fiber, res, err);
 }
 
-static inline void rak_vm_update_field(RakVM *vm, RakError *err)
+static inline void rak_vm_update_field(RakFiber *fiber, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 2);
-  RakValue val2 = rak_vm_get(vm, 1);
-  RakValue val3 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 2);
+  RakValue val2 = rak_vm_get(fiber, 1);
+  RakValue val3 = rak_vm_get(fiber, 0);
   RakRecord *rec = rak_as_record(val1);
   int idx = (int) rak_as_number(val2);
   if (rak_is_shared(val1))
@@ -684,19 +664,19 @@ static inline void rak_vm_update_field(RakVM *vm, RakError *err)
     RakRecord *_rec = rak_record_set(rec, idx, val3, err);
     if (!rak_is_ok(err)) return;
     RakValue res = rak_record_value(_rec);
-    rak_vm_set_object(vm, 2, res);
+    rak_vm_set_object(fiber, 2, res);
     rak_value_release(val3);
-    vm->vstk.top -= 2;
+    fiber->vstk.top -= 2;
     return;
   }
   rak_record_inplace_set(rec, idx, val3);
   rak_value_release(val3);
-  vm->vstk.top -= 2;
+  fiber->vstk.top -= 2;
 }
 
-static inline void rak_vm_unpack_elements(RakVM *vm, uint8_t n, RakError *err)
+static inline void rak_vm_unpack_elements(RakFiber *fiber, uint8_t n, RakError *err)
 {
-  RakValue *slots = &rak_stack_get(&vm->vstk, n);
+  RakValue *slots = &rak_stack_get(&fiber->vstk, n);
   RakValue val = slots[0];
   if (!rak_is_array(val))
   {
@@ -715,13 +695,13 @@ static inline void rak_vm_unpack_elements(RakVM *vm, uint8_t n, RakError *err)
   }
   for (int i = len; i < n; ++i)
     slots[i] = rak_nil_value();
-  --vm->vstk.top;
+  --fiber->vstk.top;
   rak_array_release(arr);
 }
 
-static inline void rak_vm_unpack_fields(RakVM *vm, uint8_t n, RakError *err)
+static inline void rak_vm_unpack_fields(RakFiber *fiber, uint8_t n, RakError *err)
 {
-  RakValue *slots = &rak_stack_get(&vm->vstk, n);
+  RakValue *slots = &rak_stack_get(&fiber->vstk, n);
   RakValue val = slots[0];
   if (!rak_is_record(val))
   {
@@ -744,69 +724,69 @@ static inline void rak_vm_unpack_fields(RakVM *vm, uint8_t n, RakError *err)
     slots[i] = _val;
     rak_value_retain(_val);
   }
-  --vm->vstk.top;
+  --fiber->vstk.top;
   rak_record_release(rec);
 }
 
-static inline RakValue rak_vm_get(RakVM *vm, uint8_t idx)
+static inline RakValue rak_vm_get(RakFiber *fiber, uint8_t idx)
 {
-  return rak_stack_get(&vm->vstk, idx);
+  return rak_stack_get(&fiber->vstk, idx);
 }
 
-static inline void rak_vm_set(RakVM *vm, uint8_t idx, RakValue val)
+static inline void rak_vm_set(RakFiber *fiber, uint8_t idx, RakValue val)
 {
-  RakValue _val = rak_stack_get(&vm->vstk, idx);
+  RakValue _val = rak_stack_get(&fiber->vstk, idx);
   rak_value_release(_val);
-  rak_stack_set(&vm->vstk, idx, val);
+  rak_stack_set(&fiber->vstk, idx, val);
 }
 
-static inline void rak_vm_set_value(RakVM *vm, uint8_t idx, RakValue val)
+static inline void rak_vm_set_value(RakFiber *fiber, uint8_t idx, RakValue val)
 {
   rak_value_retain(val);
-  rak_vm_set(vm, idx, val);
+  rak_vm_set(fiber, idx, val);
 }
 
-static inline void rak_vm_set_object(RakVM *vm, uint8_t idx, RakValue val)
+static inline void rak_vm_set_object(RakFiber *fiber, uint8_t idx, RakValue val)
 {
   rak_object_retain(rak_as_object(val));
-  rak_vm_set(vm, idx, val);
+  rak_vm_set(fiber, idx, val);
 }
 
-static inline void rak_vm_eq(RakVM *vm)
+static inline void rak_vm_eq(RakFiber *fiber)
 {
-  RakValue val1 = rak_vm_get(vm, 1);
-  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 1);
+  RakValue val2 = rak_vm_get(fiber, 0);
   RakValue res = rak_bool_value(rak_value_equals(val1, val2));
-  rak_vm_set(vm, 1, res);
-  rak_vm_pop(vm);
+  rak_vm_set(fiber, 1, res);
+  rak_vm_pop(fiber);
 }
 
-static inline void rak_vm_gt(RakVM *vm, RakError *err)
+static inline void rak_vm_gt(RakFiber *fiber, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 1);
-  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 1);
+  RakValue val2 = rak_vm_get(fiber, 0);
   int cmp = rak_value_compare(val1, val2, err);
   if (!rak_is_ok(err)) return;
   RakValue res = rak_bool_value(cmp > 0);
-  rak_vm_set(vm, 1, res);
-  rak_vm_pop(vm);
+  rak_vm_set(fiber, 1, res);
+  rak_vm_pop(fiber);
 }
 
-static inline void rak_vm_lt(RakVM *vm, RakError *err)
+static inline void rak_vm_lt(RakFiber *fiber, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 1);
-  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 1);
+  RakValue val2 = rak_vm_get(fiber, 0);
   int cmp = rak_value_compare(val1, val2, err);
   if (!rak_is_ok(err)) return;
   RakValue res = rak_bool_value(cmp < 0);
-  rak_vm_set(vm, 1, res);
-  rak_vm_pop(vm);
+  rak_vm_set(fiber, 1, res);
+  rak_vm_pop(fiber);
 }
 
-static inline void rak_vm_add(RakVM *vm, RakError *err)
+static inline void rak_vm_add(RakFiber *fiber, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 1);
-  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 1);
+  RakValue val2 = rak_vm_get(fiber, 0);
   if (rak_is_number(val1))
   {
     if (!rak_is_number(val2))
@@ -817,8 +797,8 @@ static inline void rak_vm_add(RakVM *vm, RakError *err)
     double num1 = rak_as_number(val1);
     double num2 = rak_as_number(val2);
     RakValue res = rak_number_value(num1 + num2);
-    rak_vm_set(vm, 1, res);
-    rak_vm_pop(vm);
+    rak_vm_set(fiber, 1, res);
+    rak_vm_pop(fiber);
     return;
   }
   if (rak_is_string(val1))
@@ -839,8 +819,8 @@ static inline void rak_vm_add(RakVM *vm, RakError *err)
       return;
     }
     RakValue res = rak_string_value(str3);
-    rak_vm_set_object(vm, 1, res);
-    rak_vm_pop(vm);
+    rak_vm_set_object(fiber, 1, res);
+    rak_vm_pop(fiber);
     return;
   }
   if (rak_is_array(val1))
@@ -861,18 +841,18 @@ static inline void rak_vm_add(RakVM *vm, RakError *err)
       return;
     }
     RakValue res = rak_array_value(arr3);
-    rak_vm_set_object(vm, 1, res);
-    rak_vm_pop(vm);
+    rak_vm_set_object(fiber, 1, res);
+    rak_vm_pop(fiber);
     return;
   }
   rak_error_set(err, "cannot add %s and %s", rak_type_to_cstr(val1.type),
     rak_type_to_cstr(val2.type));
 }
 
-static inline void rak_vm_sub(RakVM *vm, RakError *err)
+static inline void rak_vm_sub(RakFiber *fiber, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 1);
-  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 1);
+  RakValue val2 = rak_vm_get(fiber, 0);
   if (!rak_is_number(val1) || !rak_is_number(val2))
   {
     rak_error_set(err, "cannot subtract non-number values");
@@ -881,14 +861,14 @@ static inline void rak_vm_sub(RakVM *vm, RakError *err)
   double num1 = rak_as_number(val1);
   double num2 = rak_as_number(val2);
   RakValue res = rak_number_value(num1 - num2);
-  rak_vm_set(vm, 1, res);
-  rak_vm_pop(vm);
+  rak_vm_set(fiber, 1, res);
+  rak_vm_pop(fiber);
 }
 
-static inline void rak_vm_mul(RakVM *vm, RakError *err)
+static inline void rak_vm_mul(RakFiber *fiber, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 1);
-  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 1);
+  RakValue val2 = rak_vm_get(fiber, 0);
   if (!rak_is_number(val1) || !rak_is_number(val2))
   {
     rak_error_set(err, "cannot multiply non-number values");
@@ -897,14 +877,14 @@ static inline void rak_vm_mul(RakVM *vm, RakError *err)
   double num1 = rak_as_number(val1);
   double num2 = rak_as_number(val2);
   RakValue res = rak_number_value(num1 * num2);
-  rak_vm_set(vm, 1, res);
-  rak_vm_pop(vm);
+  rak_vm_set(fiber, 1, res);
+  rak_vm_pop(fiber);
 }
 
-static inline void rak_vm_div(RakVM *vm, RakError *err)
+static inline void rak_vm_div(RakFiber *fiber, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 1);
-  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 1);
+  RakValue val2 = rak_vm_get(fiber, 0);
   if (!rak_is_number(val1) || !rak_is_number(val2))
   {
     rak_error_set(err, "cannot divide non-number values");
@@ -913,14 +893,14 @@ static inline void rak_vm_div(RakVM *vm, RakError *err)
   double num1 = rak_as_number(val1);
   double num2 = rak_as_number(val2);
   RakValue res = rak_number_value(num1 / num2);
-  rak_vm_set(vm, 1, res);
-  rak_vm_pop(vm);
+  rak_vm_set(fiber, 1, res);
+  rak_vm_pop(fiber);
 }
 
-static inline void rak_vm_mod(RakVM *vm, RakError *err)
+static inline void rak_vm_mod(RakFiber *fiber, RakError *err)
 {
-  RakValue val1 = rak_vm_get(vm, 1);
-  RakValue val2 = rak_vm_get(vm, 0);
+  RakValue val1 = rak_vm_get(fiber, 1);
+  RakValue val2 = rak_vm_get(fiber, 0);
   if (!rak_is_number(val1) || !rak_is_number(val2))
   {
     rak_error_set(err, "cannot calculate modulo of non-number values");
@@ -929,20 +909,20 @@ static inline void rak_vm_mod(RakVM *vm, RakError *err)
   double num1 = rak_as_number(val1);
   double num2 = rak_as_number(val2);
   RakValue res = rak_number_value(fmod(num1, num2));
-  rak_vm_set(vm, 1, res);
-  rak_vm_pop(vm);
+  rak_vm_set(fiber, 1, res);
+  rak_vm_pop(fiber);
 }
 
-static inline void rak_vm_not(RakVM *vm)
+static inline void rak_vm_not(RakFiber *fiber)
 {
-  RakValue val = rak_vm_get(vm, 0);
+  RakValue val = rak_vm_get(fiber, 0);
   RakValue res = rak_is_falsy(val) ? rak_bool_value(true) : rak_bool_value(false);
-  rak_vm_set(vm, 0, res);
+  rak_vm_set(fiber, 0, res);
 }
 
-static inline void rak_vm_neg(RakVM *vm, RakError *err)
+static inline void rak_vm_neg(RakFiber *fiber, RakError *err)
 {
-  RakValue val = rak_vm_get(vm, 0);
+  RakValue val = rak_vm_get(fiber, 0);
   if (!rak_is_number(val))
   {
     rak_error_set(err, "cannot negate a non-number value");
@@ -950,19 +930,19 @@ static inline void rak_vm_neg(RakVM *vm, RakError *err)
   }
   double num = rak_as_number(val);
   RakValue res = rak_number_value(-num);
-  rak_vm_set(vm, 0, res);
+  rak_vm_set(fiber, 0, res);
 }
 
-static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err)
+static inline void rak_vm_call(RakFiber *fiber, uint8_t nargs, RakError *err)
 {
-  RakValue *slots = &rak_stack_get(&vm->vstk, nargs);
+  RakValue *slots = &rak_stack_get(&fiber->vstk, nargs);
   RakValue val = slots[0];
   if (!rak_is_closure(val))
   {
     rak_error_set(err, "cannot call non-closure value");
     return;
   }
-  if (rak_stack_is_full(&vm->cstk))
+  if (rak_stack_is_full(&fiber->cstk))
   {
     rak_error_set(err, "too many nested calls");
     return;
@@ -971,32 +951,31 @@ static inline void rak_vm_call(RakVM *vm, uint8_t nargs, RakError *err)
   int arity = cl->callable->arity;
   while (nargs > arity)
   {
-    rak_vm_pop(vm);
+    rak_vm_pop(fiber);
     --nargs;
   }
   while (nargs < arity)
   {
-    rak_vm_push_nil(vm, err);
+    rak_vm_push_nil(fiber, err);
     if (!rak_is_ok(err)) return;
     ++nargs;
   }
-  uint32_t *ip = NULL;
+  RakCallFrame frame = {
+    .cl = cl,
+    .state = 0,
+    .slots = slots
+  };
   if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
   {
     RakFunction *fn = (RakFunction *) cl->callable;
-    ip = fn->chunk.instrs.data;
+    frame.ip = fn->chunk.instrs.data;
   }
-  RakCallFrame frame = {
-    .cl = cl,
-    .ip = ip,
-    .slots = slots
-  };
-  rak_stack_push(&vm->cstk, frame);
+  rak_stack_push(&fiber->cstk, frame);
 }
 
-static inline void rak_vm_tail_call(RakVM *vm, RakValue *slots, uint8_t nargs, RakError *err)
+static inline void rak_vm_tail_call(RakFiber *fiber, RakValue *slots, uint8_t nargs, RakError *err)
 {
-  RakValue *_slots = &rak_stack_get(&vm->vstk, nargs);
+  RakValue *_slots = &rak_stack_get(&fiber->vstk, nargs);
   RakValue val = _slots[0];
   if (!rak_is_closure(val))
   {
@@ -1007,12 +986,12 @@ static inline void rak_vm_tail_call(RakVM *vm, RakValue *slots, uint8_t nargs, R
   int arity = cl->callable->arity;
   while (nargs > arity)
   {
-    rak_vm_pop(vm);
+    rak_vm_pop(fiber);
     --nargs;
   }
   while (nargs < arity)
   {
-    rak_vm_push_nil(vm, err);
+    rak_vm_push_nil(fiber, err);
     if (!rak_is_ok(err)) return;
     ++nargs;
   }
@@ -1024,26 +1003,26 @@ static inline void rak_vm_tail_call(RakVM *vm, RakValue *slots, uint8_t nargs, R
     rak_value_release(slots[i]);
     slots[i] = _val;
   }
-  vm->vstk.top = &slots[arity];
+  fiber->vstk.top = &slots[arity];
   uint32_t *ip = NULL;
   if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
   {
     RakFunction *fn = (RakFunction *) cl->callable;
     ip = fn->chunk.instrs.data;
   }
-  RakCallFrame *frame = &rak_stack_get(&vm->cstk, 0);
+  RakCallFrame *frame = &rak_stack_get(&fiber->cstk, 0);
   frame->cl = cl;
   frame->ip = ip;
 }
 
-static inline void rak_vm_return(RakVM *vm, RakClosure *cl, RakValue *slots)
+static inline void rak_vm_return(RakFiber *fiber, RakClosure *cl, RakValue *slots)
 {
-  slots[0] = rak_vm_get(vm, 0);
+  slots[0] = rak_vm_get(fiber, 0);
   rak_closure_release(cl);
-  rak_stack_pop(&vm->vstk);
-  while (vm->vstk.top > slots)
-    rak_vm_pop(vm);
-  rak_stack_pop(&vm->cstk);
+  rak_stack_pop(&fiber->vstk);
+  while (fiber->vstk.top > slots)
+    rak_vm_pop(fiber);
+  rak_stack_pop(&fiber->cstk);
 }
 
 #endif // RAK_VM_H

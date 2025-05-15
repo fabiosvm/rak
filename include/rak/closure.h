@@ -28,11 +28,11 @@ typedef struct RakFunction
   RakSlice(struct RakFunction *) nested;
 } RakFunction;
 
-struct RakVM;
+struct RakFiber;
 
 struct RakClosure;
 
-typedef void (*RakNativeFunctionCall)(struct RakVM *, struct RakClosure *, RakValue *, RakError *);
+typedef void (*RakNativeFunctionCall)(struct RakFiber *, struct RakClosure *, int, RakValue *, RakError *);
 
 typedef struct
 {
