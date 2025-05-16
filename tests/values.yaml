@@ -1,0 +1,110 @@
+- test: Nil
+  source: let a=nil; println(a);
+  out: |
+    nil
+
+- test: Bool
+  source: let a=true; println(a); println(!a);
+  out: |
+    true
+    false
+
+- test: Number
+  source: |
+    let a=5; println(a);
+    &a=5.5; println(a);
+    &a=-6.6; println(a);
+    &a=1.2e2; println(a);
+    &a=-1.2e2; println(a);
+    &a=1e-2; println(a);
+    &a=-1.2e-2; println(a);
+  out: |
+    5
+    5.5
+    -6.6
+    120
+    -120
+    0.01
+    -0.012
+
+- test: String
+  source: |
+    let a="Test String!";
+    let b;
+    &b = a;
+    println(a);
+    println(b);
+    &a = "new text.";
+    println(a);
+  out: |
+    Test String!
+    Test String!
+    new text.
+
+- test: Array
+  source: |
+    let a=[1, "Test", false, nil];
+    println(a);
+    let b;
+    &b=a;
+    &b[0]="New";
+    println(b);
+    let c=[0.5, 0.6, 0.7];
+    &c[0] = 0.55;
+    println(c);
+  out: |
+    [1, Test, false, nil]
+    [New, Test, false, nil]
+    [0.55, 0.6, 0.7]
+
+- test: Range
+  source: |
+    let a=1..6; println(a);print(a[0]);print(a[1]);print(a[2]);print(a[3]);println(a[4]);
+    let b=a;  println(b);print(b[0]);print(b[1]);print(b[2]);print(b[3]);println(b[4]);
+  out: |
+    1..6
+    12345
+    1..6
+    12345
+
+- test: Range extended
+  source: |
+    let a="Some long string";
+    let b=[ 10, 9, 8, 7, 6, 5, 4, 3];
+    println(a[2..4]);
+    println(b[2..4]);
+    let c=1..b[4];
+    println(c);
+  out: |
+    me
+    [8, 7]
+    1..6
+
+- test: Record
+  source: |
+    let a={ name: "Yoda", age: 900, isMaster: true, species: nil }; println(a);
+  out: |
+    {name: Yoda, age: 900, isMaster: true, species: nil}
+
+- test: Record extended
+  source: |
+    let a={ name: "Yoda", age: 900};
+    &a.name="Luke";
+    &a.age=22;
+    println(a.name);
+    println(a["age"]);
+    &a.range = 1..5;
+    println(a["range"]);
+  out: |
+    Luke
+    22
+    1..5
+
+- test: Record with record
+  source: |
+    let a={ name: "Yoda", age: 900, isMaster: true, species: nil, master: nil };
+    let b={ name: "Luke", age: 25, isMaster: false, species: "Human", master: nil};
+    &b.master = a;
+    println(b);
+  out: |
+    {name: Luke, age: 25, isMaster: false, species: Human, master: {name: Yoda, age: 900, isMaster: true, species: nil, master: nil}}

@@ -1,0 +1,82 @@
+- test: while simple
+  source: |
+    let a=9;
+    while a>5 { print(a); &a-=1;}
+    println("->Out");
+    println(a);
+  out: |
+    9876->Out
+    5
+
+- test: while and let
+  source: |
+    let a=9;
+    while let a=1; a<5 { print(a); &a+=1;}
+    println("->Out");
+    println(a);
+  out: |
+    1234->Out
+    9
+
+- test: while, continue and break
+  source: |
+    let a=9;
+    let dec=1;
+    while a>5 {
+      if a==8 {
+        &dec = 0.5;
+        &a-=dec;
+        continue;
+      }
+      if a==7 {
+        break;
+      }
+      print(a);
+      print(" ");
+      &a-=dec;
+    }
+    println("->Out");
+    println(a);
+  out: |
+    9 7.5 ->Out
+    7
+
+- test: loop simple
+  source: |
+    let a=9;
+    loop {
+      if a==6 {
+        break;
+      }
+      print(a);
+      &a-=1;
+    }
+    println("->Out");
+    println(a);
+  out: |
+    987->Out
+    6
+
+- test: loop, continue and break
+  source: |
+    let a=9;
+    let dec=1;
+    loop {
+      if a==8 {
+        &dec = 0.5;
+        &a-=dec;
+        continue;
+      }
+      if a==7 {
+        break;
+      }
+      print(a);
+      print(" ");
+      &a-=dec;
+    }
+    println("->Out");
+    println(a);
+  out: |
+    9 7.5 ->Out
+    7
+
