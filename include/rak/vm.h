@@ -13,13 +13,12 @@
 
 #include "fiber.h"
 #include <math.h>
-#include "array.h"
 #include "range.h"
 #include "record.h"
 
 static inline void rak_vm_push(RakFiber *fiber, RakValue val, RakError *err);
 static inline void rak_vm_push_nil(RakFiber *fiber, RakError *err);
-static inline void rak_vm_push_bool(RakFiber *fiber, bool b, RakError *err);
+static inline void rak_vm_push_bool(RakFiber *fiber, bool data, RakError *err);
 static inline void rak_vm_push_number(RakFiber *fiber, double data, RakError *err);
 static inline void rak_vm_push_value(RakFiber *fiber, RakValue val, RakError *err);
 static inline void rak_vm_push_object(RakFiber *fiber, RakValue val, RakError *err);
@@ -113,7 +112,7 @@ static inline void rak_vm_load_const(RakFiber *fiber, RakChunk *chunk, uint8_t i
 
 static inline void rak_vm_load_global(RakFiber *fiber, uint8_t idx, RakError *err)
 {
-  RakValue val = fiber->vstk.base[idx];
+  RakValue val = rak_array_get(fiber->globals, idx);
   rak_vm_push_value(fiber, val, err);
 }
 

@@ -11,9 +11,9 @@
 #ifndef RAK_BUILTIN_H
 #define RAK_BUILTIN_H
 
-#include "fiber.h"
+#include "array.h"
 
-void rak_builtin_load_globals(RakFiber *fiber, RakError *err);
+RakArray *rak_builtin_globals(RakError *err);
 int rak_builtin_resolve_global(int len, char *chars);
 
 #endif // RAK_BUILTIN_H

@@ -11,8 +11,11 @@
 #include "rak/fiber.h"
 #include "rak/vm.h"
 
-void rak_fiber_init(RakFiber *fiber, int vstkSize, int cstkSize, RakError *err)
+void rak_fiber_init(RakFiber *fiber, RakArray *globals, int vstkSize,
+  int cstkSize, RakError *err)
 {
+  fiber->globals = globals;
+  rak_object_retain(&globals->obj);
   rak_stack_init(&fiber->vstk, vstkSize, err);
   if (!rak_is_ok(err)) return;
   rak_stack_init(&fiber->cstk, cstkSize, err);
@@ -22,6 +25,7 @@ void rak_fiber_init(RakFiber *fiber, int vstkSize, int cstkSize, RakError *err)
 
 void rak_fiber_deinit(RakFiber *fiber)
 {
+  rak_array_release(fiber->globals);
   while (!rak_stack_is_empty(&fiber->vstk))
     rak_vm_pop(fiber);
   rak_stack_deinit(&fiber->vstk);

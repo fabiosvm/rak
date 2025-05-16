@@ -11,6 +11,7 @@
 #ifndef RAK_FIBER_H
 #define RAK_FIBER_H
 
+#include "array.h"
 #include "closure.h"
 #include "stack.h"
 
@@ -30,11 +31,13 @@ typedef struct
 
 typedef struct RakFiber
 {
-  RakStack(RakValue)     vstk;
-  RakStack(RakCallFrame) cstk;
+  RakArray               *globals;
+  RakStack(RakValue)      vstk;
+  RakStack(RakCallFrame)  cstk;
 } RakFiber;
 
-void rak_fiber_init(RakFiber *fiber, int vstkSize, int cstkSize, RakError *err);
+void rak_fiber_init(RakFiber *fiber, RakArray *globals, int vstkSize,
+  int cstkSize, RakError *err);
 void rak_fiber_deinit(RakFiber *fiber);
 void rak_fiber_run(RakFiber *fiber, RakFunction *fn, RakError *err);
 void rak_fiber_resume(RakFiber *fiber, RakError *err);

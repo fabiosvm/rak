@@ -169,21 +169,21 @@ int main(int argc, const char *argv[])
     rak_function_free(fn);
     return EXIT_SUCCESS;
   }
-  RakFiber fiber;
-  rak_fiber_init(&fiber, RAK_FIBER_VSTK_DEFAULT_SIZE,
-    RAK_FIBER_CSTK_DEFAULT_SIZE, &err);
+  RakArray *globals = rak_builtin_globals(&err);
   if (!rak_is_ok(&err))
   {
     rak_error_print(&err);
     rak_function_free(fn);
     return EXIT_FAILURE;
   }
-  rak_builtin_load_globals(&fiber, &err);
+  RakFiber fiber;
+  rak_fiber_init(&fiber, globals, RAK_FIBER_VSTK_DEFAULT_SIZE,
+    RAK_FIBER_CSTK_DEFAULT_SIZE, &err);
   if (!rak_is_ok(&err))
   {
     rak_error_print(&err);
     rak_function_free(fn);
-    rak_fiber_deinit(&fiber);
+    rak_array_free(globals);
     return EXIT_FAILURE;
   }
   rak_fiber_run(&fiber, fn, &err);
