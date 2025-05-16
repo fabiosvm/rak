@@ -178,6 +178,7 @@ int main(int argc, const char *argv[])
     rak_function_free(fn);
     return EXIT_FAILURE;
   }
+  // TODO: Move out globals from fiber stack.
   rak_builtin_load_globals(&fiber, &err);
   if (!rak_is_ok(&err))
   {
@@ -186,7 +187,7 @@ int main(int argc, const char *argv[])
     rak_fiber_deinit(&fiber);
     return EXIT_FAILURE;
   }
-  rak_fiber_run(&fiber, fn, &err);
+  rak_fiber_run(&fiber, &fn->callable, &err);
   if (!rak_is_ok(&err))
   {
     rak_error_print(&err);

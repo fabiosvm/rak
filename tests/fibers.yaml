@@ -1,0 +1,9 @@
+- test: fiber - empty
+  source: |
+    //fn f() {}
+    //let fi = fiber(f);
+    //let a = run(fi);
+    let a;
+    println(a);
+  out: |
+    nil
