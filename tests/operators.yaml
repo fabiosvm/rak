@@ -1,0 +1,48 @@
+- test: Binary
+  source: |
+    println(10+11);
+    println("New " + "text");
+    println([1, 2] + [3, 4]);
+    println(7*8);
+    println(12/3);
+    println(12 % 3.3);
+  out: |
+    21
+    New text
+    [1, 2, 3, 4]
+    56
+    4
+    2.1
+
+- test: Assignment operator
+  source: |
+    let a=10;
+    let txt="New";
+    let arr = [1, 2];
+    println(&a += 11);
+    println(&txt += " text");
+    println(&arr += [3, 4]);
+    println(&a *= 9);
+    println(&a /= 3);
+    println(&a %= 5);
+  out: |
+    21
+    New text
+    [1, 2, 3, 4]
+    189
+    63
+    3
+
+- test: Unary
+  source: |
+    let a = false;
+    println(a);
+    &a = !a;
+    println(a);
+    println(-10);
+    println(--10);
+  out: |
+    false
+    true
+    -10
+    10

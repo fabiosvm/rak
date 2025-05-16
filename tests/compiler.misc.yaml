@@ -1,0 +1,90 @@
+
+- test: Block
+  source: |
+    let a=10;
+    {
+      let a=11; &a+=1; println(a);
+    }
+    println(a);
+  out: |
+    12
+    10
+
+- test: Empty blocks
+  source: |
+    {}{}{{}}
+  out: ""
+
+- test: Group
+  source: |
+    let a=10;
+    (&a+=1);
+    println(a);
+  out: |
+    11
+
+- test: Empty groups
+  source: |
+    (1);(2);((3));
+  out: ""
+
+- test: Comment
+  source: " // println(25);"
+  out: ""
+
+- test: Error - unexpected char
+  source: |
+    let a=3; ¨;
+  out:
+    regex: "unexpected character"
+  exit_code: 1
+
+- test: Error - Unterminated string
+  source: |-
+    let a="This is;
+    println(a);
+  out:
+    regex: "unterminated string"
+  exit_code: 1
+
+- test: Error - premature end of file
+  source: |-
+    let a="This is"
+  out:
+    regex: "end of file"
+  exit_code: 1
+
+- test: Error number (1)
+  source: |
+    let a=34c;
+  out:
+    regex: "unexpected character"
+  exit_code: 1
+
+- test: Error number (2)
+  source: |
+    let a=34.2c;
+  out:
+    regex: "unexpected character"
+  exit_code: 1
+
+- test: Error number (3)
+  source: |
+    let a=1.2e3c;
+  out:
+    regex: "unexpected character"
+  exit_code: 1
+
+- test: Error number (4)
+  source: |
+    let a=1.2ec;
+  out:
+    regex: "unexpected character"
+  exit_code: 1
+
+- test: Error range (1)
+  source: |
+    let a=1..6.6; println(a);
+  out:
+    regex: "range must be of type integer numbers"
+  exit_code: 1

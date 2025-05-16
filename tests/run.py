@@ -54,7 +54,7 @@ def run_one_test(test_case: dict) -> dict:
         if exit_code != expected_exit_code:
             return {
                 "passed": False,
-                "message": f"Wrong exit code. Expected: {expected_exit_code}. Got: {exit_code}.",
+                "message": f"Wrong exit code. Expected: {expected_exit_code}. Got: {exit_code}.\n{output}\n**********************************",
                 "test_name": test_name,
             }
 
