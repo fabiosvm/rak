@@ -32,7 +32,9 @@ assign_stmt_cont  ::= ( "[" expr "]" | "." IDENT ) ( "=" expr | assign_op expr |
 
 fn_decl           ::= "fn" IDENT params block
 
-params            ::= "(" ( IDENT ( "," IDENT )* )? ")"
+params            ::= "(" ( param ( "," param )* )? ")"
+
+param             ::= "inout"? IDENT
 
 if_stmt           ::= "if" let_decl? expr block if_stmt_cont
 
@@ -74,9 +76,9 @@ unary_expr        ::= ( "!" | "-" )? unary_expr | call_expr
 
 call_expr         ::= prim_expr ( call | subscr )*
 
-call              ::= "(" expr_list? ")"
+call              ::= "(" ( arg ( "," arg )* )? ")"
 
-expr_list         ::= expr ( "," expr )*
+arg               ::= "&" IDENT | expr
 
 subscr            ::= "[" expr "]" | "." IDENT
 
@@ -87,7 +89,7 @@ prim_expr         ::= "nil" | "false" | "true" | NUMBER | STRING | IDENT
                     | if_expr
                     | group
 
-array             ::= "[" expr_list? "]"
+array             ::= "[" ( expr ( "," expr )* )? "]"
 
 record            ::= "{" ( field ( "," field )* )? "}"
 

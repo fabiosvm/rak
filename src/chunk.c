@@ -37,6 +37,10 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   case RAK_OP_LOAD_LOCAL:      cstr = "LOAD_LOCAL";      break;
   case RAK_OP_STORE_LOCAL:     cstr = "STORE_LOCAL";     break;
   case RAK_OP_FETCH_LOCAL:     cstr = "FETCH_LOCAL";     break;
+  case RAK_OP_REF_LOCAL:       cstr = "REF_LOCAL";       break;
+  case RAK_OP_LOAD_LOCAL_REF:  cstr = "LOAD_LOCAL_REF";  break;
+  case RAK_OP_STORE_LOCAL_REF: cstr = "STORE_LOCAL_REF"; break;
+  case RAK_OP_CHECK_REF:       cstr = "CHECK_REF";       break;
   case RAK_OP_NEW_ARRAY:       cstr = "NEW_ARRAY";       break;
   case RAK_OP_NEW_RANGE:       cstr = "NEW_RANGE";       break;
   case RAK_OP_NEW_RECORD:      cstr = "NEW_RECORD";      break;

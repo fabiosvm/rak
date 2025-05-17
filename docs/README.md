@@ -67,6 +67,7 @@ The following keywords are reserved and cannot be used as identifiers:
 - `false`
 - `fn`
 - `if`
+- `inout`
 - `let`
 - `loop`
 - `nil`
@@ -90,6 +91,7 @@ The following types are supported:
 | `Range` | A representation of a range of integers. |
 | `Record` | A collection of fields. |
 | `Closure` | Function or native function. |
+| `Ref` | A reference to a value. |
 
 ## Falsy values
 
@@ -649,7 +651,15 @@ fn factorial(n, acc) {
 println(factorial(130, 1)); // 6.46686e+219
 ```
 
-## Built-in functions
+### Caputuring values
+
+> (Details about closures and capturing values will be added later.)
+
+### Inout parameters
+
+> (Details about inout parameters will be added later.)
+
+### Built-in functions
 
 Rak provides a small set of built-in functions that are available in all scopes.
 
@@ -665,6 +675,7 @@ Rak provides a small set of built-in functions that are available in all scopes.
 | `is_range` | Returns `true` if the value is a `Range`. |
 | `is_record` | Returns `true` if the value is a `Record`. |
 | `is_closure` | Returns `true` if the value is a `Closure`. |
+| `is_ref` | Returns `true` if the value is a `Ref`. |
 | `ptr` | Returns the memory address if value is an object. |
 | `ref_count` | Returns the reference count if value is an object. |
 | `array` | Creates a new array. |

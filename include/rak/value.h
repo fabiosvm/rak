@@ -30,6 +30,7 @@
 #define rak_range_value(p)   ((RakValue) { .type = RAK_TYPE_RANGE, .flags = RAK_FLAG_OBJECT, .opaque.ptr = (p) })
 #define rak_record_value(p)  ((RakValue) { .type = RAK_TYPE_RECORD, .flags = RAK_FLAG_OBJECT, .opaque.ptr = (p) })
 #define rak_closure_value(p) ((RakValue) { .type = RAK_TYPE_CLOSURE, .flags = RAK_FLAG_OBJECT, .opaque.ptr = (p) })
+#define rak_ref_value(p)     ((RakValue) { .type = RAK_TYPE_REF, .flags = 0, .opaque.ptr = (p) })
 
 #define rak_as_bool(v)    ((v).opaque.b)
 #define rak_as_number(v)  ((v).opaque.f64)
@@ -39,6 +40,7 @@
 #define rak_as_range(v)   ((RakRange *) (v).opaque.ptr)
 #define rak_as_record(v)  ((RakRecord *) (v).opaque.ptr)
 #define rak_as_closure(v) ((RakClosure *) (v).opaque.ptr)
+#define rak_as_ref(v)     ((RakValue *) (v).opaque.ptr)
 #define rak_as_object(v)  ((RakObject *) (v).opaque.ptr)
 
 #define rak_is_nil(v)     ((v).type == RAK_TYPE_NIL)
@@ -50,6 +52,7 @@
 #define rak_is_range(v)   ((v).type == RAK_TYPE_RANGE)
 #define rak_is_record(v)  ((v).type == RAK_TYPE_RECORD)
 #define rak_is_closure(v) ((v).type == RAK_TYPE_CLOSURE)
+#define rak_is_ref(v)     ((v).type == RAK_TYPE_REF)
 #define rak_is_falsy(v)   ((v).flags & RAK_FLAG_FALSY)
 #define rak_is_object(v)  ((v).flags & RAK_FLAG_OBJECT)
 #define rak_is_shared(v)  ((v).flags & RAK_FLAG_SHARED)
@@ -79,7 +82,8 @@ typedef enum
   RAK_TYPE_ARRAY,
   RAK_TYPE_RANGE,
   RAK_TYPE_RECORD,
-  RAK_TYPE_CLOSURE
+  RAK_TYPE_CLOSURE,
+  RAK_TYPE_REF
 } RakType;
 
 typedef union

@@ -23,6 +23,7 @@ static const char *globals[] = {
   "TYPE_RANGE",
   "TYPE_RECORD",
   "TYPE_CLOSURE",
+  "TYPE_REF",
   "NUMBER_EPSILON",
   "NUMBER_MIN",
   "NUMBER_MAX",
@@ -38,6 +39,7 @@ static const char *globals[] = {
   "is_range",
   "is_record",
   "is_closure",
+  "is_ref",
   "is_falsy",
   "is_object",
   "ptr",
@@ -65,6 +67,7 @@ static void is_array_native_call(RakFiber *fiber, RakClosure *cl, int state, Rak
 static void is_range_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
 static void is_record_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
 static void is_closure_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
+static void is_ref_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
 static void is_falsy_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
 static void is_object_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
 static void ptr_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
@@ -187,6 +190,15 @@ static void is_closure_native_call(RakFiber *fiber, RakClosure *cl, int state, R
   (void) state;
   RakValue val = slots[1];
   rak_vm_push_bool(fiber, rak_is_closure(val), err);
+  if (!rak_is_ok(err)) return;
+  rak_vm_return(fiber, cl, slots);
+}
+
+static void is_ref_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+{
+  (void) state;
+  RakValue val = slots[1];
+  rak_vm_push_bool(fiber, rak_is_ref(val), err);
   if (!rak_is_ok(err)) return;
   rak_vm_return(fiber, cl, slots);
 }
@@ -459,6 +471,8 @@ RakArray *rak_builtin_globals(RakError *err)
   if (!rak_is_ok(err)) return NULL;
   rak_array_inplace_append(arr, rak_number_value(RAK_TYPE_CLOSURE), err);
   if (!rak_is_ok(err)) return NULL;
+  rak_array_inplace_append(arr, rak_number_value(RAK_TYPE_REF), err);
+  if (!rak_is_ok(err)) return NULL;
   rak_array_inplace_append(arr, rak_number_value(RAK_NUMBER_EPSILON), err);
   if (!rak_is_ok(err)) return NULL;
   rak_array_inplace_append(arr, rak_number_value(DBL_MIN), err);
@@ -469,49 +483,51 @@ RakArray *rak_builtin_globals(RakError *err)
   if (!rak_is_ok(err)) return NULL;
   rak_array_inplace_append(arr, rak_number_value(RAK_INTEGER_MAX), err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[13], 1, type_native_call, err);
+  append_native_function(arr, globals[14], 1, type_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[14], 1, is_nil_native_call, err);
+  append_native_function(arr, globals[15], 1, is_nil_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[15], 1, is_bool_native_call, err);
+  append_native_function(arr, globals[16], 1, is_bool_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[16], 1, is_number_native_call, err);
+  append_native_function(arr, globals[17], 1, is_number_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[17], 1, is_integer_native_call, err);
+  append_native_function(arr, globals[18], 1, is_integer_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[18], 1, is_string_native_call, err);
+  append_native_function(arr, globals[19], 1, is_string_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[19], 1, is_array_native_call, err);
+  append_native_function(arr, globals[20], 1, is_array_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[20], 1, is_range_native_call, err);
+  append_native_function(arr, globals[21], 1, is_range_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[21], 1, is_record_native_call, err);
+  append_native_function(arr, globals[22], 1, is_record_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[22], 1, is_closure_native_call, err);
+  append_native_function(arr, globals[23], 1, is_closure_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[23], 1, is_falsy_native_call, err);
+  append_native_function(arr, globals[24], 1, is_ref_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[24], 1, is_object_native_call, err);
+  append_native_function(arr, globals[25], 1, is_falsy_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[25], 1, ptr_native_call, err);
+  append_native_function(arr, globals[26], 1, is_object_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[26], 1, ref_count_native_call, err);
+  append_native_function(arr, globals[27], 1, ptr_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[27], 3, array_native_call, err);
+  append_native_function(arr, globals[28], 1, ref_count_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[28], 2, append_native_call, err);
+  append_native_function(arr, globals[29], 3, array_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[29], 1, cap_native_call, err);
+  append_native_function(arr, globals[30], 2, append_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[30], 1, len_native_call, err);
+  append_native_function(arr, globals[31], 1, cap_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[31], 1, is_empty_native_call, err);
+  append_native_function(arr, globals[32], 1, len_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[32], 1, print_native_call, err);
+  append_native_function(arr, globals[33], 1, is_empty_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[33], 1, println_native_call, err);
+  append_native_function(arr, globals[34], 1, print_native_call, err);
   if (!rak_is_ok(err)) return NULL;
-  append_native_function(arr, globals[34], 1, panic_native_call, err);
+  append_native_function(arr, globals[35], 1, println_native_call, err);
+  if (!rak_is_ok(err)) return NULL;
+  append_native_function(arr, globals[36], 1, panic_native_call, err);
   if (!rak_is_ok(err)) return NULL;
   return arr;
 }

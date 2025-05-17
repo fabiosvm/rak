@@ -61,6 +61,10 @@ void rak_dump_function(RakFunction *fn)
     case RAK_OP_LOAD_LOCAL:
     case RAK_OP_STORE_LOCAL:
     case RAK_OP_FETCH_LOCAL:
+    case RAK_OP_REF_LOCAL:
+    case RAK_OP_LOAD_LOCAL_REF:
+    case RAK_OP_STORE_LOCAL_REF:
+    case RAK_OP_CHECK_REF:
     case RAK_OP_NEW_ARRAY:
     case RAK_OP_NEW_RECORD:
     case RAK_OP_NEW_CLOSURE:

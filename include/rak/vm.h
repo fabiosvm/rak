@@ -27,6 +27,10 @@ static inline void rak_vm_load_global(RakFiber *fiber, uint8_t idx, RakError *er
 static inline void rak_vm_load_local(RakFiber *fiber, RakValue *slots, uint8_t idx, RakError *err);
 static inline void rak_vm_store_local(RakFiber *fiber, RakValue *slots, uint8_t idx);
 static inline void rak_vm_fetch_local(RakFiber *fiber, RakValue *slots, uint8_t idx, RakError *err);
+static inline void rak_vm_ref_local(RakFiber *fiber, RakValue *slots, uint8_t idx, RakError *err);
+static inline void rak_vm_load_local_ref(RakFiber *fiber, RakValue *slots, uint8_t idx, RakError *err);
+static inline void rak_vm_store_local_ref(RakFiber *fiber, RakValue *slots, uint8_t idx);
+static inline void rak_vm_check_ref(RakValue *slots, uint8_t idx, RakError *err);
 static inline void rak_vm_new_array(RakFiber *fiber, uint8_t len, RakError *err);
 static inline void rak_vm_new_range(RakFiber *fiber, RakError *err);
 static inline void rak_vm_new_record(RakFiber *fiber, uint8_t len, RakError *err);
@@ -127,7 +131,7 @@ static inline void rak_vm_store_local(RakFiber *fiber, RakValue *slots, uint8_t 
   RakValue val = rak_vm_get(fiber, 0);
   rak_value_release(slots[idx]);
   slots[idx] = val;
-  --fiber->vstk.top;
+  rak_stack_pop(&fiber->vstk);
 }
 
 static inline void rak_vm_fetch_local(RakFiber *fiber, RakValue *slots, uint8_t idx, RakError *err)
@@ -136,6 +140,36 @@ static inline void rak_vm_fetch_local(RakFiber *fiber, RakValue *slots, uint8_t 
   if (rak_is_object(val) && rak_as_object(val)->refCount > 1)
     val.flags |= RAK_FLAG_SHARED;
   rak_vm_push_value(fiber, val, err);
+}
+
+static inline void rak_vm_ref_local(RakFiber *fiber, RakValue *slots, uint8_t idx, RakError *err)
+{
+  RakValue *slot = &slots[idx];
+  RakValue val = rak_ref_value(slot);
+  rak_vm_push_value(fiber, val, err);
+}
+
+static inline void rak_vm_load_local_ref(RakFiber *fiber, RakValue *slots, uint8_t idx, RakError *err)
+{
+  RakValue *slot = rak_as_ref(slots[idx]);
+  rak_vm_push_value(fiber, *slot, err);
+}
+
+static inline void rak_vm_store_local_ref(RakFiber *fiber, RakValue *slots, uint8_t idx)
+{
+  RakValue *slot = rak_as_ref(slots[idx]);
+  RakValue val = rak_vm_get(fiber, 0);
+  rak_value_release(*slot);
+  *slot = val;
+  rak_stack_pop(&fiber->vstk);
+}
+
+static inline void rak_vm_check_ref(RakValue *slots, uint8_t idx, RakError *err)
+{
+  RakValue val = slots[idx];
+  if (rak_is_ref(val)) return;
+  rak_error_set(err, "argument #%d must be a ref, got %s", idx,
+    rak_type_to_cstr(val.type));
 }
 
 static inline void rak_vm_new_array(RakFiber *fiber, uint8_t len, RakError *err)
@@ -592,13 +626,13 @@ static inline void rak_vm_put_field(RakFiber *fiber, RakChunk *chunk, uint8_t id
     RakValue res = rak_record_value(_rec);
     rak_vm_set_object(fiber, 1, res);
     rak_value_release(val2);
-    --fiber->vstk.top;
+    rak_stack_pop(&fiber->vstk);
     return;
   }
   rak_record_inplace_put(rec, name, val2, err);
   if (!rak_is_ok(err)) return;
   rak_value_release(val2);
-  --fiber->vstk.top;
+  rak_stack_pop(&fiber->vstk);
 }
 
 static inline void rak_vm_load_field(RakFiber *fiber, RakChunk *chunk, uint8_t idx, RakError *err)
@@ -694,7 +728,7 @@ static inline void rak_vm_unpack_elements(RakFiber *fiber, uint8_t n, RakError *
   }
   for (int i = len; i < n; ++i)
     slots[i] = rak_nil_value();
-  --fiber->vstk.top;
+  rak_stack_pop(&fiber->vstk);
   rak_array_release(arr);
 }
 
@@ -723,7 +757,7 @@ static inline void rak_vm_unpack_fields(RakFiber *fiber, uint8_t n, RakError *er
     slots[i] = _val;
     rak_value_retain(_val);
   }
-  --fiber->vstk.top;
+  rak_stack_pop(&fiber->vstk);
   rak_record_release(rec);
 }
 

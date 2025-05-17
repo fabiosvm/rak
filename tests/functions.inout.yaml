@@ -1,0 +1,36 @@
+
+- test: function - inout parameters - passing local variable
+  source: |
+    fn f(inout a) {
+      &a = 2;
+    }
+    let x = 1;
+    f(&x);
+    println(x);
+  out: |
+    2
+
+- test: function - inout parameters - passing inout parameter
+  source: |
+    fn f(inout a) {
+      fn g(inout b) {
+        &b = 2;
+      }
+      g(&a);
+    }
+    let x = 1;
+    f(&x);
+    println(x);
+  out: |
+    2
+
+- test: function - inout parameters - passing arbitrary value
+  source: |
+    fn f(inout a) {
+      &a = 2;
+    }
+    let x = 1;
+    f(x);
+  out:
+    regex: "^ERROR: argument #1 must be a ref, got number"
+  exit_code: 1
