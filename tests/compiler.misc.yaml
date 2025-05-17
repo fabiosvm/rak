@@ -18,12 +18,12 @@
 - test: Group
   source: |
     let a=10;
-    (&a+=1);
-    println(a);
+    &a+=1;
+    println((a));
   out: |
     11
 
-- test: Empty groups
+- test: Statement groups
   source: |
     (1);(2);((3));
   out: ""

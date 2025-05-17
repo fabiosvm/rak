@@ -1,3 +1,4 @@
+
 - test: destruct simple
   source: |
     let [x, y] = [1, 2, 3];

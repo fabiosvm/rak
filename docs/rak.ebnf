@@ -3,6 +3,7 @@ chunk             ::= stmt* EOF
 
 stmt              ::= block
                     | let_decl
+                    | assign_stmt
                     | fn_decl
                     | if_stmt
                     | loop_stmt
@@ -22,6 +23,12 @@ destruct_elements ::= "[" ident_list "]" "=" expr
 ident_list        ::= IDENT ( "," IDENT )*
 
 destruct_fields   ::= "{" ident_list "}" "=" expr
+
+assign_stmt       ::= "&" IDENT ( "=" expr | assign_op expr | assign_stmt_cont ) ";"
+
+assign_op         ::= "+=" | "-=" | "*=" | "/=" | "%="
+
+assign_stmt_cont  ::= ( "[" expr "]" | "." IDENT ) ( "=" expr | assign_op expr | assign_stmt_cont )
 
 fn_decl           ::= "fn" IDENT params block
 
@@ -45,17 +52,9 @@ return_stmt       ::= "return" expr? ";"
 
 expr_stmt         ::= expr ";"
 
-expr              ::= assign_expr | or_expr
+expr              ::= and_expr expr_cont
 
-assign_expr       ::= "&" IDENT ( "=" expr | assign_op expr | assign_expr_cont )
-
-assign_op         ::= "+=" | "-=" | "*=" | "/=" | "%="
-
-assign_expr_cont  ::= ( "[" expr "]" | "." IDENT ) ( "=" expr | assign_op expr | assign_expr_cont )
-
-or_expr           ::= and_expr or_expr_cont
-
-or_expr_cont      ::= ( "||" and_expr or_expr_cont )?
+expr_cont         ::= ( "||" and_expr expr_cont )?
 
 and_expr          ::= eq_expr and_expr_cont
 

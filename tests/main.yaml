@@ -1,3 +1,4 @@
+
 - test: read from file
   args: "examples/hello.rak"
   out: |

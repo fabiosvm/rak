@@ -19,12 +19,12 @@
     let a=10;
     let txt="New";
     let arr = [1, 2];
-    println(&a += 11);
-    println(&txt += " text");
-    println(&arr += [3, 4]);
-    println(&a *= 9);
-    println(&a /= 3);
-    println(&a %= 5);
+    &a += 11; println(a);
+    &txt += " text"; println(txt);
+    &arr += [3, 4]; println(arr);
+    &a *= 9; println(a);
+    &a /= 3; println(a);
+    &a %= 5; println(a);
   out: |
     21
     New text

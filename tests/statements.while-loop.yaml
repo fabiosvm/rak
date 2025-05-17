@@ -1,3 +1,4 @@
+
 - test: while simple
   source: |
     let a=9;
@@ -79,4 +80,3 @@
   out: |
     9 7.5 ->Out
     7
-

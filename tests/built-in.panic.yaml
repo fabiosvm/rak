@@ -1,3 +1,4 @@
+
 - test: panic
   source: |
     fn f() {
