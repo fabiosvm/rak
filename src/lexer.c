@@ -178,16 +178,16 @@ static inline bool insertUnicodeChar(RakLexer *lex, RakString *text, int code, R
 {
   unsigned char buffer[5] = {0, 0, 0, 0, 0};
   if (code <= 0x7F) {
-    buffer[0] = code;
+    buffer[0] = code & 0xFF;
   } else if (code <= 0x7FF) {
-    buffer[0] = 0xC0 | (code >> 6);
+    buffer[0] = 0xC0 | ((code >> 6) & 0xFF);
     buffer[1] = 0x80 | (code & 0x3F);
   } else if (code <= 0xFFFF) {
-    buffer[0] = 0xE0 | (code >> 12);
+    buffer[0] = 0xE0 | ((code >> 12) & 0xFF);
     buffer[1] = 0x80 | ((code >> 6) & 0x3F);
     buffer[2] = 0x80 | (code & 0x3F);
   } else if (code <= 0x10FFFF) {
-    buffer[0] = 0xF0 | (code >> 18);
+    buffer[0] = 0xF0 | ((code >> 18) & 0xFF);
     buffer[1] = 0x80 | ((code >> 12) & 0x3F);
     buffer[2] = 0x80 | ((code >> 6) & 0x3F);
     buffer[3] = 0x80 | (code & 0x3F);
