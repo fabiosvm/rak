@@ -11,7 +11,6 @@
 #include "rak/lexer.h"
 #include "rak/string.h"
 #include <ctype.h>
-#include <stdbool.h>
 #include <string.h>
 
 #define char_at(l, i)   ((l)->curr[(i)])
@@ -146,7 +145,8 @@ static inline int hex2bin (char c)
   return 0;
 }
 
-static bool handle_hex_escape(RakLexer *lex, RakString *text, RakError *err) {
+static bool handle_hex_escape(RakLexer *lex, RakString *text, RakError *err)
+{
   if (!isxdigit(current_char(lex)) || !isxdigit(char_at(lex, 1)))
   {
     rak_error_set(
@@ -173,7 +173,8 @@ static bool handle_hex_escape(RakLexer *lex, RakString *text, RakError *err) {
   return rak_is_ok(err);
 }
 
-static bool handle_unicode_escape(RakLexer *lex, RakString *text, RakError *err) {
+static bool handle_unicode_escape(RakLexer *lex, RakString *text, RakError *err)
+{
   if (current_char(lex) != '{')
   {
     rak_error_set(
@@ -186,7 +187,7 @@ static bool handle_unicode_escape(RakLexer *lex, RakString *text, RakError *err)
   }
   next_char(lex);
   int code = 0;
-  for (; current_char(lex) != '}'; next_char(lex))
+  while (current_char(lex) != '}')
   {
     if (!isxdigit(current_char(lex))) {
       rak_error_set(
@@ -198,6 +199,7 @@ static bool handle_unicode_escape(RakLexer *lex, RakString *text, RakError *err)
       return false;
     }
     code = code * 16 + hex2bin(current_char(lex));
+    next_char(lex);
   }
   next_char(lex);
   if (code > 0x7f)
@@ -215,7 +217,8 @@ static bool handle_unicode_escape(RakLexer *lex, RakString *text, RakError *err)
   return rak_is_ok(err);
 }
 
-static bool handle_escape_sequence(RakLexer *lex, RakString *text, RakError *err) {
+static bool handle_escape_sequence(RakLexer *lex, RakString *text, RakError *err)
+{
   switch (current_char(lex)) {
   case 'n':
     rak_string_inplace_append_cstr(text, 1, "\n", err);
@@ -255,7 +258,8 @@ static bool handle_escape_sequence(RakLexer *lex, RakString *text, RakError *err
   return rak_is_ok(err);
 }
 
-static bool parseString(RakLexer *lex, RakError *err) {
+static bool parseString(RakLexer *lex, RakError *err)
+{
   RakString *text = rak_string_new(err);
   if (!rak_is_ok(err)) return false;
   while (true)
@@ -283,7 +287,8 @@ static bool parseString(RakLexer *lex, RakError *err) {
   }
 }
 
-static inline bool match_string(RakLexer *lex, RakError *err) {
+static inline bool match_string(RakLexer *lex, RakError *err)
+{
   if (current_char(lex) != '\"') return false;
   next_char(lex);
   return parseString(lex, err);
