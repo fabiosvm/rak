@@ -1,0 +1,225 @@
+
+- test: Truthy values
+  source: |
+    if nil { println("nil is true"); }
+    if true { println("true is true"); }
+    if false { println("false is true"); }
+    if 0 { println("0 is true"); }
+    if -1.2 { println("-1.2 is true"); }
+    if "" { println("empty string is true"); }
+    if "asdf" { println("'asdf' is true"); }
+    if [] { println("empty array is true"); }
+    if [1] { println("[1] is true"); }
+    if {} { println("empty record is true"); } else {println("empty record is false"); }
+    if { a: true } { println("{ a: true } is true"); }
+    if fn (){} { println("empty closure is true"); }
+  out: |
+    true is true
+    0 is true
+    -1.2 is true
+    empty string is true
+    'asdf' is true
+    empty array is true
+    [1] is true
+    empty record is true
+    { a: true } is true
+    empty closure is true
+
+- test: Equal different types
+  source: |
+    if nil == false { println("nil == false"); }
+    if true == "" { println("true == ''"); }
+    if "asdf" == ["a", "s", "d", "f"] { println("'asdf' == ['a', 's', 'd', 'f']"); }
+    if [] == {} { println("[] == {}"); }
+    if [] == "" { println("[] == ''"); }
+  out: ""
+
+- test: Equal (true)
+  source: |
+    let ni=nil;
+    let boo=false;
+    let num=10;
+    let str="text";
+    let arr=[1, 2, "tres"];
+    let ran=3..6;
+    let rec={name: "Luke",age:22};
+
+    if ni == nil { println("ni is equal nil"); }
+    if boo == false { println("boo is equal false"); }
+    if str == "text" { println("str is equal 'text'"); }
+    if arr == [1, 2, "tres"] { println("arr is equal [1, 2, 'tres']"); }
+    if ran == 3..6 { println("ran is equal 3..6"); }
+    if rec == {name: "Luke" , age: 22} { println("rec is equal {name: 'Luke' , age: 22}"); }
+  out: |
+    ni is equal nil
+    boo is equal false
+    str is equal 'text'
+    arr is equal [1, 2, 'tres']
+    ran is equal 3..6
+    rec is equal {name: 'Luke' , age: 22}
+
+- test: Equal (false)
+  source: |
+    let ni=nil;
+    let boo=false;
+    let num=10;
+    let str="text";
+    let arr=[1, 2, "tres"];
+    let ran=3..6;
+    let rec={name: "Luke",age:22};
+
+    if boo == true { println("boo is equal true"); }
+    if str == "texto" { println("str is equal 'texto'"); }
+    if arr == [1, 1, "tres"] { println("arr is equal [1, 1, 'tres']"); }
+    if ran == 3..5 { println("ran is equal 3..5"); }
+    if rec == {name: "Luk" , age: 22} { println("rec is equal {name: 'Luk' , age: 22}"); }
+  out: ""
+
+- test: Equal (true, complex)
+  source: |
+    let arr1=[1, 2, "tres", {name: "Luke", age: 22}];
+    let rec1={name: "Yoda",age:900, favRange: 5..10};
+    let mix = [ arr1, rec1];
+    let mix1 = [ [1, 1, "tres", nil], {name: "Yoda",age:900, favRange: 5..10}];
+    &mix1[0][1] = 2;
+    &mix1[0][3] = { name: "Lu" + "ke", age: 20+2};
+
+    if arr1 == [1, 2, "tres", {name: "Luke", age: 22}] { println("arr1 pass"); }
+    if rec1 == {name: "Yoda",age:900, favRange: 5..10} { println("rec1 pass"); }
+    if mix == mix1 { println("mix mix1 pass"); }
+  out: |
+    arr1 pass
+    rec1 pass
+    mix mix1 pass
+
+- test: Comparing nil
+  source: |
+    if nil < nil { println("nil < nil"); }
+    if nil <= nil { println("nil <= nil"); }
+    if nil > nil { println("nil > nil"); }
+    if nil >= nil { println("nil >= nil"); }
+  out: |
+    nil <= nil
+    nil >= nil
+
+- test: Comparing bool
+  source: |
+    if false < true { println("false < true"); }
+    if false <= true { println("false <= true"); }
+    if false > true { println("false > true"); }
+    if false >= true { println("false >= true"); }
+  out: |
+    false < true
+    false <= true
+
+- test: Comparing number
+  source: |
+    if 1 < 1 { println("1 < 1"); }
+    if 1 <= 1 { println("1 <= 1"); }
+    if 1 > 1 { println("1 > 1"); }
+    if 1 >= 1 { println("1 >= 1"); }
+    if 1 < 2 { println("1 < 2"); }
+    if 1 <= 2 { println("1 <= 2"); }
+    if 1 > 2 { println("1 > 2"); }
+    if 1 >= 2 { println("1 >= 2"); }
+    if 2 < 1 { println("2 < 1"); }
+    if 2 <= 1 { println("2 <= 1"); }
+    if 2 > 1 { println("2 > 1"); }
+    if 2 >= 1 { println("2 >= 1"); }
+  out: |
+    1 <= 1
+    1 >= 1
+    1 < 2
+    1 <= 2
+    2 > 1
+    2 >= 1
+
+- test: Comparing string same length
+  source: |
+    if "asdf" < "asdf" { println("asdf < asdf"); }
+    if "asdf" <= "asdf" { println("asdf <= asdf"); }
+    if "asdf" > "asdf" { println("asdf > asdf"); }
+    if "asdf" >= "asdf" { println("asdf >= asdf"); }
+    if "asdf" < "asdg" { println("asdf < asdg"); }
+    if "asdf" <= "asdg" { println("asdf <= asdg"); }
+    if "asdf" > "asdg" { println("asdf > asdg"); }
+    if "asdf" >= "asdg" { println("asdf >= asdg"); }
+    if "asdg" < "asdf" { println("asdg < asdf"); }
+    if "asdg" <= "asdf" { println("asdg <= asdf"); }
+    if "asdg" > "asdf" { println("asdg > asdf"); }
+    if "asdg" >= "asdf" { println("asdg >= asdf"); }
+  out: |
+    asdf <= asdf
+    asdf >= asdf
+    asdf < asdg
+    asdf <= asdg
+    asdg > asdf
+    asdg >= asdf
+
+- test: Comparing string diferent length
+  source: |
+    if "asdf" < "asdfg" { println("asdf < asdfg"); }
+    if "asdf" <= "asdfg" { println("asdf <= asdfg"); }
+    if "asdf" > "asdfg" { println("asdf > asdfg"); }
+    if "asdf" >= "asdfg" { println("asdf >= asdfg"); }
+    if "asdfg" < "asdf" { println("asdfg < asdf"); }
+    if "asdfg" <= "asdf" { println("asdfg <= asdf"); }
+    if "asdfg" > "asdf" { println("asdfg > asdf"); }
+    if "asdfg" >= "asdf" { println("asdfg >= asdf"); }
+  out: |
+    asdf < asdfg
+    asdf <= asdfg
+    asdfg > asdf
+    asdfg >= asdf
+
+- test: Comparing string diferent length
+  source: |
+    if "asdf" < "asdfg" { println("asdf < asdfg"); }
+    if "asdf" <= "asdfg" { println("asdf <= asdfg"); }
+    if "asdf" > "asdfg" { println("asdf > asdfg"); }
+    if "asdf" >= "asdfg" { println("asdf >= asdfg"); }
+    if "asdfg" < "asdf" { println("asdfg < asdf"); }
+    if "asdfg" <= "asdf" { println("asdfg <= asdf"); }
+    if "asdfg" > "asdf" { println("asdfg > asdf"); }
+    if "asdfg" >= "asdf" { println("asdfg >= asdf"); }
+  out: |
+    asdf < asdfg
+    asdf <= asdfg
+    asdfg > asdf
+    asdfg >= asdf
+
+- test: Comparing error different types
+  source: |
+    if "asdf" < 5 { println("asdf < 5"); }
+  out:
+    regex: "cannot compare different types"
+  exit_code: 1
+
+- test: Comparing error array
+  source: |
+    if [0, 1] < [0, 2] { println("true"); }
+  out:
+    regex: "cannot compare array"
+  exit_code: 1
+
+- test: Comparing error range
+  source: |
+    if 2..3 < 3..4 { println("true"); }
+  out:
+    regex: "cannot compare range"
+  exit_code: 1
+
+- test: Comparing error record
+  source: |
+    if {name: "Luke"} < {name: "Lukes"} { println("true"); }
+  out:
+    regex: "cannot compare record"
+  exit_code: 1
+
+- test: Comparing error closure
+  source: |
+    let a = fn (a) { return a*a; };
+    if fn () {} < a { println("asdf < 5"); }
+  out:
+    regex: "cannot compare closure"
+  exit_code: 1
