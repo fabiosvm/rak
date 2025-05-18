@@ -111,4 +111,4 @@
     }
     println(adder);
   out:
-    regex: "^<closure 0x"
+    regex: "^<closure (0x|00)[0-9a-fA-F]{6,}>"
