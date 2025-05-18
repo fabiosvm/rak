@@ -103,3 +103,12 @@
     println(add(10, 20));
   out: |
     30
+
+- test: Println a function
+  source: |
+    fn adder (x, y) {
+      return x + y;
+    }
+    println(adder);
+  out:
+    regex: "^<closure (0x|00)[0-9a-fA-F]{6,}>"
