@@ -9,10 +9,10 @@ let i;
 
 &i = 0;
 while i < size - 1 {
-  &prev = append(prev, false);
+  append(&prev, false);
   &i += 1;
 }
-&prev = append(prev, true);
+append(&prev, true);
 
 fn calc(p, i) {
   let prev = p[i - 1];
@@ -48,10 +48,10 @@ while i < size {
   let j;
   &j = 1;
   while j < size - 1 {
-    &line = append(line, calc(prev, j));
+    append(&line, calc(prev, j));
     &j += 1;
   }
-  &line = append(line, false);
+  append(&line, false);
   let output = "";
   &j = 0;
   while j < size {

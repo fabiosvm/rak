@@ -297,18 +297,39 @@ static void array_native_call(RakFiber *fiber, RakClosure *cl, int state, RakVal
 static void append_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
 {
   (void) state;
-  RakValue val = slots[1];
-  if (!rak_is_array(val))
+  RakValue val1 = slots[1];
+  if (!rak_is_ref(val1))
   {
-    rak_error_set(err, "argument #1 must be an array, got %s",
-      rak_type_to_cstr(val.type));
+    rak_error_set(err, "argument #1 must be a reference to an array, got %s",
+      rak_type_to_cstr(val1.type));
     return;
   }
-  RakArray *arr = rak_as_array(val);
+  RakValue *slot = rak_as_ref(val1);
+  RakValue _val1 = *slot;
+  if (!rak_is_array(_val1))
+  {
+    rak_error_set(err, "argument #1 must be a reference to an array, got a reference to %s",
+      rak_type_to_cstr(_val1.type));
+    return;
+  }
+  RakArray *arr = rak_as_array(_val1);
   RakValue val2 = slots[2];
-  RakArray *_arr = rak_array_append(arr, val2, err);
+  if (rak_is_shared(_val1))
+  {
+    RakArray *_arr = rak_array_append(arr, val2, err);
+    if (!rak_is_ok(err)) return;
+    RakValue val3 = rak_array_value(_arr);
+    *slot = val3;
+    rak_object_retain(&_arr->obj);
+    --arr->obj.refCount;
+    rak_vm_push_object(fiber, val3, err);
+    if (!rak_is_ok(err)) return;
+    rak_vm_return(fiber, cl, slots);
+    return;
+  }
+  rak_array_inplace_append(arr, val2, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_push_object(fiber, rak_array_value(_arr), err);
+  rak_vm_push_object(fiber, _val1, err);
   if (!rak_is_ok(err)) return;
   rak_vm_return(fiber, cl, slots);
 }

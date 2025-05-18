@@ -145,8 +145,10 @@ static inline void rak_vm_fetch_local(RakFiber *fiber, RakValue *slots, uint8_t 
 static inline void rak_vm_ref_local(RakFiber *fiber, RakValue *slots, uint8_t idx, RakError *err)
 {
   RakValue *slot = &slots[idx];
-  RakValue val = rak_ref_value(slot);
-  rak_vm_push_value(fiber, val, err);
+  RakValue val = *slot;
+  if (rak_is_object(val) && rak_as_object(val)->refCount > 1)
+    slot->flags |= RAK_FLAG_SHARED;
+  rak_vm_push_value(fiber, rak_ref_value(slot), err);
 }
 
 static inline void rak_vm_load_local_ref(RakFiber *fiber, RakValue *slots, uint8_t idx, RakError *err)
@@ -168,7 +170,7 @@ static inline void rak_vm_check_ref(RakValue *slots, uint8_t idx, RakError *err)
 {
   RakValue val = slots[idx];
   if (rak_is_ref(val)) return;
-  rak_error_set(err, "argument #%d must be a ref, got %s", idx,
+  rak_error_set(err, "argument #%d must be a reference, got %s", idx,
     rak_type_to_cstr(val.type));
 }
 

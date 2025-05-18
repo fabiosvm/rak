@@ -14,14 +14,14 @@ fn sort(arr) {
   let i = 1;
   while i < n {
     if arr[i] < pivot {
-      &left = append(left, arr[i]);
+      append(&left, arr[i]);
     } else {
-      &right = append(right, arr[i]);
+      append(&right, arr[i]);
     }
     &i += 1;
   }
   &arr = sort(left);
-  &arr = append(arr, pivot);
+  append(&arr, pivot);
   &arr += sort(right);
   return arr;
 }

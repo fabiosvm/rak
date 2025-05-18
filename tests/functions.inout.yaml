@@ -32,5 +32,5 @@
     let x = 1;
     f(x);
   out:
-    regex: "^ERROR: argument #1 must be a ref, got number"
+    regex: "^ERROR: argument #1 must be a reference, got number"
   exit_code: 1

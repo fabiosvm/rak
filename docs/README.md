@@ -459,7 +459,7 @@ println(len(a)); // 3
 You can also use the `append` to add elements to the end of an array.
 
 ```rs
-&a = append(a, 4);
+append(&a, 4);
 println(a); // [false, 3.14, "foo", 4]
 ```
 

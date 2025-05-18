@@ -1,0 +1,42 @@
+
+- test: append - non-shared array
+  source: |
+    let a = [1, 2];
+    let b = append(&a, 3);
+    println(a);
+    println(b);
+    println(ptr(a) == ptr(b));
+  out: |
+    [1, 2, 3]
+    [1, 2, 3]
+    true
+
+- test: append - shared array
+  source: |
+    let a = [1, 2];
+    let b = a;
+    println(ptr(a) == ptr(b));
+    let c = append(&a, 3);
+    println(a);
+    println(b);
+    println(c);
+    println(ptr(a) == ptr(b));
+    println(ptr(a) == ptr(c));
+  out: |
+    true
+    [1, 2, 3]
+    [1, 2]
+    [1, 2, 3]
+    false
+    true
+
+- test: append - passing array by value
+  source: |
+    let a = [1, 2];
+    println(a);
+    append(a, 3);
+    println(a);
+  out: |
+    [1, 2]
+    ERROR: argument #1 must be a reference to an array, got array
+  exit_code: 1
