@@ -12,6 +12,7 @@
 #define RAK_VM_H
 
 #include "fiber.h"
+#include "function.h"
 #include <math.h>
 #include "range.h"
 #include "record.h"
@@ -65,6 +66,7 @@ static inline void rak_vm_not(RakFiber *fiber);
 static inline void rak_vm_neg(RakFiber *fiber, RakError *err);
 static inline void rak_vm_call(RakFiber *fiber, uint8_t nargs, RakError *err);
 static inline void rak_vm_tail_call(RakFiber *fiber, RakValue *slots, uint8_t nargs, RakError *err);
+static inline void rak_vm_yield(RakFiber *fiber);
 static inline void rak_vm_return(RakFiber *fiber, RakClosure *cl, RakValue *slots);
 
 void rak_vm_dispatch(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -997,14 +999,16 @@ static inline void rak_vm_call(RakFiber *fiber, uint8_t nargs, RakError *err)
   }
   RakCallFrame frame = {
     .cl = cl,
-    .state = 0,
     .slots = slots
   };
   if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
   {
     RakFunction *fn = (RakFunction *) cl->callable;
     frame.ip = fn->chunk.instrs.data;
+    rak_stack_push(&fiber->cstk, frame);
+    return;
   }
+  frame.state = 0;
   rak_stack_push(&fiber->cstk, frame);
 }
 
@@ -1039,15 +1043,20 @@ static inline void rak_vm_tail_call(RakFiber *fiber, RakValue *slots, uint8_t na
     slots[i] = _val;
   }
   fiber->vstk.top = &slots[arity];
-  uint32_t *ip = NULL;
+  RakCallFrame *frame = &rak_stack_get(&fiber->cstk, 0);
+  frame->cl = cl;
   if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
   {
     RakFunction *fn = (RakFunction *) cl->callable;
-    ip = fn->chunk.instrs.data;
+    frame->ip = fn->chunk.instrs.data;
+    return;
   }
-  RakCallFrame *frame = &rak_stack_get(&fiber->cstk, 0);
-  frame->cl = cl;
-  frame->ip = ip;
+  frame->state = 0;
+}
+
+static inline void rak_vm_yield(RakFiber *fiber)
+{
+  fiber->status = RAK_FIBER_STATUS_SUSPENDED;
 }
 
 static inline void rak_vm_return(RakFiber *fiber, RakClosure *cl, RakValue *slots)

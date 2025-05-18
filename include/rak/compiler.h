@@ -11,8 +11,8 @@
 #ifndef RAK_COMPILER_H
 #define RAK_COMPILER_H
 
-#include "function.h"
+#include "closure.h"
 
-RakFunction *rak_compile(RakString *file, RakString *source, RakError *err);
+RakClosure *rak_compile(RakString *file, RakString *source, RakError *err);
 
 #endif // RAK_COMPILER_H

@@ -21,8 +21,8 @@ static RakString *read_from_stdin(RakError *err);
 static RakString *read_from_file(const char *path, RakError *err);
 static FILE *open_file(const char *path, RakError *err);
 static int file_size(FILE *fp);
-static RakFunction *compile_from_stdin(RakError *err);
-static RakFunction *compile_from_file(const char *path, RakError *err);
+static RakClosure *compile_from_stdin(RakError *err);
+static RakClosure *compile_from_file(const char *path, RakError *err);
 
 static void shutdown(int sig)
 {
@@ -121,7 +121,7 @@ static int file_size(FILE *fp)
   return size;
 }
 
-static RakFunction *compile_from_stdin(RakError *err)
+static RakClosure *compile_from_stdin(RakError *err)
 {
   RakString *file = rak_string_new_from_cstr(-1, "<stdin>", err);
   if (!rak_is_ok(err)) return NULL;
@@ -134,7 +134,7 @@ static RakFunction *compile_from_stdin(RakError *err)
   return rak_compile(file, source, err);
 }
 
-static RakFunction *compile_from_file(const char *path, RakError *err)
+static RakClosure *compile_from_file(const char *path, RakError *err)
 {
   RakString *file = rak_string_new_from_cstr(-1, path, err);
   if (!rak_is_ok(err)) return NULL;
@@ -153,11 +153,9 @@ int main(int argc, const char *argv[])
   RakError err;
   rak_error_init(&err);
   const char *path = get_arg(argc, argv, 0);
-  RakFunction *fn;
-  if (path)
-    fn = compile_from_file(path, &err);
-  else
-    fn = compile_from_stdin(&err);
+  RakClosure *cl = path
+    ? compile_from_file(path, &err)
+    : compile_from_stdin(&err);
   if (!rak_is_ok(&err))
   {
     rak_error_print(&err);
@@ -165,28 +163,28 @@ int main(int argc, const char *argv[])
   }
   if (has_opt(argc, argv, "-c"))
   {
-    rak_dump_function(fn);
-    rak_function_free(fn);
+    rak_dump_function((RakFunction *) cl->callable);
+    rak_closure_free(cl);
     return EXIT_SUCCESS;
   }
   RakArray *globals = rak_builtin_globals(&err);
   if (!rak_is_ok(&err))
   {
     rak_error_print(&err);
-    rak_function_free(fn);
+    rak_closure_free(cl);
     return EXIT_FAILURE;
   }
   RakFiber fiber;
   rak_fiber_init(&fiber, globals, RAK_FIBER_VSTK_DEFAULT_SIZE,
-    RAK_FIBER_CSTK_DEFAULT_SIZE, &err);
+    RAK_FIBER_CSTK_DEFAULT_SIZE, cl, 0, NULL, &err);
   if (!rak_is_ok(&err))
   {
     rak_error_print(&err);
-    rak_function_free(fn);
+    rak_closure_free(cl);
     rak_array_free(globals);
     return EXIT_FAILURE;
   }
-  rak_fiber_run(&fiber, fn, &err);
+  rak_fiber_run(&fiber, &err);
   if (!rak_is_ok(&err))
   {
     rak_error_print(&err);

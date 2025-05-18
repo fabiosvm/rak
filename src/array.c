@@ -35,18 +35,24 @@ void rak_array_init_with_capacity(RakArray *arr, int cap, RakError *err)
   rak_slice_init_with_capacity(&arr->slice, cap, err);
 }
 
-void rak_array_init_copy(RakArray *arr1, RakArray *arr2, RakError *err)
+void rak_array_init_from_values(RakArray *arr, int len, RakValue *values, RakError *err)
 {
-  int len = rak_array_len(arr2);
-  rak_array_init_with_capacity(arr1, len, err);
+  rak_array_init_with_capacity(arr, len, err);
   if (!rak_is_ok(err)) return;
   for (int i = 0; i < len; ++i)
   {
-    RakValue val = rak_array_get(arr2, i);
-    rak_slice_set(&arr1->slice, i, val);
+    RakValue val = values[i];
+    rak_slice_set(&arr->slice, i, val);
     rak_value_retain(val);
   }
-  arr1->slice.len = len;
+  arr->slice.len = len;
+}
+
+void rak_array_init_copy(RakArray *arr1, RakArray *arr2, RakError *err)
+{
+  int len = rak_array_len(arr2);
+  RakValue *values = rak_array_elements(arr2);
+  rak_array_init_from_values(arr1, len, values, err);
 }
 
 void rak_array_deinit(RakArray *arr)
@@ -70,6 +76,16 @@ RakArray *rak_array_new_with_capacity(int cap, RakError *err)
   RakArray *arr = rak_memory_alloc(sizeof(*arr), err);
   if (!rak_is_ok(err)) return NULL;
   rak_array_init_with_capacity(arr, cap, err);
+  if (rak_is_ok(err)) return arr;
+  rak_memory_free(arr);
+  return NULL;
+}
+
+RakArray *rak_array_new_from_values(int len, RakValue *values, RakError *err)
+{
+  RakArray *arr = rak_memory_alloc(sizeof(*arr), err);
+  if (!rak_is_ok(err)) return NULL;
+  rak_array_init_from_values(arr, len, values, err);
   if (rak_is_ok(err)) return arr;
   rak_memory_free(arr);
   return NULL;
@@ -120,6 +136,16 @@ RakArray *rak_array_append(RakArray *arr, RakValue val, RakError *err)
   rak_value_retain(val);
   _arr->slice.len = _len;
   return _arr;
+}
+
+RakArray *rak_array_append_values(RakArray *arr, int len, RakValue *values, RakError *err)
+{
+  // TODO: Implement this function.
+  (void) arr;
+  (void) len;
+  (void) values;
+  (void) err;
+  return NULL;
 }
 
 RakArray *rak_array_set(RakArray *arr, int idx, RakValue val, RakError *err)
@@ -216,6 +242,15 @@ void rak_array_inplace_append(RakArray *arr, RakValue val, RakError *err)
   rak_slice_ensure_append(&arr->slice, val, err);
   if (!rak_is_ok(err)) return;
   rak_value_retain(val);
+}
+
+void rak_array_inplace_append_values(RakArray *arr, int len, RakValue *values, RakError *err)
+{
+  // TODO: Implement this function.
+  (void) arr;
+  (void) len;
+  (void) values;
+  (void) err;
 }
 
 void rak_array_inplace_set(RakArray *arr, int idx, RakValue val)

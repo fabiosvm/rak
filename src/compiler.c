@@ -11,6 +11,7 @@
 #include "rak/compiler.h"
 #include <string.h>
 #include "rak/builtin.h"
+#include "rak/function.h"
 #include "rak/lexer.h"
 
 #define match(c, t) ((c)->lex->tok.kind == (t))
@@ -1632,7 +1633,7 @@ static inline void expected_token_error(RakError *err, RakTokenKind kind, RakTok
     rak_token_kind_to_cstr(kind), tok.len, tok.chars, tok.ln, tok.col);
 }
 
-RakFunction *rak_compile(RakString *file, RakString *source, RakError *err)
+RakClosure *rak_compile(RakString *file, RakString *source, RakError *err)
 {
   RakLexer lex;
   rak_lexer_init(&lex, file, source, err);
@@ -1652,7 +1653,11 @@ RakFunction *rak_compile(RakString *file, RakString *source, RakError *err)
   };
   append_local(&comp, false, tok);
   compile_chunk(&comp, &comp.fn->chunk, err);
-  if (rak_is_ok(err)) return comp.fn;
+  if (!rak_is_ok(err)) goto fail;
+  RakClosure *cl = rak_closure_new(RAK_CALLABLE_TYPE_FUNCTION,
+    &comp.fn->callable, err);
+  if (rak_is_ok(err)) return cl;
+fail:
   rak_lexer_deinit(&lex);
   compiler_deinit(&comp);
   return NULL;
