@@ -195,5 +195,5 @@ int rak_string_compare(RakString *str1, RakString *str2)
 
 void rak_string_print(RakString *str)
 {
-  printf("%.*s", rak_string_len(str), rak_string_chars(str));
+  fwrite(rak_string_chars(str), 1, rak_string_len(str), stdout);
 }
