@@ -22,8 +22,9 @@ static inline void next_chars(RakLexer *lex, int len);
 static inline bool match_char(RakLexer *lex, char c, RakTokenKind kind);
 static inline bool match_chars(RakLexer *lex, const char *chars, RakTokenKind kind);
 static inline bool match_number(RakLexer *lex, RakError *err);
-static inline int hex2bin (char c);
+static inline unsigned char hex2bin (char c);
 static bool handle_hex_escape(RakLexer *lex, RakString *text, RakError *err);
+static inline bool insertUnicodeChar(RakLexer *lex, RakString *text, int code, RakError *err);
 static bool handle_unicode_escape(RakLexer *lex, RakString *text, RakError *err);
 static bool handle_escape_sequence(RakLexer *lex, RakString *text, RakError *err);
 static bool parseString(RakLexer *lex, RakError *err);
@@ -134,7 +135,7 @@ end:
   return true;
 }
 
-static inline int hex2bin (char c)
+static inline unsigned char hex2bin (char c)
 {
   if (c >= '0' && c <= '9')
     return c - '0' ;
@@ -157,7 +158,7 @@ static bool handle_hex_escape(RakLexer *lex, RakString *text, RakError *err)
     );
     return false;
   }  
-  int code = hex2bin(current_char(lex)) * 16 + hex2bin(char_at(lex, 1));
+  unsigned char code = hex2bin(current_char(lex)) * 16 + hex2bin(char_at(lex, 1));
   if (code > 0x7f)
   {
     rak_error_set(
@@ -170,6 +171,36 @@ static bool handle_hex_escape(RakLexer *lex, RakString *text, RakError *err)
   }
   rak_string_inplace_append_cstr(text, 1, (char *) &code, err);
   next_chars(lex, 2);
+  return rak_is_ok(err);
+}
+
+static inline bool insertUnicodeChar(RakLexer *lex, RakString *text, int code, RakError *err)
+{
+  unsigned char buffer[5] = {0, 0, 0, 0, 0};
+  if (code <= 0x7F) {
+    buffer[0] = code;
+  } else if (code <= 0x7FF) {
+    buffer[0] = 0xC0 | (code >> 6);
+    buffer[1] = 0x80 | (code & 0x3F);
+  } else if (code <= 0xFFFF) {
+    buffer[0] = 0xE0 | (code >> 12);
+    buffer[1] = 0x80 | ((code >> 6) & 0x3F);
+    buffer[2] = 0x80 | (code & 0x3F);
+  } else if (code <= 0x10FFFF) {
+    buffer[0] = 0xF0 | (code >> 18);
+    buffer[1] = 0x80 | ((code >> 12) & 0x3F);
+    buffer[2] = 0x80 | ((code >> 6) & 0x3F);
+    buffer[3] = 0x80 | (code & 0x3F);
+  } else {
+    rak_error_set(
+      err,
+      "unicode character overflow at %d,%d",
+      lex->ln,
+      lex->col - 1
+    );
+    return false;
+  }
+  rak_string_inplace_append_cstr(text, -1, (char *)buffer, err);
   return rak_is_ok(err);
 }
 
@@ -202,19 +233,7 @@ static bool handle_unicode_escape(RakLexer *lex, RakString *text, RakError *err)
     next_char(lex);
   }
   next_char(lex);
-  if (code > 0x7f)
-  {
-    rak_error_set(
-      err,
-      "unicode strings not implemented at %d,%d",
-      lex->ln,
-      lex->col
-    );
-    return false;
-  }
-  char escaped = (char)(code);
-  rak_string_inplace_append_cstr(text, 1, &escaped, err);
-  return rak_is_ok(err);
+  return insertUnicodeChar(lex, text, code, err);
 }
 
 static bool handle_escape_sequence(RakLexer *lex, RakString *text, RakError *err)

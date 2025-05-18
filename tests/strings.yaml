@@ -37,6 +37,16 @@
     b
     a+c
 
+- test: utf8 input
+  source: |
+    print("Aaçaẞa☕中𐞀a");
+  out: "Aaçaẞa☕中𐞀a"
+
+- test: Unicode above 0x7f
+  source: |
+    print("a\u{e7}a\u{1E9E}a\u{2615}\u{4e2d}\u{10780}a");
+  out: "açaẞa☕中𐞀a"
+
 - test: Wrong ascii escape
   source: 'println("a\Nb");'
   out:
@@ -74,9 +84,9 @@
   exit_code: 1
 
 - test: Unicode not implemented
-  source: 'println("a\u{e7}");'
+  source: 'println("a\u{110000}");'
   out:
-    regex: "unicode strings not implemented"
+    regex: "unicode character overflow"
   exit_code: 1
 
 - test: String over 4k
