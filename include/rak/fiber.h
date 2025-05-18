@@ -13,6 +13,7 @@
 
 #include "array.h"
 #include "closure.h"
+#include "function.h"
 #include "stack.h"
 
 #define RAK_FIBER_VSTK_DEFAULT_SIZE (1024)

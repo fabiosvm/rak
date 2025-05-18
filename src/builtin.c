@@ -12,6 +12,7 @@
 #include <float.h>
 #include <stdio.h>
 #include <string.h>
+#include "rak/native.h"
 #include "rak/vm.h"
 
 static const char *globals[] = {

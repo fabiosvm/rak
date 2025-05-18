@@ -9,6 +9,7 @@
 //
 
 #include "rak/fiber.h"
+#include "rak/native.h"
 #include "rak/vm.h"
 
 void rak_fiber_init(RakFiber *fiber, RakArray *globals, int vstkSize,

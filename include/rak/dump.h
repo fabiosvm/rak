@@ -11,7 +11,7 @@
 #ifndef RAK_DUMP_H
 #define RAK_DUMP_H
 
-#include "closure.h"
+#include "function.h"
 
 void rak_dump_function(RakFunction *fn);
 
