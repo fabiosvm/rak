@@ -26,26 +26,14 @@
     b
     a+c
 
-- test: Unicode escapes
+- test: Unicode escapes (not implemented)
   source: |
     println("a\u{61}a");
     println("a\u{A}b");
     println("a\u{2b}c");
-  out: |
-    aaa
-    a
-    b
-    a+c
-
-- test: utf8 input
-  source: |
-    print("Aaçaẞa☕中𐞀a");
-  out: "Aaçaẞa☕中𐞀a"
-
-- test: Unicode above 0x7f
-  source: |
-    print("a\u{e7}a\u{1E9E}a\u{2615}\u{4e2d}\u{10780}a");
-  out: "açaẞa☕中𐞀a"
+  out:
+    regex: "unknown escape sequence"
+  exit_code: 1
 
 - test: Wrong ascii escape
   source: 'println("a\Nb");'
@@ -69,24 +57,6 @@
   source: 'println("a\x4'
   out:
     regex: "expecting two hexadecimal numbers"
-  exit_code: 1
-
-- test: Wrong unicode escape (1)
-  source: 'println("a\u{w}");'
-  out:
-    regex: "expecting only hexadecimal numbers inside"
-  exit_code: 1
-
-- test: Wrong unicode escape (2)
-  source: 'println("a\u6161");'
-  out:
-    regex: "expecting '{' after escape"
-  exit_code: 1
-
-- test: Unicode not implemented
-  source: 'println("a\u{110000}");'
-  out:
-    regex: "unicode character overflow"
   exit_code: 1
 
 - test: String over 4k

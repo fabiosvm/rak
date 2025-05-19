@@ -439,7 +439,6 @@ It is possible to use escape sequences to represent special characters:
 | `\"` | Double quote |
 | `\\` | Backslash |
 | `\xHH` | Escape hexadecimal code (up to 0x7f) |
-| `\u{HHHH}` | Escape unicode char in hexadecimal |
 
 ## Arrays
 

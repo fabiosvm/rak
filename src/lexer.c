@@ -24,8 +24,6 @@ static inline bool match_chars(RakLexer *lex, const char *chars, RakTokenKind ki
 static inline bool match_number(RakLexer *lex, RakError *err);
 static inline unsigned char hex2bin (char c);
 static bool handle_hex_escape(RakLexer *lex, RakString *text, RakError *err);
-static inline bool insertUnicodeChar(RakLexer *lex, RakString *text, int code, RakError *err);
-static bool handle_unicode_escape(RakLexer *lex, RakString *text, RakError *err);
 static bool handle_escape_sequence(RakLexer *lex, RakString *text, RakError *err);
 static bool parseString(RakLexer *lex, RakError *err);
 static inline bool match_string(RakLexer *lex, RakError *err);
@@ -174,68 +172,6 @@ static bool handle_hex_escape(RakLexer *lex, RakString *text, RakError *err)
   return rak_is_ok(err);
 }
 
-static inline bool insertUnicodeChar(RakLexer *lex, RakString *text, int code, RakError *err)
-{
-  unsigned char buffer[5] = {0, 0, 0, 0, 0};
-  if (code <= 0x7F) {
-    buffer[0] = code & 0xFF;
-  } else if (code <= 0x7FF) {
-    buffer[0] = 0xC0 | ((code >> 6) & 0xFF);
-    buffer[1] = 0x80 | (code & 0x3F);
-  } else if (code <= 0xFFFF) {
-    buffer[0] = 0xE0 | ((code >> 12) & 0xFF);
-    buffer[1] = 0x80 | ((code >> 6) & 0x3F);
-    buffer[2] = 0x80 | (code & 0x3F);
-  } else if (code <= 0x10FFFF) {
-    buffer[0] = 0xF0 | ((code >> 18) & 0xFF);
-    buffer[1] = 0x80 | ((code >> 12) & 0x3F);
-    buffer[2] = 0x80 | ((code >> 6) & 0x3F);
-    buffer[3] = 0x80 | (code & 0x3F);
-  } else {
-    rak_error_set(
-      err,
-      "unicode character overflow at %d,%d",
-      lex->ln,
-      lex->col - 1
-    );
-    return false;
-  }
-  rak_string_inplace_append_cstr(text, -1, (char *)buffer, err);
-  return rak_is_ok(err);
-}
-
-static bool handle_unicode_escape(RakLexer *lex, RakString *text, RakError *err)
-{
-  if (current_char(lex) != '{')
-  {
-    rak_error_set(
-      err,
-      "expecting '{' after escape '\\u' at %d,%d",
-      lex->ln,
-      lex->col
-    );
-    return false;
-  }
-  next_char(lex);
-  int code = 0;
-  while (current_char(lex) != '}')
-  {
-    if (!isxdigit(current_char(lex))) {
-      rak_error_set(
-        err,
-        "expecting only hexadecimal numbers inside '{}' at %d,%d", 
-        lex->ln,
-        lex->col
-      );
-      return false;
-    }
-    code = code * 16 + hex2bin(current_char(lex));
-    next_char(lex);
-  }
-  next_char(lex);
-  return insertUnicodeChar(lex, text, code, err);
-}
-
 static bool handle_escape_sequence(RakLexer *lex, RakString *text, RakError *err)
 {
   switch (current_char(lex)) {
@@ -260,9 +196,6 @@ static bool handle_escape_sequence(RakLexer *lex, RakString *text, RakError *err
   case 'x':
     next_char(lex);
     return handle_hex_escape(lex, text, err);
-  case 'u':
-    next_char(lex);
-    return handle_unicode_escape(lex, text, err);
   default:
     rak_error_set(
       err,
