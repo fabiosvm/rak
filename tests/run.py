@@ -100,7 +100,7 @@ def run_test_file(test_file: str) -> list[tuple[bool, str, str]]:
             - str: Error message if the test failed, empty string if it passed
     """
     try:
-        with open(test_file) as f:
+        with open(test_file, 'r', encoding='utf-8') as f:
             tests = yaml.safe_load(f)
     except Exception as e:
         return [(False, test_file, f"Error reading {test_file}: {str(e)}")]
