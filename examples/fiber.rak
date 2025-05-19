@@ -1,0 +1,17 @@
+
+//
+// fiber.rak
+//
+
+fn f(n) {
+  yield n + 1;
+  yield n + 2;
+  return n + 3;
+}
+
+let fi = fiber(f, [1]);
+
+while !is_done(fi) {
+  let a = resume(fi);
+  println(a);
+}

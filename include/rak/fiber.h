@@ -20,9 +20,8 @@
 
 typedef enum
 {
-  RAK_FIBER_STATUS_READY,
-  RAK_FIBER_STATUS_RUNNING,
   RAK_FIBER_STATUS_SUSPENDED,
+  RAK_FIBER_STATUS_RUNNING,
   RAK_FIBER_STATUS_DONE
 } RakFiberStatus;
 
@@ -34,11 +33,12 @@ typedef struct
     uint32_t *ip;
     int       state;
   };
-  RakValue   *slots;
+  RakValue *slots;
 } RakCallFrame;
 
 typedef struct RakFiber
 {
+  RakObject               obj;
   RakFiberStatus          status;
   RakArray               *globals;
   RakStack(RakValue)      vstk;
@@ -48,6 +48,10 @@ typedef struct RakFiber
 void rak_fiber_init(RakFiber *fiber, RakArray *globals, int vstkSize, int cstkSize,
   RakClosure *cl, uint8_t nargs, RakValue *args, RakError *err);
 void rak_fiber_deinit(RakFiber *fiber);
+RakFiber *rak_fiber_new(RakArray *globals, int vstkSize, int cstkSize,
+  RakClosure *cl, uint8_t nargs, RakValue *args, RakError *err);
+void rak_fiber_free(RakFiber *fiber);
+void rak_fiber_release(RakFiber *fiber);
 void rak_fiber_run(RakFiber *fiber, RakError *err);
 void rak_fiber_resume(RakFiber *fiber, RakError *err);
 

@@ -256,6 +256,7 @@ const char *rak_token_kind_to_cstr(RakTokenKind kind)
   case RAK_TOKEN_KIND_RETURN_KW:   cstr = "return";     break;
   case RAK_TOKEN_KIND_TRUE_KW:     cstr = "true";       break;
   case RAK_TOKEN_KIND_WHILE_KW:    cstr = "while";      break;
+  case RAK_TOKEN_KIND_YIELD_KW:    cstr = "yield";      break;
   case RAK_TOKEN_KIND_IDENT:       cstr = "identifier"; break;
   }
   return cstr;
@@ -331,6 +332,7 @@ void rak_lexer_next(RakLexer *lex, RakError *err)
   if (match_keyword(lex, "return", RAK_TOKEN_KIND_RETURN_KW)) return;
   if (match_keyword(lex, "true", RAK_TOKEN_KIND_TRUE_KW)) return;
   if (match_keyword(lex, "while", RAK_TOKEN_KIND_WHILE_KW)) return;
+  if (match_keyword(lex, "yield", RAK_TOKEN_KIND_YIELD_KW)) return;
   if (match_ident(lex)) return;
   unexpected_character_error(err, current_char(lex), lex->ln, lex->col);
 }

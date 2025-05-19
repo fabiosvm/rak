@@ -1,0 +1,79 @@
+
+- test: fiber - empty function
+  source: |
+    fn f() {}
+    let fi = fiber(f);
+    let a = resume(fi);
+    println(is_done(fi));
+    println(a);
+  out: |
+    true
+    nil
+
+- test: fiber - function with return
+  source: |
+    fn f() {
+      return 1;
+    }
+    let fi = fiber(f);
+    let a = resume(fi);
+    println(is_done(fi));
+    println(a);
+  out: |
+    true
+    1
+
+- test: fiber - function with yield
+  source: |
+    fn f() {
+      yield 1;
+      yield 2;
+      return 3;
+    }
+    let fi = fiber(f);
+    let a;
+    &a = resume(fi);
+    println(is_suspended(fi));
+    println(a);
+    &a = resume(fi);
+    println(is_suspended(fi));
+    println(a);
+    &a = resume(fi);
+    println(is_done(fi));
+    println(a);
+  out: |
+    true
+    1
+    true
+    2
+    true
+    3
+
+- test: fiber - function with parameter
+  source: |
+    fn f(n) {
+      yield n + 1;
+      yield n + 2;
+      return n + 3;
+    }
+    let fi = fiber(f, [1]);
+    while !is_done(fi) {
+      let a = resume(fi);
+      println(a);
+    }
+  out: |
+    2
+    3
+    4
+
+- test: fiber - calling function with yield
+  source: |
+    fn f() {
+      yield 1;
+      yield 2;
+      return 3;
+    }
+    let a = f();
+    println(a);
+  out: |
+    3

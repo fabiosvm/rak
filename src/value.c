@@ -14,8 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "rak/array.h"
-#include "rak/closure.h"
+#include "rak/fiber.h"
 #include "rak/range.h"
 #include "rak/record.h"
 
@@ -32,6 +31,7 @@ const char *rak_type_to_cstr(RakType type)
   case RAK_TYPE_RANGE:   cstr = "range";   break;
   case RAK_TYPE_RECORD:  cstr = "record";  break;
   case RAK_TYPE_CLOSURE: cstr = "closure"; break;
+  case RAK_TYPE_FIBER:   cstr = "fiber";   break;
   case RAK_TYPE_REF:     cstr = "ref";     break;
   }
   return cstr;
@@ -81,6 +81,9 @@ void rak_value_free(RakValue val)
   case RAK_TYPE_CLOSURE:
     rak_closure_free(rak_as_closure(val));
     break;
+  case RAK_TYPE_FIBER:
+    rak_fiber_free(rak_as_fiber(val));
+    break;
   }
 }
 
@@ -107,6 +110,9 @@ void rak_value_release(RakValue val)
     break;
   case RAK_TYPE_CLOSURE:
     rak_closure_release(rak_as_closure(val));
+    break;
+  case RAK_TYPE_FIBER:
+    rak_fiber_release(rak_as_fiber(val));
     break;
   }
 }
@@ -139,6 +145,7 @@ bool rak_value_equals(RakValue val1, RakValue val2)
     res = rak_record_equals(rak_as_record(val1), rak_as_record(val2));
     break;
   case RAK_TYPE_CLOSURE:
+  case RAK_TYPE_FIBER:
   case RAK_TYPE_REF:
     res = val1.opaque.ptr == val2.opaque.ptr;
     break;
@@ -171,6 +178,7 @@ int rak_value_compare(RakValue val1, RakValue val2, RakError *err)
   case RAK_TYPE_RANGE:
   case RAK_TYPE_RECORD:
   case RAK_TYPE_CLOSURE:
+  case RAK_TYPE_FIBER:
   case RAK_TYPE_REF:
     rak_error_set(err, "cannot compare %s", rak_type_to_cstr(val1.type));
     break;
@@ -204,6 +212,7 @@ void rak_value_print(RakValue val)
     rak_record_print(rak_as_record(val));
     break;
   case RAK_TYPE_CLOSURE:
+  case RAK_TYPE_FIBER:
   case RAK_TYPE_REF:
     printf("<%s %p>",rak_type_to_cstr(val.type), val.opaque.ptr);
     break;

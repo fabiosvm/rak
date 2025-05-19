@@ -74,6 +74,7 @@ The following keywords are reserved and cannot be used as identifiers:
 - `return`
 - `true`
 - `while`
+- `yield`
 
 ## Types
 
@@ -91,6 +92,7 @@ The following types are supported:
 | `Range` | A representation of a range of integers. |
 | `Record` | A collection of fields. |
 | `Closure` | Function or native function. |
+| `Fiber` | A lightweight thread of execution. |
 | `Ref` | A reference to a value. |
 
 ## Falsy values
@@ -675,6 +677,7 @@ Rak provides a small set of built-in functions that are available in all scopes.
 | `is_range` | Returns `true` if the value is a `Range`. |
 | `is_record` | Returns `true` if the value is a `Record`. |
 | `is_closure` | Returns `true` if the value is a `Closure`. |
+| `is_fiber` | Returns `true` if the value is a `Fiber`. |
 | `is_ref` | Returns `true` if the value is a `Ref`. |
 | `ptr` | Returns the memory address if value is an object. |
 | `ref_count` | Returns the reference count if value is an object. |
@@ -683,8 +686,16 @@ Rak provides a small set of built-in functions that are available in all scopes.
 | `cap` | Returns the capacity of a compound value. |
 | `len` | Returns the length of a compound value. |
 | `is_empty` | Returns `true` if the compound value is empty. |
+| `fiber` | Creates a new fiber. |
+| `is_suspended` | Returns `true` if the fiber is suspended. |
+| `is_done` | Returns `true` if the fiber is done. |
+| `resume` | Resumes a suspended fiber. |
 | `print` | Prints the value to the console. |
 | `println` | Prints the value to the console and adds a newline. |
 | `panic` | Raises a panic with the given message. |
 
 > (Details about the built-in functions will be added later.)
+
+## Fibers
+
+> (Documentation about fibers will be added soon.)

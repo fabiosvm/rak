@@ -11,6 +11,7 @@ stmt              ::= block
                     | do_while_stmt
                     | break_stmt
                     | continue_stmt
+                    | yield_stmt
                     | return_stmt
                     | expr_stmt
 
@@ -49,6 +50,8 @@ do_while_stmt     ::= "do" block "while" expr ";"
 break_stmt        ::= "break" ";"
 
 continue_stmt     ::= "continue" ";"
+
+yield_stmt        ::= "yield" expr? ";"
 
 return_stmt       ::= "return" expr? ";"
 
