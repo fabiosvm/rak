@@ -25,7 +25,7 @@ static inline bool match_number(RakLexer *lex, RakError *err);
 static inline unsigned char hex2bin (char c);
 static bool handle_hex_escape(RakLexer *lex, RakString *text, RakError *err);
 static bool handle_escape_sequence(RakLexer *lex, RakString *text, RakError *err);
-static bool parseString(RakLexer *lex, RakError *err);
+static bool parse_string(RakLexer *lex, RakError *err);
 static inline bool match_string(RakLexer *lex, RakError *err);
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind);
 static inline bool match_ident(RakLexer *lex);
@@ -210,7 +210,7 @@ static bool handle_escape_sequence(RakLexer *lex, RakString *text, RakError *err
   return rak_is_ok(err);
 }
 
-static bool parseString(RakLexer *lex, RakError *err)
+static bool parse_string(RakLexer *lex, RakError *err)
 {
   RakString *text = rak_string_new(err);
   if (!rak_is_ok(err)) return false;
@@ -243,7 +243,7 @@ static inline bool match_string(RakLexer *lex, RakError *err)
 {
   if (current_char(lex) != '\"') return false;
   next_char(lex);
-  return parseString(lex, err);
+  return parse_string(lex, err);
 }
 
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind)
