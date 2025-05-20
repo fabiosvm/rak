@@ -134,7 +134,7 @@ static inline void compiler_init(Compiler *comp, Compiler *parent, RakLexer *lex
   comp->parent = parent;
   comp->lex = lex;
   rak_static_slice_init(&comp->symbols);
-  comp->scopeDepth = -1;
+  comp->scopeDepth = 0;
   comp->loop = NULL;
   RakFunction *fn = rak_function_new(fnName, arity, err);
   if (!rak_is_ok(err)) return;
@@ -149,7 +149,6 @@ static inline void compiler_deinit(Compiler *comp)
 
 static inline void compile_chunk(Compiler *comp, RakChunk *chunk, RakError *err)
 {
-  begin_scope(comp);
   while (!match(comp, RAK_TOKEN_KIND_EOF))
   {
     compile_stmt(comp, chunk, err);
@@ -159,7 +158,6 @@ static inline void compile_chunk(Compiler *comp, RakChunk *chunk, RakError *err)
   if (!rak_is_ok(err)) return;
   emit_instr(chunk, rak_return_instr(), err);
   if (!rak_is_ok(err)) return;
-  end_scope(comp, chunk, err);
 }
 
 static inline void compile_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -573,7 +571,6 @@ static inline void compile_fn_decl(Compiler *comp, RakChunk *chunk, RakError *er
     rak_string_free(name);
     return;
   }
-  begin_scope(&_comp);
   define_local(&_comp, tok, false, err);
   if (!rak_is_ok(err)) goto fail;
   RakChunk *_chunk = &_comp.fn->chunk;
@@ -590,7 +587,6 @@ static inline void compile_fn_decl(Compiler *comp, RakChunk *chunk, RakError *er
   if (!rak_is_ok(err)) goto fail;
   emit_instr(_chunk, rak_return_instr(), err);
   if (!rak_is_ok(err)) goto fail;
-  end_scope(&_comp, _chunk, err);
   if (!rak_is_ok(err)) return;
   uint8_t idx = rak_function_append_nested(comp->fn, _comp.fn, err);
   if (!rak_is_ok(err)) goto fail;
