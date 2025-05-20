@@ -428,6 +428,18 @@ println(s[7..12]); // world
 
 > **Note:** The range is exclusive, meaning that the last character is not included in the slice.
 
+It is possible to use escape sequences to represent special characters:
+
+| Escape | Meaning |
+| --- | --- |
+| `\0` | Null byte |
+| `\t` | Tab |
+| `\n` | New line |
+| `\r` | Carriage return |
+| `\"` | Double quote |
+| `\\` | Backslash |
+| `\xHH` | Escape hexadecimal code (up to 0x7f) |
+
 ## Arrays
 
 Arrays are ordered collections of values, enclosed in square brackets `[]`. Each element can be of any type, and values are accessed by their zero-based index.

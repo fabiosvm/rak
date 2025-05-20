@@ -9,6 +9,7 @@
 //
 
 #include "rak/lexer.h"
+#include "rak/string.h"
 #include <ctype.h>
 #include <string.h>
 
@@ -21,6 +22,10 @@ static inline void next_chars(RakLexer *lex, int len);
 static inline bool match_char(RakLexer *lex, char c, RakTokenKind kind);
 static inline bool match_chars(RakLexer *lex, const char *chars, RakTokenKind kind);
 static inline bool match_number(RakLexer *lex, RakError *err);
+static inline unsigned char hex2bin (char c);
+static bool handle_hex_escape(RakLexer *lex, RakString *text, RakError *err);
+static bool handle_escape_sequence(RakLexer *lex, RakString *text, RakError *err);
+static bool parse_string(RakLexer *lex, RakError *err);
 static inline bool match_string(RakLexer *lex, RakError *err);
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind);
 static inline bool match_ident(RakLexer *lex);
@@ -128,27 +133,117 @@ end:
   return true;
 }
 
+static inline unsigned char hex2bin (char c)
+{
+  if (c >= '0' && c <= '9')
+    return c - '0' ;
+  if (c >= 'A' && c <= 'F')
+    return c - 'A' + 10 ;
+  if (c >= 'a' && c <= 'f')
+    return c - 'a' + 10 ;
+  return 0;
+}
+
+static bool handle_hex_escape(RakLexer *lex, RakString *text, RakError *err)
+{
+  if (!isxdigit(current_char(lex)) || !isxdigit(char_at(lex, 1)))
+  {
+    rak_error_set(
+      err,
+      "expecting two hexadecimal numbers for escape '\\x' at %d,%d", 
+      lex->ln,
+      lex->col
+    );
+    return false;
+  }  
+  unsigned char code = hex2bin(current_char(lex)) * 16 + hex2bin(char_at(lex, 1));
+  if (code > 0x7f)
+  {
+    rak_error_set(
+      err,
+      "escape '\\x' is limited to ascii chars (below 0x7f) at %d,%d", 
+      lex->ln,
+      lex->col
+    );
+    return false;
+  }
+  rak_string_inplace_append_cstr(text, 1, (char *) &code, err);
+  next_chars(lex, 2);
+  return rak_is_ok(err);
+}
+
+static bool handle_escape_sequence(RakLexer *lex, RakString *text, RakError *err)
+{
+  switch (current_char(lex)) {
+  case 'n':
+    rak_string_inplace_append_cstr(text, 1, "\n", err);
+    break;
+  case 'r':
+    rak_string_inplace_append_cstr(text, 1, "\r", err);
+    break;
+  case 't':
+    rak_string_inplace_append_cstr(text, 1, "\t", err);
+    break;
+  case '"':
+    rak_string_inplace_append_cstr(text, 1, "\"", err);
+    break;
+  case '\\':
+    rak_string_inplace_append_cstr(text, 1, "\\", err);
+    break;
+  case '0':
+    rak_string_inplace_append_cstr(text, 1, "\0", err);
+    break;
+  case 'x':
+    next_char(lex);
+    return handle_hex_escape(lex, text, err);
+  default:
+    rak_error_set(
+      err,
+      "unknown escape sequence '\\%c' at %d,%d", 
+      isprint(current_char(lex)) ? current_char(lex) : '?', 
+      lex->ln,
+      lex->col
+    );
+    return false;
+  }
+  next_char(lex);
+  return rak_is_ok(err);
+}
+
+static bool parse_string(RakLexer *lex, RakError *err)
+{
+  RakString *text = rak_string_new(err);
+  if (!rak_is_ok(err)) return false;
+  while (true)
+  {
+    switch (current_char(lex))
+    {
+    case '\0':
+    case '\n':
+      rak_error_set(err, "unterminated string at %d,%d", lex->ln, lex->col);
+      return false;
+    case '\"':
+      lex->tok = token(lex, RAK_TOKEN_KIND_STRING, rak_string_len(text), rak_string_chars(text));
+      next_char(lex);
+      return true;
+    case '\\':
+      next_char(lex);
+      if (!handle_escape_sequence(lex, text, err)) return false;
+      continue;
+    default:
+      rak_string_inplace_append_cstr(text, 1, &current_char(lex), err);
+      if (!rak_is_ok(err)) return false;
+      next_char(lex);
+      continue;
+    }
+  }
+}
+
 static inline bool match_string(RakLexer *lex, RakError *err)
 {
   if (current_char(lex) != '\"') return false;
-  int len = 1;
-  for (;;)
-  {
-    if (char_at(lex, len) == '\"')
-    {
-      ++len;
-      break;
-    }
-    if (char_at(lex, len) == '\0')
-    {
-      rak_error_set(err, "unterminated string at %d,%d", lex->ln, lex->col);
-      return false;
-    }
-    ++len;
-  }
-  lex->tok = token(lex, RAK_TOKEN_KIND_STRING, len - 2, &lex->curr[1]);
-  next_chars(lex, len);
-  return true;
+  next_char(lex);
+  return parse_string(lex, err);
 }
 
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind)
