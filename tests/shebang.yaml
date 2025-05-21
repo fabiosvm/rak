@@ -1,0 +1,7 @@
+
+- test: shebang
+  source: |
+    #!/usr/bin/env rak
+    println("Hello, world!");
+  out: |
+    Hello, world!

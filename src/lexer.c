@@ -16,6 +16,7 @@
 #define char_at(l, i)   ((l)->curr[(i)])
 #define current_char(l) char_at(l, 0)
 
+static inline void skip_shebang(RakLexer *lex);
 static inline void skip_whitespace_comments(RakLexer *lex);
 static inline void next_char(RakLexer *lex);
 static inline void next_chars(RakLexer *lex, int len);
@@ -31,6 +32,22 @@ static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kin
 static inline bool match_ident(RakLexer *lex);
 static inline RakToken token(RakLexer *lex, RakTokenKind kind, int len, char *chars);
 static inline void unexpected_character_error(RakError *err, char c, int ln, int col);
+
+static inline void skip_shebang(RakLexer *lex)
+{
+  if (char_at(lex, 0) != '#' || char_at(lex, 1) != '!')
+    return;
+  next_chars(lex, 2);
+  while (current_char(lex) != '\0')
+  {
+    if (current_char(lex) == '\n')
+    {
+      next_char(lex);
+      break;
+    }
+    next_char(lex);
+  }
+}
 
 static inline void skip_whitespace_comments(RakLexer *lex)
 {
@@ -366,6 +383,7 @@ void rak_lexer_init(RakLexer *lex, RakString *file, RakString *source, RakError 
   lex->curr = rak_string_chars(lex->source);
   lex->ln = 1;
   lex->col = 1;
+  skip_shebang(lex);
   rak_lexer_next(lex, err);
 }
 
