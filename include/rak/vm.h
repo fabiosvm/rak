@@ -760,6 +760,7 @@ static inline void rak_vm_unpack_fields(RakFiber *fiber, uint8_t n, RakError *er
     RakValue _val = rak_record_get(rec, idx).val;
     slots[i] = _val;
     rak_value_retain(_val);
+    rak_string_release(name);
   }
   rak_stack_pop(&fiber->vstk);
   rak_record_release(rec);
