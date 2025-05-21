@@ -1282,13 +1282,10 @@ static inline void compile_prim_expr(Compiler *comp, RakChunk *chunk, RakError *
   {
     RakToken tok = comp->lex->tok;
     next(comp, err);
-    RakString *str = rak_string_new_from_cstr(tok.len, tok.chars, err);
-    if (!rak_is_ok(err)) return;
-    RakValue val = rak_string_value(str);
-    uint8_t idx = rak_chunk_append_const(chunk, val, err);
+    uint8_t idx = rak_chunk_append_const(chunk, tok.val, err);
     if (!rak_is_ok(err))
     {
-      rak_string_free(str);
+      rak_value_free(tok.val);
       return;
     }
     emit_instr(comp, chunk, rak_load_const_instr(idx), err);

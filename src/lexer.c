@@ -10,6 +10,7 @@
 
 #include "rak/lexer.h"
 #include "rak/string.h"
+#include "rak/value.h"
 #include <ctype.h>
 #include <string.h>
 
@@ -30,7 +31,7 @@ static bool parse_string(RakLexer *lex, RakError *err);
 static inline bool match_string(RakLexer *lex, RakError *err);
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind);
 static inline bool match_ident(RakLexer *lex);
-static inline RakToken token(RakLexer *lex, RakTokenKind kind, int len, char *chars);
+static inline RakToken token(RakLexer *lex, RakTokenKind kind, int len, char *chars, RakValue val);
 static inline void unexpected_character_error(RakError *err, char c, int ln, int col);
 
 static inline void skip_shebang(RakLexer *lex)
@@ -92,7 +93,7 @@ static inline void next_chars(RakLexer *lex, int len)
 static inline bool match_char(RakLexer *lex, char c, RakTokenKind kind)
 {
   if (current_char(lex) != c) return false;
-  lex->tok = token(lex, kind, 1, lex->curr);
+  lex->tok = token(lex, kind, 1, lex->curr, rak_nil_value());
   next_char(lex);
   return true;
 }
@@ -102,7 +103,7 @@ static inline bool match_chars(RakLexer *lex, const char *chars, RakTokenKind ki
   int len = (int) strlen(chars);
   if (memcmp(lex->curr, chars, len))
     return false;
-  lex->tok = token(lex, kind, len, lex->curr);
+  lex->tok = token(lex, kind, len, lex->curr, rak_nil_value());
   next_chars(lex, len);
   return true;
 }
@@ -145,7 +146,7 @@ static inline bool match_number(RakLexer *lex, RakError *err)
     return false;
   }
 end:
-  lex->tok = token(lex, RAK_TOKEN_KIND_NUMBER, len, lex->curr);
+  lex->tok = token(lex, RAK_TOKEN_KIND_NUMBER, len, lex->curr, rak_nil_value());
   next_chars(lex, len);
   return true;
 }
@@ -240,7 +241,7 @@ static bool parse_string(RakLexer *lex, RakError *err)
       rak_error_set(err, "unterminated string at %d,%d", lex->ln, lex->col);
       break;
     case '\"':
-      lex->tok = token(lex, RAK_TOKEN_KIND_STRING, rak_string_len(text), rak_string_chars(text));
+      lex->tok = token(lex, RAK_TOKEN_KIND_STRING, -1, NULL, rak_string_value(text));
       next_char(lex);
       return true;
     case '\\':
@@ -273,7 +274,7 @@ static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kin
    || (isalnum(char_at(lex, len)))
    || (char_at(lex, len) == '_'))
     return false;
-  lex->tok = token(lex, kind, len, lex->curr);
+  lex->tok = token(lex, kind, len, lex->curr, rak_nil_value());
   next_chars(lex, len);
   return true;
 }
@@ -285,19 +286,20 @@ static inline bool match_ident(RakLexer *lex)
   int len = 1;
   while (isalnum(char_at(lex, len)) || char_at(lex, len) == '_')
     ++len;
-  lex->tok = token(lex, RAK_TOKEN_KIND_IDENT, len, lex->curr);
+  lex->tok = token(lex, RAK_TOKEN_KIND_IDENT, len, lex->curr, rak_nil_value());
   next_chars(lex, len);
   return true;
 }
 
-static inline RakToken token(RakLexer *lex, RakTokenKind kind, int len, char *chars)
+static inline RakToken token(RakLexer *lex, RakTokenKind kind, int len, char *chars, RakValue val)
 {
   return (RakToken) {
     .kind = kind,
     .ln = lex->ln,
     .col = lex->col,
     .len = len,
-    .chars = chars
+    .chars = chars,
+    .val = val
   };
 }
 
