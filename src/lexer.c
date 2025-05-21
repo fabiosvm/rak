@@ -266,9 +266,8 @@ static inline bool match_string(RakLexer *lex, RakError *err)
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind)
 {
   int len = (int) strlen(kw);
-  if (memcmp(lex->curr, kw, len)
-   || (isalnum(char_at(lex, len)))
-   || (char_at(lex, len) == '_'))
+  if (lex->curr + len - lex->source->slice.data > lex->source->slice.len
+   || memcmp(lex->curr, kw, len))
     return false;
   lex->tok = token(lex, kind, len, lex->curr);
   next_chars(lex, len);
