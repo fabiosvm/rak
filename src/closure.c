@@ -28,6 +28,12 @@ void rak_closure_free(RakClosure *cl)
   if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
   {
     RakFunction *fn = (RakFunction *) cl->callable;
+    int m = fn->nested.len;
+    for (int i = 0; i < m; ++i)
+    {
+      RakFunction *nested = rak_slice_get(&fn->nested, i);
+      rak_function_release(nested);
+    }
     rak_function_release(fn);
     rak_memory_free(cl);
     return;
