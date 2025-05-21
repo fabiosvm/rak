@@ -1675,6 +1675,8 @@ RakClosure *rak_compile(RakString *file, RakString *source, RakError *err)
   if (!rak_is_ok(err)) goto fail;
   RakClosure *cl = rak_closure_new(RAK_CALLABLE_TYPE_FUNCTION,
     &comp.fn->callable, err);
+  rak_lexer_deinit(&lex);
+  compiler_deinit(&comp);
   if (rak_is_ok(err)) return cl;
 fail:
   rak_lexer_deinit(&lex);
