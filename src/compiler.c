@@ -1573,7 +1573,7 @@ static inline uint8_t define_local(Compiler *comp, RakToken tok, bool isRef, Rak
       tok.len, tok.chars, tok.ln, tok.col);
     return 0;
   }
-  if (len > UINT8_MAX)
+  if (len == UINT8_MAX)
   {
     rak_error_set(err, "too many local variables at %d:%d",
       tok.ln, tok.col);

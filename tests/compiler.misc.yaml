@@ -88,3 +88,35 @@
   out:
     regex: "range must be of type integer numbers"
   exit_code: 1
+
+- test: too many variables
+  source: |
+    let _aa=1; let _ab=2; let _ac=3; let _ad=4; let _ae=5; let _af=6; let _ag=7; let _ah=8; let _ai=9; let _aj=10;
+    let _ak=11; let _al=12; let _am=13; let _an=14; let _ao=15; let _ap=16; let _aq=17; let _ar=18; let _as=19; let _at=20;
+    let _au=21; let _av=22; let _aw=23; let _ax=24; let _ay=25; let _az=26; let _ba=27; let _bb=28; let _bc=29; let _bd=30;
+    let _be=31; let _bf=32; let _bg=33; let _bh=34; let _bi=35; let _bj=36; let _bk=37; let _bl=38; let _bm=39; let _bn=40;
+    let _bo=41; let _bp=42; let _bq=43; let _br=44; let _bs=45; let _bt=46; let _bu=47; let _bv=48; let _bw=49; let _bx=50;
+    let _by=51; let _bz=52; let _ca=53; let _cb=54; let _cc=55; let _cd=56; let _ce=57; let _cf=58; let _cg=59; let _ch=60;
+    let _ci=61; let _cj=62; let _ck=63; let _cl=64; let _cm=65; let _cn=66; let _co=67; let _cp=68; let _cq=69; let _cr=70;
+    let _cs=71; let _ct=72; let _cu=73; let _cv=74; let _cw=75; let _cx=76; let _cy=77; let _cz=78; let _da=79; let _db=80;
+    let _dc=81; let _dd=82; let _de=83; let _df=84; let _dg=85; let _dh=86; let _di=87; let _dj=88; let _dk=89; let _dl=90;
+    let _dm=91; let _dn=92; let _do=93; let _dp=94; let _dq=95; let _dr=96; let _ds=97; let _dt=98; let _du=99; let _dv=100;
+    let _dw=101; let _dx=102; let _dy=103; let _dz=104; let _ea=105; let _eb=106; let _ec=107; let _ed=108; let _ee=109; let _ef=110;
+    let _eg=111; let _eh=112; let _ei=113; let _ej=114; let _ek=115; let _el=116; let _em=117; let _en=118; let _eo=119; let _ep=120;
+    let _eq=121; let _er=122; let _es=123; let _et=124; let _eu=125; let _ev=126; let _ew=127; let _ex=128; let _ey=129; let _ez=130;
+    let _fa=131; let _fb=132; let _fc=133; let _fd=134; let _fe=135; let _ff=136; let _fg=137; let _fh=138; let _fi=139; let _fj=140;
+    let _fk=141; let _fl=142; let _fm=143; let _fn=144; let _fo=145; let _fp=146; let _fq=147; let _fr=148; let _fs=149; let _ft=150;
+    let _fu=151; let _fv=152; let _fw=153; let _fx=154; let _fy=155; let _fz=156; let _ga=157; let _gb=158; let _gc=159; let _gd=160;
+    let _ge=161; let _gf=162; let _gg=163; let _gh=164; let _gi=165; let _gj=166; let _gk=167; let _gl=168; let _gm=169; let _gn=170;
+    let _go=171; let _gp=172; let _gq=173; let _gr=174; let _gs=175; let _gt=176; let _gu=177; let _gv=178; let _gw=179; let _gx=180;
+    let _gy=181; let _gz=182; let _ha=183; let _hb=184; let _hc=185; let _hd=186; let _he=187; let _hf=188; let _hg=189; let _hh=190;
+    let _hi=191; let _hj=192; let _hk=193; let _hl=194; let _hm=195; let _hn=196; let _ho=197; let _hp=198; let _hq=199; let _hr=200;
+    let _hs=201; let _ht=202; let _hu=203; let _hv=204; let _hw=205; let _hx=206; let _hy=207; let _hz=208; let _ia=209; let _ib=210;
+    let _ic=211; let _id=212; let _ie=213; let _if=214; let _ig=215; let _ih=216; let _ii=217; let _ij=218; let _ik=219; let _il=220;
+    let _im=221; let _in=222; let _io=223; let _ip=224; let _iq=225; let _ir=226; let _is=227; let _it=228; let _iu=229; let _iv=230;
+    let _iw=231; let _ix=232; let _iy=233; let _iz=234; let _ja=235; let _jb=236; let _jc=237; let _jd=238; let _je=239; let _jf=240;
+    let _jg=241; let _jh=242; let _ji=243; let _jj=244; let _jk=245; let _jl=246; let _jm=247; let _jn=248; let _jo=249; let _jp=250;
+    let _jq=251; let _jr=252; let _js=253; let _jt=254; let _ju=255;
+  out:
+    regex: "too many local variables"
+  exit_code: 1
