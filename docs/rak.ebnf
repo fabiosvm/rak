@@ -17,7 +17,9 @@ stmt              ::= block
 
 block             ::= "{" stmt* "}"
 
-let_decl          ::= "let" ( destruct_elements | destruct_fields ) | ( IDENT ( "=" expr )? ) ";"
+let_decl          ::= "let" ( variable ( "," variable )* ) | destruct_elements | destruct_fields ";"
+
+variable          ::= IDENT ( "=" expr )?
 
 destruct_elements ::= "[" ident_list "]" "=" expr
 

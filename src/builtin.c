@@ -549,7 +549,6 @@ static void resume_native_call(RakFiber *fiber, RakClosure *cl, int state, RakVa
     rak_error_set(err, "cannot resume a fiber that is not suspended");
     return;
   }
-  // TODO: Do not propagate the error.
   rak_fiber_resume(_fiber, err);
   if (!rak_is_ok(err)) return;
   RakValue res = rak_vm_get(_fiber, 0);
@@ -695,10 +694,7 @@ int rak_builtin_resolve_global(int len, char *chars)
   for (int i = 0; i < n; ++i)
   {
     const char *cstr = globals[i];
-    if (
-      (int)strlen(cstr) == len
-      && !memcmp(cstr, chars, len)
-    )
+    if ((int) strlen(cstr) == len && !memcmp(cstr, chars, len))
       return i;
   }
   return -1;

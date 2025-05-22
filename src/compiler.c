@@ -74,12 +74,13 @@ static inline void compile_chunk(Compiler *comp, RakChunk *chunk, RakError *err)
 static inline void compile_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_block(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_let_decl(Compiler *comp, RakChunk *chunk, RakError *err);
-static inline void compile_assign_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
-static inline void compile_assign_op(Compiler *comp, uint32_t *instr, RakError *err);
-static inline void compile_assign_stmt_cont(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline void compile_variable(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_destruct_elements(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_ident_list(Compiler *comp, SymbolSlice *symbols, RakError *err);
 static inline void compile_destruct_fields(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline void compile_assign_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline void compile_assign_op(Compiler *comp, uint32_t *instr, RakError *err);
+static inline void compile_assign_stmt_cont(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_fn_decl(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_params(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_param(Compiler *comp, RakChunk *chunk, RakError *err);
@@ -241,23 +242,37 @@ static inline void compile_block(Compiler *comp, RakChunk *chunk, RakError *err)
 static inline void compile_let_decl(Compiler *comp, RakChunk *chunk, RakError *err)
 {
   next(comp, err);
+  if (match(comp, RAK_TOKEN_KIND_IDENT))
+  {
+    compile_variable(comp, chunk, err);
+    if (!rak_is_ok(err)) return;
+    while (match(comp, RAK_TOKEN_KIND_COMMA))
+    {
+      next(comp, err);
+      compile_variable(comp, chunk, err);
+      if (!rak_is_ok(err)) return;
+    }
+    goto end;
+  }
   if (match(comp, RAK_TOKEN_KIND_LBRACKET))
   {
     compile_destruct_elements(comp, chunk, err);
     if (!rak_is_ok(err)) return;
     goto end;
   }
-  if (match(comp, RAK_TOKEN_KIND_LBRACE))
+  if (!match(comp, RAK_TOKEN_KIND_LBRACE))
   {
-    compile_destruct_fields(comp, chunk, err);
-    if (!rak_is_ok(err)) return;
-    goto end;
-  }
-  if (!match(comp, RAK_TOKEN_KIND_IDENT))
-  {
-    expected_token_error(err, RAK_TOKEN_KIND_IDENT, comp->lex->tok);
+    unexpected_token_error(err, comp->lex->tok);
     return;
   }
+  compile_destruct_fields(comp, chunk, err);
+  if (!rak_is_ok(err)) return;
+end:
+  consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
+}
+
+static inline void compile_variable(Compiler *comp, RakChunk *chunk, RakError *err)
+{
   RakToken tok = comp->lex->tok;
   next(comp, err);
   bool isBlank = is_blank_ident(tok);
@@ -269,20 +284,15 @@ static inline void compile_let_decl(Compiler *comp, RakChunk *chunk, RakError *e
     if (isBlank)
     {
       emit_instr(chunk, rak_pop_instr(), err);
-      if (!rak_is_ok(err)) return;
-      goto end;
+      return;
     }
     define_local(comp, tok, false, err);
-    if (!rak_is_ok(err)) return;
-    goto end;
+    return;
   }
-  if (isBlank) goto end;
+  if (isBlank) return;
   emit_instr(chunk, rak_push_nil_instr(), err);
   if (!rak_is_ok(err)) return;
   define_local(comp, tok, false, err);
-  if (!rak_is_ok(err)) return;
-end:
-  consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
 }
 
 static inline void compile_destruct_elements(Compiler *comp, RakChunk *chunk, RakError *err)

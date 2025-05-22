@@ -1,0 +1,36 @@
+
+- test: variables - declaration without initialization
+  source: |
+    let a;
+    println(a);
+  out: |
+    nil
+
+- test: variables - declaration with initialization
+  source: |
+    let a = 10;
+    println(a);
+  out: |
+    10
+
+- test: variables - declare multiple variables
+  source: |
+    let a, b, c;
+    println(a);
+    println(b);
+    println(c);
+  out: |
+    nil
+    nil
+    nil
+
+- test: variables - declare multiple variables with initialization
+  source: |
+    let a = 10, b = 20, c = 30;
+    println(a);
+    println(b);
+    println(c);
+  out: |
+    10
+    20
+    30

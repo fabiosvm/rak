@@ -144,6 +144,15 @@ let x;
 println(x); // nil
 ```
 
+It is also possible to declare multiple variables in a single statement.
+
+```rs
+let x = 1, y = 2, z;
+println(x); // 1
+println(y); // 2
+println(z); // nil
+```
+
 ## Scope
 
 Variables are block-scoped and Rak allows shadowing declarations of variables in inner scopes.
