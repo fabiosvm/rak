@@ -695,8 +695,10 @@ int rak_builtin_resolve_global(int len, char *chars)
   for (int i = 0; i < n; ++i)
   {
     const char *cstr = globals[i];
-    // FIX: Buffer overflow.
-    if (!memcmp(cstr, chars, len) && !cstr[len])
+    if (
+      (int)strlen(cstr) == len
+      && !memcmp(cstr, chars, len)
+    )
       return i;
   }
   return -1;
