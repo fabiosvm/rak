@@ -755,13 +755,12 @@ static inline void rak_vm_unpack_fields(RakFiber *fiber, uint8_t n, RakError *er
     {
       rak_error_set(err, "record has no field named '%.*s'",
         rak_string_len(name), rak_string_chars(name));
-      // Fix: double free if error is not the first field in destructuring.
       return;
     }
     RakValue _val = rak_record_get(rec, idx).val;
     slots[i] = _val;
     rak_value_retain(_val);
-    rak_string_release(name);
+    if (i) rak_string_release(name);
   }
   rak_stack_pop(&fiber->vstk);
   rak_record_release(rec);

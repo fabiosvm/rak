@@ -33,3 +33,10 @@
   out:
     regex: "record has no field named"
   exit_code: 1
+
+- test: destruct record (error) (2)
+  source: |
+    let {name, y} = {x: 1, y: 2, z: 3};
+  out:
+    regex: "record has no field named"
+  exit_code: 1
