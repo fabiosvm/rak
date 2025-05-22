@@ -16,6 +16,7 @@
 #include <math.h>
 #include "range.h"
 #include "record.h"
+#include "value.h"
 
 static inline void rak_vm_push(RakFiber *fiber, RakValue val, RakError *err);
 static inline void rak_vm_push_nil(RakFiber *fiber, RakError *err);
@@ -755,12 +756,14 @@ static inline void rak_vm_unpack_fields(RakFiber *fiber, uint8_t n, RakError *er
     {
       rak_error_set(err, "record has no field named '%.*s'",
         rak_string_len(name), rak_string_chars(name));
-      return;
+      slots[i] = rak_nil_value();
+      rak_string_release(name);
+      continue;
     }
     RakValue _val = rak_record_get(rec, idx).val;
     slots[i] = _val;
     rak_value_retain(_val);
-    if (i) rak_string_release(name);
+    rak_string_release(name);
   }
   rak_stack_pop(&fiber->vstk);
   rak_record_release(rec);
