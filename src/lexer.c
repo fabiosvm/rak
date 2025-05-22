@@ -238,21 +238,23 @@ static bool parse_string(RakLexer *lex, RakError *err)
     case '\0':
     case '\n':
       rak_error_set(err, "unterminated string at %d,%d", lex->ln, lex->col);
-      return false;
+      break;
     case '\"':
       lex->tok = token(lex, RAK_TOKEN_KIND_STRING, rak_string_len(text), rak_string_chars(text));
       next_char(lex);
       return true;
     case '\\':
       next_char(lex);
-      if (!handle_escape_sequence(lex, text, err)) return false;
+      if (!handle_escape_sequence(lex, text, err)) break;
       continue;
     default:
       rak_string_inplace_append_cstr(text, 1, &current_char(lex), err);
-      if (!rak_is_ok(err)) return false;
+      if (!rak_is_ok(err)) break;
       next_char(lex);
       continue;
     }
+    rak_string_free(text);
+    return false;
   }
 }
 
