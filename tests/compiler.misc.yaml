@@ -120,3 +120,10 @@
   out:
     regex: "too many local variables"
   exit_code: 1
+
+- test: Variables names starting with keywords
+  source: |
+    let ifa=1;
+    let let_;
+    &let_=ifa;
+  out: ""
