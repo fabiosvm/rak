@@ -739,31 +739,33 @@ static inline void rak_vm_unpack_elements(RakFiber *fiber, uint8_t n, RakError *
 
 static inline void rak_vm_unpack_fields(RakFiber *fiber, uint8_t n, RakError *err)
 {
-  RakValue *slots = &rak_stack_get(&fiber->vstk, n);
-  RakValue val = slots[0];
-  if (!rak_is_record(val))
+  RakValue *inSlots = &rak_stack_get(&fiber->vstk, n);
+  RakValue outSlots[RAK_FIBER_VSTK_DEFAULT_SIZE];
+  RakValue slotZero = inSlots[0];
+  if (!rak_is_record(slotZero))
   {
     rak_error_set(err, "cannot unpack fields from value of type %s",
-      rak_type_to_cstr(val.type));
+      rak_type_to_cstr(slotZero.type));
     return;
   }
-  RakRecord *rec = rak_as_record(val);
-  for (int i = 0; i < n; ++i)
+  RakRecord *rec = rak_as_record(slotZero);
+  for (int i = 1; i <= n; ++i)
   {
-    RakString *name = rak_as_string(slots[i + 1]);
+    RakString *name = rak_as_string(inSlots[i]);
     int idx = rak_record_index_of(rec, name);
     if (idx == -1)
     {
       rak_error_set(err, "record has no field named '%.*s'",
         rak_string_len(name), rak_string_chars(name));
-      slots[i] = rak_nil_value();
-      rak_string_release(name);
-      continue;
+      return;
     }
-    RakValue _val = rak_record_get(rec, idx).val;
-    slots[i] = _val;
-    rak_value_retain(_val);
-    rak_string_release(name);
+    outSlots[i] = rak_record_get(rec, idx).val;
+  }
+  // Success! Handle stack.
+  for (int i = 1; i <= n; ++i) {
+    rak_value_release(inSlots[i]);
+    inSlots[i-1] = outSlots[i];
+    rak_value_retain(inSlots[i-1]);
   }
   rak_stack_pop(&fiber->vstk);
   rak_record_release(rec);
