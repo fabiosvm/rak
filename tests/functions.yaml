@@ -112,3 +112,42 @@
     println(adder);
   out:
     regex: "^<closure (0x|00)[0-9a-fA-F]{6,}>"
+
+- test: Too many nested functions
+  source: |
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{} if fn(){}{}
+    if fn(){}{}
+  out:
+    regex: "too many nested functions"
+  exit_code: 1

@@ -70,7 +70,7 @@ def run_one_test(test_case: dict) -> dict:
 
         # Assume regular expression
         if not re.search(
-            expected_output["regex"], output, flags=re.MULTILINE | re.DOTALL
+            expected_output["regex"] + "z", output, flags=re.MULTILINE | re.DOTALL
         ):
             return {
                 "passed": False,
