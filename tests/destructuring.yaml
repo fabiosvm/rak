@@ -27,6 +27,15 @@
     2
     3
 
+- test: destruct record (with value retain)
+  source: |
+    let {y, z} = {x: 1, y: 2, z: "asdf"};
+    println(y);
+    println(z);
+  out: |
+    2
+    asdf
+
 - test: destruct record (error)
   source: |
     let {y, name} = {x: 1, y: 2, z: 3};
@@ -46,4 +55,11 @@
     let {z, name, y} = {x: 1, y: 2, z: 3};
   out:
     regex: "record has no field named"
+  exit_code: 1
+
+- test: destruct record (error) (4)
+  source: |
+    let {z, name, y} = [ 1, 2, 3, 4];
+  out:
+    regex: "cannot unpack fields from value of type"
   exit_code: 1
