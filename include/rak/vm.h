@@ -36,6 +36,7 @@ static inline void rak_vm_new_array(RakFiber *fiber, uint8_t len, RakError *err)
 static inline void rak_vm_new_range(RakFiber *fiber, RakError *err);
 static inline void rak_vm_new_record(RakFiber *fiber, uint8_t len, RakError *err);
 static inline void rak_vm_new_closure(RakFiber *fiber, RakFunction *fn, uint8_t idx, RakError *err);
+static inline void rak_vm_move(RakValue *slots, uint8_t dst, uint8_t src);
 static inline void rak_vm_dup(RakFiber *fiber, RakError *err);
 static inline void rak_vm_pop(RakFiber *fiber);
 static inline void rak_vm_get_element(RakFiber *fiber, RakError *err);
@@ -266,6 +267,14 @@ static inline void rak_vm_new_closure(RakFiber *fiber, RakFunction *fn, uint8_t 
   rak_vm_push_object(fiber, val, err);
   if (rak_is_ok(err)) return;
   rak_closure_free(cl);
+}
+
+static inline void rak_vm_move(RakValue *slots, uint8_t dst, uint8_t src)
+{
+  RakValue val = slots[src];
+  rak_value_release(slots[dst]);
+  slots[dst] = val;
+  rak_value_retain(val);
 }
 
 static inline void rak_vm_dup(RakFiber *fiber, RakError *err)

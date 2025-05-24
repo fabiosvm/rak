@@ -83,13 +83,20 @@ void rak_dump_function(RakFunction *fn)
         printf("%-15s %-5d\n", rak_opcode_to_cstr(op), a);
       }
       break;
+    case RAK_OP_MOVE:
+      {
+        uint8_t a = rak_instr_a(instr);
+        uint8_t b = rak_instr_b(instr);
+        printf("%-15s %-5d %d\n", rak_opcode_to_cstr(op), a, b);
+      }
+      break;
     case RAK_OP_PUSH_INT:
     case RAK_OP_JUMP:
     case RAK_OP_JUMP_IF_FALSE:
     case RAK_OP_JUMP_IF_TRUE:
       {
         uint16_t ab = rak_instr_ab(instr);
-        printf("%-15s %d\n", rak_opcode_to_cstr(op), ab);
+        printf("%-15s %-5d\n", rak_opcode_to_cstr(op), ab);
       }
       break;
     }
