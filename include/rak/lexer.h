@@ -75,6 +75,7 @@ typedef struct
   int           col;
   int           len;
   char         *chars;
+  RakValue      val;
 } RakToken;
 
 typedef struct
