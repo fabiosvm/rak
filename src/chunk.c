@@ -76,6 +76,7 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   case RAK_OP_TAIL_CALL:       cstr = "TAIL_CALL";       break;
   case RAK_OP_YIELD:           cstr = "YIELD";           break;
   case RAK_OP_RETURN:          cstr = "RETURN";          break;
+  case RAK_OP_RETURN_NIL:      cstr = "RETURN_NIL";      break;
   }
   return cstr;
 }

@@ -68,6 +68,7 @@ static inline void rak_vm_call(RakFiber *fiber, uint8_t nargs, RakError *err);
 static inline void rak_vm_tail_call(RakFiber *fiber, RakValue *slots, uint8_t nargs, RakError *err);
 static inline void rak_vm_yield(RakFiber *fiber);
 static inline void rak_vm_return(RakFiber *fiber, RakClosure *cl, RakValue *slots);
+static inline void rak_vm_return_nil(RakFiber *fiber, RakClosure *cl, RakValue *slots, RakError *err);
 
 void rak_vm_dispatch(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 
@@ -1083,6 +1084,13 @@ static inline void rak_vm_return(RakFiber *fiber, RakClosure *cl, RakValue *slot
   while (fiber->vstk.top > slots)
     rak_vm_pop(fiber);
   rak_stack_pop(&fiber->cstk);
+}
+
+static inline void rak_vm_return_nil(RakFiber *fiber, RakClosure *cl, RakValue *slots, RakError *err)
+{
+  rak_vm_push_nil(fiber, err);
+  if (!rak_is_ok(err)) return;
+  rak_vm_return(fiber, cl, slots);
 }
 
 #endif // RAK_VM_H

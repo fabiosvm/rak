@@ -155,10 +155,7 @@ static inline void compile_chunk(Compiler *comp, RakChunk *chunk, RakError *err)
     compile_stmt(comp, chunk, err);
     if (!rak_is_ok(err)) return;
   }
-  emit_instr(chunk, rak_push_nil_instr(), err);
-  if (!rak_is_ok(err)) return;
-  emit_instr(chunk, rak_return_instr(), err);
-  if (!rak_is_ok(err)) return;
+  emit_instr(chunk, rak_return_nil_instr(), err);
 }
 
 static inline void compile_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -593,11 +590,8 @@ static inline void compile_fn_decl(Compiler *comp, RakChunk *chunk, RakError *er
   }
   compile_block(&_comp, _chunk, err);
   if (!rak_is_ok(err)) goto fail;
-  emit_instr(_chunk, rak_push_nil_instr(), err);
+  emit_instr(_chunk, rak_return_nil_instr(), err);
   if (!rak_is_ok(err)) goto fail;
-  emit_instr(_chunk, rak_return_instr(), err);
-  if (!rak_is_ok(err)) goto fail;
-  if (!rak_is_ok(err)) return;
   uint8_t idx = rak_function_append_nested(comp->fn, _comp.fn, err);
   if (!rak_is_ok(err)) goto fail;
   emit_instr(chunk, rak_new_closure_instr(idx), err);
@@ -861,9 +855,7 @@ static inline void compile_return_stmt(Compiler *comp, RakChunk *chunk, RakError
   if (match(comp, RAK_TOKEN_KIND_SEMICOLON))
   {
     next(comp, err);
-    emit_instr(chunk, rak_push_nil_instr(), err);
-    if (!rak_is_ok(err)) return;
-    emit_instr(chunk, rak_return_instr(), err);
+    emit_instr(chunk, rak_return_nil_instr(), err);
     return;
   }
   compile_expr(comp, chunk, err);
@@ -1429,12 +1421,10 @@ static inline void compile_fn(Compiler *comp, RakChunk *chunk, RakError *err)
   }
   compile_block(&_comp, _chunk, err);
   if (!rak_is_ok(err)) goto fail;
-  emit_instr(_chunk, rak_push_nil_instr(), err);
-  if (!rak_is_ok(err)) goto fail;
-  emit_instr(_chunk, rak_return_instr(), err);
+  emit_instr(_chunk, rak_return_nil_instr(), err);
   if (!rak_is_ok(err)) goto fail;
   end_scope(&_comp, _chunk, err);
-  if (!rak_is_ok(err)) return;
+  if (!rak_is_ok(err)) goto fail;
   uint8_t idx = rak_function_append_nested(comp->fn, _comp.fn, err);
   if (!rak_is_ok(err)) goto fail;
   emit_instr(chunk, rak_new_closure_instr(idx), err);

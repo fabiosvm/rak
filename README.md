@@ -60,13 +60,12 @@ Output:
 
 ```
 ; main
-; 0 parameter(s), 1 constant(s), 6 instruction(s), 0 function(s)
+; 0 parameter(s), 1 constant(s), 5 instruction(s), 0 function(s)
 [0000] LOAD_GLOBAL     41
 [0001] LOAD_CONST      0
 [0002] CALL            1
 [0003] POP
-[0004] PUSH_NIL
-[0005] RETURN
+[0004] RETURN_NIL
 ```
 
 ## Testing

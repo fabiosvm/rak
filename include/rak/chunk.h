@@ -75,6 +75,7 @@
 #define rak_tail_call_instr(n)       rak_instr_fmt1(RAK_OP_TAIL_CALL, (n))
 #define rak_yield_instr()            rak_instr_fmt0(RAK_OP_YIELD)
 #define rak_return_instr()           rak_instr_fmt0(RAK_OP_RETURN)
+#define rak_return_nil_instr()       rak_instr_fmt0(RAK_OP_RETURN_NIL)
 
 typedef enum
 {
@@ -126,7 +127,8 @@ typedef enum
   RAK_OP_CALL,
   RAK_OP_TAIL_CALL,
   RAK_OP_YIELD,
-  RAK_OP_RETURN
+  RAK_OP_RETURN,
+  RAK_OP_RETURN_NIL
 } RakOpcode;
 
 typedef struct

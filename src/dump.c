@@ -55,6 +55,7 @@ void rak_dump_function(RakFunction *fn)
     case RAK_OP_NEG:
     case RAK_OP_YIELD:
     case RAK_OP_RETURN:
+    case RAK_OP_RETURN_NIL:
       printf("%-15s\n", rak_opcode_to_cstr(op));
       break;
     case RAK_OP_LOAD_CONST:

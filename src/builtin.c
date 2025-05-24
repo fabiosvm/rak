@@ -489,7 +489,7 @@ static void fiber_native_call(RakFiber *fiber, RakClosure *cl, int state, RakVal
   args = rak_array_elements(arr);
   RakFiber *_fiber;
 end:
-  _fiber = rak_fiber_new(fiber->globals, RAK_FIBER_CSTK_DEFAULT_SIZE,
+  _fiber = rak_fiber_new(fiber->globals, RAK_FIBER_VSTK_DEFAULT_SIZE,
     RAK_FIBER_CSTK_DEFAULT_SIZE, _cl, nargs, args, err);
   if (!rak_is_ok(err)) return;
   rak_vm_push_object(fiber, rak_fiber_value(_fiber), err);

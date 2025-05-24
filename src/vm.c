@@ -63,6 +63,7 @@ static void do_call(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slo
 static void do_tail_call(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_yield(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_return(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_return_nil(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 
 static InstrHandler dispatchTable[] = {
   [RAK_OP_NOP]             = do_nop,
@@ -113,7 +114,8 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_CALL]            = do_call,
   [RAK_OP_TAIL_CALL]       = do_tail_call,
   [RAK_OP_YIELD]           = do_yield,
-  [RAK_OP_RETURN]          = do_return
+  [RAK_OP_RETURN]          = do_return,
+  [RAK_OP_RETURN_NIL]      = do_return_nil
 };
 
 static inline void dispatch(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
@@ -494,6 +496,12 @@ static void do_return(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *s
   (void) ip;
   (void) err;
   rak_vm_return(fiber, cl, slots);
+}
+
+static void do_return_nil(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) ip;
+  rak_vm_return_nil(fiber, cl, slots, err);
 }
 
 void rak_vm_dispatch(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
