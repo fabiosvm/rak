@@ -747,21 +747,37 @@ static inline void rak_vm_unpack_fields(RakFiber *fiber, uint8_t n, RakError *er
     return;
   }
   RakRecord *rec = rak_as_record(val);
-  for (int i = 0; i < n; ++i)
+  RakString *name = rak_as_string(slots[1]);
+  int idx = rak_record_index_of(rec, name);
+  if (idx == -1)
   {
-    RakString *name = rak_as_string(slots[i + 1]);
-    int idx = rak_record_index_of(rec, name);
+    rak_error_set(err, "record has no field named '%.*s'",
+      rak_string_len(name), rak_string_chars(name));
+    return;
+  }
+  RakValue _val = rak_record_get(rec, idx).val;
+  slots[0] = _val;
+  rak_value_retain(_val);
+  for (int i = 1; i < n; ++i)
+  {
+    name = rak_as_string(slots[i + 1]);
+    idx = rak_record_index_of(rec, name);
     if (idx == -1)
     {
       rak_error_set(err, "record has no field named '%.*s'",
         rak_string_len(name), rak_string_chars(name));
+      rak_record_release(rec);
       return;
     }
-    RakValue _val = rak_record_get(rec, idx).val;
+    _val = rak_record_get(rec, idx).val;
+    RakString *str = rak_as_string(slots[i]);
     slots[i] = _val;
     rak_value_retain(_val);
+    rak_string_release(str);
   }
+  RakString *str = rak_as_string(slots[n]);
   rak_stack_pop(&fiber->vstk);
+  rak_string_release(str);
   rak_record_release(rec);
 }
 

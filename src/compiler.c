@@ -725,7 +725,6 @@ static inline void compile_loop_stmt(Compiler *comp, RakChunk *chunk, RakError *
   next(comp, err);
   Loop loop;
   begin_loop(comp, chunk, &loop);
-  uint16_t off = (uint16_t) chunk->instrs.len;
   if (!match(comp, RAK_TOKEN_KIND_LBRACE))
   {
     expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex->tok);
@@ -733,7 +732,7 @@ static inline void compile_loop_stmt(Compiler *comp, RakChunk *chunk, RakError *
   }
   compile_block(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  emit_instr(chunk, rak_jump_instr(off), err);
+  emit_instr(chunk, rak_jump_instr(loop.off), err);
   if (!rak_is_ok(err)) return;
   end_loop(comp, chunk);
 }
@@ -749,7 +748,6 @@ static inline void compile_while_stmt(Compiler *comp, RakChunk *chunk, RakError 
   }
   Loop loop;
   begin_loop(comp, chunk, &loop);
-  uint16_t off = (uint16_t) chunk->instrs.len;
   compile_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
   uint16_t jump = emit_instr(chunk, rak_nop_instr(), err);
@@ -763,7 +761,7 @@ static inline void compile_while_stmt(Compiler *comp, RakChunk *chunk, RakError 
   }
   compile_block(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  emit_instr(chunk, rak_jump_instr(off), err);
+  emit_instr(chunk, rak_jump_instr(loop.off), err);
   if (!rak_is_ok(err)) return;
   uint32_t instr = rak_jump_if_false_instr((uint16_t) chunk->instrs.len);
   patch_instr(chunk, jump, instr);
@@ -778,7 +776,6 @@ static inline void compile_do_while_stmt(Compiler *comp, RakChunk *chunk, RakErr
   next(comp, err);
   Loop loop;
   begin_loop(comp, chunk, &loop);
-  uint16_t off = (uint16_t) chunk->instrs.len;
   if (!match(comp, RAK_TOKEN_KIND_LBRACE))
   {
     expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex->tok);
@@ -794,7 +791,7 @@ static inline void compile_do_while_stmt(Compiler *comp, RakChunk *chunk, RakErr
   if (!rak_is_ok(err)) return;
   emit_instr(chunk, rak_pop_instr(), err);
   if (!rak_is_ok(err)) return;
-  emit_instr(chunk, rak_jump_instr(off), err);
+  emit_instr(chunk, rak_jump_instr(loop.off), err);
   if (!rak_is_ok(err)) return;
   uint32_t instr = rak_jump_if_false_instr((uint16_t) chunk->instrs.len);
   patch_instr(chunk, jump, instr);
