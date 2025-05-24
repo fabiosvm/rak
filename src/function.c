@@ -61,6 +61,5 @@ uint8_t rak_function_append_nested(RakFunction *fn, RakFunction *nested, RakErro
   }
   rak_slice_ensure_append(&fn->nested, nested, err);
   if (!rak_is_ok(err)) return 0;
-  rak_object_retain(&nested->callable.obj);
   return (uint8_t) idx;
 }
