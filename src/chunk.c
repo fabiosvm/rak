@@ -86,12 +86,17 @@ void rak_chunk_init(RakChunk *chunk, RakError *err)
 {
   rak_static_slice_init(&chunk->consts);
   rak_slice_init(&chunk->instrs, err);
+  if (!rak_is_ok(err)) return;
+  rak_slice_init(&chunk->lines, err);
+  if (rak_is_ok(err)) return;
+  rak_slice_deinit(&chunk->instrs);
 }
 
 void rak_chunk_deinit(RakChunk *chunk)
 {
   release_consts(chunk);
   rak_slice_deinit(&chunk->instrs);
+  rak_slice_deinit(&chunk->lines);
 }
 
 uint8_t rak_chunk_append_const(RakChunk *chunk, RakValue val, RakError *err)
@@ -107,17 +112,50 @@ uint8_t rak_chunk_append_const(RakChunk *chunk, RakValue val, RakError *err)
   return (uint8_t) idx;
 }
 
-uint16_t rak_chunk_append_instr(RakChunk *chunk, uint32_t instr, RakError *err)
+uint16_t rak_chunk_append_instr(RakChunk *chunk, uint32_t instr, int ln, RakError *err)
 {
-  int idx = chunk->instrs.len;
-  if (idx > UINT16_MAX)
+  int len = chunk->instrs.len;
+  if (len > UINT16_MAX)
   {
     rak_error_set(err, "too many instructions");
     return 0;
   }
   rak_slice_ensure_append(&chunk->instrs, instr, err);
   if (!rak_is_ok(err)) return 0;
-  return (uint16_t) idx;
+  RakLine line = {
+    .off = (uint16_t) len,
+    .ln  = ln
+  };
+  if (!len)
+  {
+    rak_slice_ensure_append(&chunk->lines, line, err);
+    if (!rak_is_ok(err)) return 0;
+    return line.off;
+  }
+  RakLine _line = rak_slice_get(&chunk->lines, len - 1);
+  if (_line.ln == ln) return line.off;
+  rak_slice_ensure_append(&chunk->lines, line, err);
+  if (!rak_is_ok(err)) return 0;
+  return line.off;
+}
+
+int rak_chunk_get_line(const RakChunk *chunk, uint16_t off)
+{
+  int len = chunk->lines.len;
+  int ln = -1;
+  for (int i = 0; i < len; ++i)
+  {
+    RakLine line = rak_slice_get(&chunk->lines, i);
+    if (line.off < off)
+    {
+      ln = line.ln;
+      continue;
+    }
+    if (line.off == off)
+      ln = line.ln;
+    break;
+  }
+  return ln;
 }
 
 void rak_chunk_clear(RakChunk *chunk)
@@ -125,4 +163,5 @@ void rak_chunk_clear(RakChunk *chunk)
   release_consts(chunk);
   rak_slice_clear(&chunk->consts);
   rak_slice_clear(&chunk->instrs);
+  rak_slice_clear(&chunk->lines);
 }

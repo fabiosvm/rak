@@ -135,15 +135,23 @@ typedef enum
 
 typedef struct
 {
+  uint16_t off;
+  int      ln;
+} RakLine;
+
+typedef struct
+{
   RakStaticSlice(RakValue, UINT8_MAX) consts;
   RakSlice(uint32_t)                  instrs;
+  RakSlice(RakLine)                   lines;
 } RakChunk;
 
 const char *rak_opcode_to_cstr(RakOpcode op);
 void rak_chunk_init(RakChunk *chunk, RakError *err);
 void rak_chunk_deinit(RakChunk *chunk);
 uint8_t rak_chunk_append_const(RakChunk *chunk, RakValue val, RakError *err);
-uint16_t rak_chunk_append_instr(RakChunk *chunk, uint32_t instr, RakError *err);
+uint16_t rak_chunk_append_instr(RakChunk *chunk, uint32_t instr, int ln, RakError *err);
+int rak_chunk_get_line(const RakChunk *chunk, uint16_t off);
 void rak_chunk_clear(RakChunk *chunk);
 
 #endif // RAK_CHUNK_H

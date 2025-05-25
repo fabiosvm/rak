@@ -61,11 +61,11 @@ Output:
 ```
 ; main
 ; 0 parameter(s), 1 constant(s), 5 instruction(s), 0 function(s)
-[0000] LOAD_GLOBAL     41
-[0001] LOAD_CONST      0
-[0002] CALL            1
-[0003] POP
-[0004] RETURN_NIL
+  0      6      LOAD_GLOBAL     41
+  1             LOAD_CONST      0
+  2             CALL            1
+  3      7      POP
+  4             RETURN_NIL
 ```
 
 ## Testing
