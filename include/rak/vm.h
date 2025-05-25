@@ -1030,11 +1030,11 @@ static inline void rak_vm_call(RakFiber *fiber, uint8_t nargs, RakError *err)
   if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
   {
     RakFunction *fn = (RakFunction *) cl->callable;
-    frame.ip = fn->chunk.instrs.data;
+    frame.state = fn->chunk.instrs.data;
     rak_stack_push(&fiber->cstk, frame);
     return;
   }
-  frame.state = 0;
+  frame.state = (void *) 0;
   rak_stack_push(&fiber->cstk, frame);
 }
 
@@ -1074,10 +1074,10 @@ static inline void rak_vm_tail_call(RakFiber *fiber, RakValue *slots, uint8_t na
   if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
   {
     RakFunction *fn = (RakFunction *) cl->callable;
-    frame->ip = fn->chunk.instrs.data;
+    frame->state = fn->chunk.instrs.data;
     return;
   }
-  frame->state = 0;
+  frame->state = (void *) 0;
 }
 
 static inline void rak_vm_yield(RakFiber *fiber)

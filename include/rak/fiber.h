@@ -28,12 +28,8 @@ typedef enum
 typedef struct
 {
   RakClosure *cl;
-  union
-  {
-    uint32_t *ip;
-    int       state;
-  };
-  RakValue *slots;
+  void       *state;
+  RakValue   *slots;
 } RakCallFrame;
 
 typedef struct RakFiber

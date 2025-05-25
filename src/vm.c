@@ -481,7 +481,7 @@ static void do_call(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slo
   (void) slots;
   uint8_t n = rak_instr_a(*ip);
   RakCallFrame *frame = &rak_stack_get(&fiber->cstk, 0);
-  frame->ip = ip + 1;
+  frame->state = ip + 1;
   rak_vm_call(fiber, n, err);
 }
 
@@ -498,7 +498,7 @@ static void do_yield(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *sl
   (void) slots;
   (void) err;
   RakCallFrame *frame = &rak_stack_get(&fiber->cstk, 0);
-  frame->ip = ip + 1;
+  frame->state = ip + 1;
   rak_vm_yield(fiber);
 }
 

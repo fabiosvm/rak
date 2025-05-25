@@ -64,34 +64,34 @@ static const char *globals[] = {
 static inline void append_native_function(RakArray *arr, const char *name, int arity,
   RakNativeFunctionCall call, RakError *err);
 
-static void type_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_nil_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_bool_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_number_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_integer_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_string_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_array_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_range_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_record_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_closure_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_fiber_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_ref_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_falsy_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_object_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void ptr_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void ref_count_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void array_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void append_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void cap_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void len_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_empty_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void fiber_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_suspended_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void is_done_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void resume_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void print_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void println_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
-static void panic_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err);
+static void type_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_nil_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_bool_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_number_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_integer_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_string_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_array_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_range_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_record_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_closure_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_fiber_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_ref_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_falsy_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_object_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void ptr_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void ref_count_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void array_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void append_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void cap_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void len_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_empty_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void fiber_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_suspended_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void is_done_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void resume_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void print_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void println_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
+static void panic_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err);
 
 static inline void append_native_function(RakArray *arr, const char *name, int arity,
   RakNativeFunctionCall call, RakError *err)
@@ -115,7 +115,7 @@ static inline void append_native_function(RakArray *arr, const char *name, int a
   rak_closure_free(cl);
 }
 
-static void type_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void type_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -124,7 +124,7 @@ static void type_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValu
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_nil_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_nil_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -133,7 +133,7 @@ static void is_nil_native_call(RakFiber *fiber, RakClosure *cl, int state, RakVa
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_bool_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_bool_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -142,7 +142,7 @@ static void is_bool_native_call(RakFiber *fiber, RakClosure *cl, int state, RakV
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_number_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_number_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -151,7 +151,7 @@ static void is_number_native_call(RakFiber *fiber, RakClosure *cl, int state, Ra
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_integer_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_integer_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -161,7 +161,7 @@ static void is_integer_native_call(RakFiber *fiber, RakClosure *cl, int state, R
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_string_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_string_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -170,7 +170,7 @@ static void is_string_native_call(RakFiber *fiber, RakClosure *cl, int state, Ra
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_array_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_array_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -179,7 +179,7 @@ static void is_array_native_call(RakFiber *fiber, RakClosure *cl, int state, Rak
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_range_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_range_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -188,7 +188,7 @@ static void is_range_native_call(RakFiber *fiber, RakClosure *cl, int state, Rak
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_record_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_record_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -197,7 +197,7 @@ static void is_record_native_call(RakFiber *fiber, RakClosure *cl, int state, Ra
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_closure_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_closure_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -206,7 +206,7 @@ static void is_closure_native_call(RakFiber *fiber, RakClosure *cl, int state, R
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_fiber_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_fiber_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -215,7 +215,7 @@ static void is_fiber_native_call(RakFiber *fiber, RakClosure *cl, int state, Rak
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_ref_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_ref_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -224,7 +224,7 @@ static void is_ref_native_call(RakFiber *fiber, RakClosure *cl, int state, RakVa
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_falsy_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_falsy_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -233,7 +233,7 @@ static void is_falsy_native_call(RakFiber *fiber, RakClosure *cl, int state, Rak
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_object_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_object_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -242,7 +242,7 @@ static void is_object_native_call(RakFiber *fiber, RakClosure *cl, int state, Ra
   rak_vm_return(fiber, cl, slots);
 }
 
-static void ptr_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void ptr_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -252,7 +252,7 @@ static void ptr_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue
   rak_vm_return(fiber, cl, slots);
 }
 
-static void ref_count_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void ref_count_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -262,7 +262,7 @@ static void ref_count_native_call(RakFiber *fiber, RakClosure *cl, int state, Ra
   rak_vm_return(fiber, cl, slots);
 }
 
-static void array_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void array_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val1 = slots[1];
@@ -315,7 +315,7 @@ static void array_native_call(RakFiber *fiber, RakClosure *cl, int state, RakVal
   rak_vm_return(fiber, cl, slots);
 }
 
-static void append_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void append_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val1 = slots[1];
@@ -355,7 +355,7 @@ static void append_native_call(RakFiber *fiber, RakClosure *cl, int state, RakVa
   rak_vm_return(fiber, cl, slots);
 }
 
-static void cap_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void cap_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -386,7 +386,7 @@ static void cap_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue
   rak_error_set(err, "%s does not have a capacity", rak_type_to_cstr(val.type));
 }
 
-static void len_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void len_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -425,7 +425,7 @@ static void len_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue
   rak_error_set(err, "%s does not have a length", rak_type_to_cstr(val.type));
 }
 
-static void is_empty_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_empty_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -456,7 +456,7 @@ static void is_empty_native_call(RakFiber *fiber, RakClosure *cl, int state, Rak
   rak_error_set(err, "%s does not have a length", rak_type_to_cstr(val.type));
 }
 
-static void fiber_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void fiber_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val1 = slots[1];
@@ -501,7 +501,7 @@ end:
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_suspended_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_suspended_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -517,7 +517,7 @@ static void is_suspended_native_call(RakFiber *fiber, RakClosure *cl, int state,
   rak_vm_return(fiber, cl, slots);
 }
 
-static void is_done_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void is_done_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -533,7 +533,7 @@ static void is_done_native_call(RakFiber *fiber, RakClosure *cl, int state, RakV
   rak_vm_return(fiber, cl, slots);
 }
 
-static void resume_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void resume_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -558,7 +558,7 @@ static void resume_native_call(RakFiber *fiber, RakClosure *cl, int state, RakVa
   rak_vm_return(fiber, cl, slots);
 }
 
-static void print_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void print_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -568,7 +568,7 @@ static void print_native_call(RakFiber *fiber, RakClosure *cl, int state, RakVal
   rak_vm_return(fiber, cl, slots);
 }
 
-static void println_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void println_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
@@ -579,7 +579,7 @@ static void println_native_call(RakFiber *fiber, RakClosure *cl, int state, RakV
   rak_vm_return(fiber, cl, slots);
 }
 
-static void panic_native_call(RakFiber *fiber, RakClosure *cl, int state, RakValue *slots, RakError *err)
+static void panic_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];

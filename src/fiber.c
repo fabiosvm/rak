@@ -21,7 +21,7 @@ static void run(RakFiber *fiber, RakError *err)
   RakClosure *cl = frame.cl;
   RakValue *slots = frame.slots;
   if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
-    rak_vm_dispatch(fiber, cl, frame.ip, slots, err);
+    rak_vm_dispatch(fiber, cl, (uint32_t *) frame.state, slots, err);
   else
    ((RakNativeFunction *) cl->callable)->call(fiber, cl,
       frame.state, slots, err);
@@ -51,7 +51,7 @@ static void resume(RakFiber *fiber, RakError *err)
   RakClosure *cl = frame.cl;
   RakValue *slots = frame.slots;
   if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
-    rak_vm_dispatch(fiber, cl, frame.ip, slots, err);
+    rak_vm_dispatch(fiber, cl, (uint32_t *) frame.state, slots, err);
   else
    ((RakNativeFunction *) cl->callable)->call(fiber, cl,
       frame.state, slots, err);
@@ -117,12 +117,12 @@ void rak_fiber_init(RakFiber *fiber, RakArray *globals, int vstkSize, int cstkSi
   if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
   {
     RakFunction *fn = (RakFunction *) cl->callable;
-    frame.ip = fn->chunk.instrs.data;
+    frame.state = fn->chunk.instrs.data;
     rak_stack_push(&fiber->cstk, frame);
     rak_object_retain(&globals->obj);
     return;
   }
-  frame.state = 0;
+  frame.state = (void *) 0;
   rak_stack_push(&fiber->cstk, frame);
   rak_object_retain(&globals->obj);
   return;

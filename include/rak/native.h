@@ -17,7 +17,7 @@ struct RakFiber;
 
 struct RakClosure;
 
-typedef void (*RakNativeFunctionCall)(struct RakFiber *, struct RakClosure *, int, RakValue *, RakError *);
+typedef void (*RakNativeFunctionCall)(struct RakFiber *, struct RakClosure *, void *, RakValue *, RakError *);
 
 typedef struct
 {
