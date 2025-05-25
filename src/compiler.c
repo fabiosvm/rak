@@ -48,7 +48,7 @@ typedef struct Loop
   RakStaticSlice(uint16_t, UINT8_MAX)  jumps;
 } Loop;
 
-typedef RakStaticSlice(Symbol, UINT8_MAX) SymbolSlice;
+typedef RakStaticSlice(Symbol, RAK_COMPILER_MAX_SYMBOLS) SymbolSlice;
 
 typedef struct Compiler
 {
@@ -1572,7 +1572,7 @@ static inline uint8_t define_local(Compiler *comp, RakToken tok, bool isRef, Rak
       tok.len, tok.chars, tok.ln, tok.col);
     return 0;
   }
-  if (len == UINT8_MAX)
+  if (len == RAK_COMPILER_MAX_SYMBOLS)
   {
     rak_error_set(err, "too many local variables at %d:%d",
       tok.ln, tok.col);

@@ -13,6 +13,8 @@
 
 #include "closure.h"
 
+#define RAK_COMPILER_MAX_SYMBOLS (UINT8_MAX + 1)
+
 RakClosure *rak_compile(RakString *file, RakString *source, RakError *err);
 
 #endif // RAK_COMPILER_H

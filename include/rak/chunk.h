@@ -14,6 +14,9 @@
 #include "slice.h"
 #include "value.h"
 
+#define RAK_CHUNK_MAX_CONSTS (UINT8_MAX + 1)
+#define RAK_CHUNK_MAX_INSTRS (UINT16_MAX + 1)
+
 #define rak_instr_fmt0(op)          ((uint32_t) ((op) & 0xff))
 #define rak_instr_fmt1(op, a)       ((((uint32_t) ((a) & 0xff)) << 8) | ((op) & 0xff))
 #define rak_instr_fmt2(op, a, b)    (((((uint32_t) ((b) & 0xff)) << 8) | ((a) & 0xff)) << 8 | ((op) & 0xff))
@@ -141,9 +144,9 @@ typedef struct
 
 typedef struct
 {
-  RakStaticSlice(RakValue, UINT8_MAX) consts;
-  RakSlice(uint32_t)                  instrs;
-  RakSlice(RakLine)                   lines;
+  RakSlice(RakValue) consts;
+  RakSlice(uint32_t) instrs;
+  RakSlice(RakLine)  lines;
 } RakChunk;
 
 const char *rak_opcode_to_cstr(RakOpcode op);

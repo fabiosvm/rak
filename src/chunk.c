@@ -84,38 +84,46 @@ const char *rak_opcode_to_cstr(RakOpcode op)
 
 void rak_chunk_init(RakChunk *chunk, RakError *err)
 {
-  rak_static_slice_init(&chunk->consts);
-  rak_slice_init(&chunk->instrs, err);
+  rak_slice_init(&chunk->consts, err);
   if (!rak_is_ok(err)) return;
+  rak_slice_init(&chunk->instrs, err);
+  if (!rak_is_ok(err))
+  {
+    rak_slice_deinit(&chunk->consts);
+    return;
+  }
   rak_slice_init(&chunk->lines, err);
   if (rak_is_ok(err)) return;
+  rak_slice_deinit(&chunk->consts);
   rak_slice_deinit(&chunk->instrs);
 }
 
 void rak_chunk_deinit(RakChunk *chunk)
 {
   release_consts(chunk);
+  rak_slice_deinit(&chunk->consts);
   rak_slice_deinit(&chunk->instrs);
   rak_slice_deinit(&chunk->lines);
 }
 
 uint8_t rak_chunk_append_const(RakChunk *chunk, RakValue val, RakError *err)
 {
-  int idx = chunk->consts.len;
-  if (idx > UINT8_MAX)
+  int len = chunk->consts.len;
+  if (len == RAK_CHUNK_MAX_CONSTS)
   {
     rak_error_set(err, "too many constants");
     return 0;
   }
-  rak_slice_append(&chunk->consts, val);
+  rak_slice_ensure_append(&chunk->consts, val, err);
+  if (!rak_is_ok(err)) return 0;
   rak_value_retain(val);
-  return (uint8_t) idx;
+  return (uint8_t) len;
 }
 
 uint16_t rak_chunk_append_instr(RakChunk *chunk, uint32_t instr, int ln, RakError *err)
 {
   int len = chunk->instrs.len;
-  if (len > UINT16_MAX)
+  if (len == RAK_CHUNK_MAX_INSTRS)
   {
     rak_error_set(err, "too many instructions");
     return 0;

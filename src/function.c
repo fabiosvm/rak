@@ -53,8 +53,8 @@ void rak_function_release(RakFunction *fn)
 
 uint8_t rak_function_append_nested(RakFunction *fn, RakFunction *nested, RakError *err)
 {
-  int idx = fn->nested.len;
-  if (idx > UINT8_MAX)
+  int len = fn->nested.len;
+  if (len == RAK_FUNCTION_MAX_NESTED_FUNCTIONS)
   {
     rak_error_set(err, "too many nested functions");
     return 0;
@@ -62,5 +62,5 @@ uint8_t rak_function_append_nested(RakFunction *fn, RakFunction *nested, RakErro
   rak_slice_ensure_append(&fn->nested, nested, err);
   if (!rak_is_ok(err)) return 0;
   rak_object_retain(&nested->callable.obj);
-  return (uint8_t) idx;
+  return (uint8_t) len;
 }

@@ -14,6 +14,8 @@
 #include "callable.h"
 #include "chunk.h"
 
+#define RAK_FUNCTION_MAX_NESTED_FUNCTIONS (UINT8_MAX + 1)
+
 typedef struct RakFunction
 {
   RakCallable                    callable;

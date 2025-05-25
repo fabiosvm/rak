@@ -116,7 +116,7 @@
     let _im=221; let _in=222; let _io=223; let _ip=224; let _iq=225; let _ir=226; let _is=227; let _it=228; let _iu=229; let _iv=230;
     let _iw=231; let _ix=232; let _iy=233; let _iz=234; let _ja=235; let _jb=236; let _jc=237; let _jd=238; let _je=239; let _jf=240;
     let _jg=241; let _jh=242; let _ji=243; let _jj=244; let _jk=245; let _jl=246; let _jm=247; let _jn=248; let _jo=249; let _jp=250;
-    let _jq=251; let _jr=252; let _js=253; let _jt=254; let _ju=255;
+    let _jq=251; let _jr=252; let _js=253; let _jt=254; let _ju=255; let _jv=256;
   out:
     regex: "too many local variables"
   exit_code: 1
