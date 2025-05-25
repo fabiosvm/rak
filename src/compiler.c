@@ -587,26 +587,25 @@ static inline void compile_fn_decl(Compiler *comp, RakChunk *chunk, RakError *er
     return;
   }
   define_local(&_comp, tok, false, err);
-  if (!rak_is_ok(err)) goto fail;
+  if (!rak_is_ok(err)) goto end;
   RakChunk *_chunk = &_comp.fn->chunk;
   compile_params(&_comp, _chunk, err);
-  if (!rak_is_ok(err)) goto fail;
+  if (!rak_is_ok(err)) goto end;
   if (!match(&_comp, RAK_TOKEN_KIND_LBRACE))
   {
     expected_token_error(err, RAK_TOKEN_KIND_LBRACE, _comp.lex->tok);
-    goto fail;
+    goto end;
   }
   compile_block(&_comp, _chunk, err);
-  if (!rak_is_ok(err)) goto fail;
+  if (!rak_is_ok(err)) goto end;
   emit_instr(&_comp, _chunk, rak_return_nil_instr(), err);
-  if (!rak_is_ok(err)) goto fail;
+  if (!rak_is_ok(err)) goto end;
   uint8_t idx = rak_function_append_nested(comp->fn, _comp.fn, err);
-  if (!rak_is_ok(err)) goto fail;
+  if (!rak_is_ok(err)) goto end;
   emit_instr(comp, chunk, rak_new_closure_instr(idx), err);
-  if (!rak_is_ok(err)) goto fail;
+  if (!rak_is_ok(err)) goto end;
   define_local(comp, tok, false, err);
-  return;
-fail:
+end:
   compiler_deinit(&_comp);
 }
 
@@ -1415,23 +1414,22 @@ static inline void compile_fn(Compiler *comp, RakChunk *chunk, RakError *err)
   append_local(&_comp, false, tok);
   RakChunk *_chunk = &_comp.fn->chunk;
   compile_params(&_comp, _chunk, err);
-  if (!rak_is_ok(err)) goto fail;
+  if (!rak_is_ok(err)) goto end;
   if (!match(&_comp, RAK_TOKEN_KIND_LBRACE))
   {
     expected_token_error(err, RAK_TOKEN_KIND_LBRACE, _comp.lex->tok);
-    goto fail;
+    goto end;
   }
   compile_block(&_comp, _chunk, err);
-  if (!rak_is_ok(err)) goto fail;
+  if (!rak_is_ok(err)) goto end;
   emit_instr(&_comp, _chunk, rak_return_nil_instr(), err);
-  if (!rak_is_ok(err)) goto fail;
+  if (!rak_is_ok(err)) goto end;
   end_scope(&_comp, _chunk, err);
-  if (!rak_is_ok(err)) goto fail;
+  if (!rak_is_ok(err)) goto end;
   uint8_t idx = rak_function_append_nested(comp->fn, _comp.fn, err);
-  if (!rak_is_ok(err)) goto fail;
+  if (!rak_is_ok(err)) goto end;
   emit_instr(comp, chunk, rak_new_closure_instr(idx), err);
-  return;
-fail:
+end:
   compiler_deinit(&_comp);
 }
 
