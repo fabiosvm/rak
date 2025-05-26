@@ -12,6 +12,7 @@
 #define RAK_H
 
 #include "rak/array.h"
+#include "rak/bitset.h"
 #include "rak/builtin.h"
 #include "rak/callable.h"
 #include "rak/chunk.h"
