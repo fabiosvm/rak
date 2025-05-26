@@ -108,3 +108,73 @@
     15
     nil
     5 < a <= 10
+
+- test: if mixing logical OR and logical AND operators
+  source: |
+    let a, b, c, d;
+
+    &a = false; &b = false; &c = false; &d = false;
+    if (a || b) && (c || d) { println("Failure"); } else { println("Success"); }
+
+    &a = true; &b = false; &c = false; &d = false;
+    if (a || b) && (c || d) { println("Failure"); } else { println("Success"); }
+
+    &a = false; &b = true; &c = false; &d = false;
+    if (a || b) && (c || d) { println("Failure"); } else { println("Success"); }
+
+    &a = false; &b = false; &c = true; &d = false;
+    if (a || b) && (c || d) { println("Failure"); } else { println("Success"); }
+
+    &a = false; &b = false; &c = false; &d = true;
+    if (a || b) && (c || d) { println("Failure"); } else { println("Success"); }
+
+    &a = true; &b = true; &c = false; &d = false;
+    if (a || b) && (c || d) { println("Failure"); } else { println("Success"); }
+
+    &a = true; &b = false; &c = true; &d = false;
+    if (a || b) && (c || d) { println("Success"); } else { println("Failure"); }
+
+    &a = true; &b = false; &c = false; &d = true;
+    if (a || b) && (c || d) { println("Success"); } else { println("Failure"); }
+
+    &a = false; &b = true; &c = true; &d = false;
+    if (a || b) && (c || d) { println("Success"); } else { println("Failure"); }
+
+    &a = false; &b = true; &c = false; &d = true;
+    if (a || b) && (c || d) { println("Success"); } else { println("Failure"); }
+
+    &a = false; &b = false; &c = true; &d = true;
+    if (a || b) && (c || d) { println("Failure"); } else { println("Success"); }
+
+    &a = true; &b = true; &c = true; &d = false;
+    if (a || b) && (c || d) { println("Success"); } else { println("Failure"); }
+
+    &a = true; &b = true; &c = false; &d = true;
+    if (a || b) && (c || d) { println("Success"); } else { println("Failure"); }
+
+    &a = true; &b = false; &c = true; &d = true;
+    if (a || b) && (c || d) { println("Success"); } else { println("Failure"); }
+
+    &a = false; &b = true; &c = true; &d = true;
+    if (a || b) && (c || d) { println("Success"); } else { println("Failure"); }
+
+    &a = true; &b = true; &c = true; &d = true;
+    if (a || b) && (c || d) { println("Success"); } else { println("Failure"); }
+
+  out: |
+    Success
+    Success
+    Success
+    Success
+    Success
+    Success
+    Success
+    Success
+    Success
+    Success
+    Success
+    Success
+    Success
+    Success
+    Success
+    Success
