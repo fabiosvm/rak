@@ -902,7 +902,7 @@ static inline void compile_expr_cont(Compiler *comp, RakChunk *chunk, uint16_t *
   uint16_t _off;
   compile_expr_cont(comp, chunk, &_off, err);
   if (!rak_is_ok(err)) return;
-  patch_instr(chunk, jump, rak_jump_instr(_off));
+  patch_instr(chunk, jump, rak_jump_if_true_instr(_off));
   if (off) *off = _off;
 }
 
