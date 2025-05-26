@@ -77,3 +77,28 @@
     println(a);
   out: |
     3
+
+- test: fiber - function with yield (wrong number of arguments)
+  source: |
+    fn f(a, b, c) {
+      yield a;
+      yield b;
+      return c;
+    }
+    let fi = fiber(f, [1, 2]);
+    while !is_done(fi) {
+      let a = resume(fi);
+      println(a);
+    }
+    &fi = fiber(f, [10, 20, 30, 40]);
+    while !is_done(fi) {
+      let a = resume(fi);
+      println(a);
+    }
+  out: |
+    1
+    2
+    nil
+    10
+    20
+    30

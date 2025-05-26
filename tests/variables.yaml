@@ -34,3 +34,24 @@
     10
     20
     30
+
+- test: variables - Using MOVE instruction
+  source: |
+    let a=1;
+    let b;
+    let c="Strings also MOVE";
+    let d;
+    &b=a;
+    &d=c;
+  args: "-c"
+  out: |+
+    ; main
+    ; 0 parameter(s), 1 constant(s), 7 instruction(s), 0 function(s)
+      0             PUSH_INT        1    
+      1      2      PUSH_NIL       
+      2      3      LOAD_CONST      0    
+      3      4      PUSH_NIL       
+      4      5      MOVE            2     1
+      5      6      MOVE            4     3
+      6      7      RETURN_NIL     
+    

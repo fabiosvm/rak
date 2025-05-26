@@ -21,3 +21,7 @@
       3      7      POP            
       4             RETURN_NIL     
 
+- test: unknow args
+  args: "-a examples/hello.rak -d -asdf"
+  out: |
+    Hello, world!
