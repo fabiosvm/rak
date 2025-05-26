@@ -140,6 +140,7 @@ uint16_t rak_chunk_append_instr(RakChunk *chunk, uint32_t instr, int ln, RakErro
     if (!rak_is_ok(err)) return 0;
     return line.off;
   }
+  len = chunk->lines.len;
   RakLine _line = rak_slice_get(&chunk->lines, len - 1);
   if (_line.ln == ln) return line.off;
   rak_slice_ensure_append(&chunk->lines, line, err);
