@@ -27,6 +27,19 @@
   out: |
     30
 
+- test: function declaration - with wrong number of arguments
+  source: |
+    fn f(a, b) {
+      return {x: a, y: b};
+    }
+    let rec = f(10);
+    println(rec.y);
+    &rec = f(1,2,3,4,5,6);
+    println(rec.y);
+  out: |
+    nil
+    2
+
 - test: function declaration - with arguments and local variable
   source: |
     fn f(a, b) {
