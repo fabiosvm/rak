@@ -119,8 +119,8 @@ static inline uint8_t append_local(Compiler *comp, bool isRef, RakToken tok);
 static inline Symbol *resolve_local(Compiler *comp, RakToken tok);
 static inline bool ident_equals(RakToken tok1, RakToken tok2);
 static inline void emit_store_local_instr(Compiler *comp, RakChunk *chunk, uint8_t dst, RakError *err);
-static inline void emit_return_instr(Compiler *comp, RakChunk *chunk, RakError *err);
-static inline uint16_t emit_instr(Compiler *comp, RakChunk *chunk, uint32_t instr, RakError *err);
+static inline void emit_return_instr(Compiler *comp, RakChunk *chunk, int line, RakError *err);
+static inline uint16_t emit_instr(Compiler *comp, RakChunk *chunk, uint32_t instr, int line, RakError *err);
 static inline void patch_instr(RakChunk *chunk, uint16_t off, uint32_t instr);
 static inline void unexpected_token_error(RakError *err, RakToken tok);
 static inline void expected_token_error(RakError *err, RakTokenKind kind, RakToken tok);
@@ -151,7 +151,7 @@ static inline void compile_chunk(Compiler *comp, RakChunk *chunk, RakError *err)
     compile_stmt(comp, chunk, err);
     if (!rak_is_ok(err)) return;
   }
-  emit_instr(comp, chunk, rak_return_nil_instr(), err);
+  emit_instr(comp, chunk, rak_return_nil_instr(), comp->lex->tok.ln, err);
 }
 
 static inline void compile_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -276,14 +276,14 @@ static inline void compile_variable(Compiler *comp, RakChunk *chunk, RakError *e
     if (!rak_is_ok(err)) return;
     if (isBlank)
     {
-      emit_instr(comp, chunk, rak_pop_instr(), err);
+      emit_instr(comp, chunk, rak_pop_instr(), 0, err);
       return;
     }
     define_local(comp, tok, false, err);
     return;
   }
   if (isBlank) return;
-  emit_instr(comp, chunk, rak_push_nil_instr(), err);
+  emit_instr(comp, chunk, rak_push_nil_instr(), 0, err);
   if (!rak_is_ok(err)) return;
   define_local(comp, tok, false, err);
 }
@@ -305,10 +305,10 @@ static inline void compile_destruct_elements(Compiler *comp, RakChunk *chunk, Ra
     Symbol sym = rak_slice_get(&symbols, i);
     define_local(comp, sym.tok, false, err);
     if (!rak_is_ok(err)) return;
-    emit_instr(comp, chunk, rak_push_int_instr(sym.idx), err);
+    emit_instr(comp, chunk, rak_push_int_instr(sym.idx), comp->lex->tok.ln, err);
     if (!rak_is_ok(err)) return;
   }
-  emit_instr(comp, chunk, rak_unpack_elements_instr((uint8_t) len), err);
+  emit_instr(comp, chunk, rak_unpack_elements_instr((uint8_t) len), comp->lex->tok.ln, err);
 }
 
 static inline void compile_ident_list(Compiler *comp, SymbolSlice *symbols, RakError *err)
@@ -375,10 +375,10 @@ static inline void compile_destruct_fields(Compiler *comp, RakChunk *chunk, RakE
       rak_string_free(str);
       return;
     }
-    emit_instr(comp, chunk, rak_load_const_instr(idx), err);
+    emit_instr(comp, chunk, rak_load_const_instr(idx), comp->lex->tok.ln, err);
     if (!rak_is_ok(err)) return;
   }
-  emit_instr(comp, chunk, rak_unpack_fields_instr((uint8_t) len), err);
+  emit_instr(comp, chunk, rak_unpack_fields_instr((uint8_t) len), comp->lex->tok.ln, err);
 }
 
 static inline void compile_assign_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -408,7 +408,7 @@ static inline void compile_assign_stmt(Compiler *comp, RakChunk *chunk, RakError
     consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
     if (sym->isRef)
     {
-      emit_instr(comp, chunk, rak_store_local_ref_instr(idx), err);
+      emit_instr(comp, chunk, rak_store_local_ref_instr(idx), 0, err);
       return;
     }
     emit_store_local_instr(comp, chunk, idx, err);
@@ -419,29 +419,29 @@ static inline void compile_assign_stmt(Compiler *comp, RakChunk *chunk, RakError
   if (!rak_is_ok(err)) return;
   if (_instr)
   {
-    emit_instr(comp, chunk, rak_load_local_instr(idx), err);
+    emit_instr(comp, chunk, rak_load_local_instr(idx), comp->lex->tok.ln, err);
     if (!rak_is_ok(err)) return;
     compile_expr(comp, chunk, err);
     if (!rak_is_ok(err)) return;
     consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
-    emit_instr(comp, chunk, _instr, err);
+    emit_instr(comp, chunk, _instr, 0, err);
     if (!rak_is_ok(err)) return;
     if (sym->isRef)
     {
-      emit_instr(comp, chunk, rak_store_local_ref_instr(idx), err);
+      emit_instr(comp, chunk, rak_store_local_ref_instr(idx), 0,  err);
       return;
     }
     emit_store_local_instr(comp, chunk, idx, err);
     return;
   }
-  emit_instr(comp, chunk, rak_fetch_local_instr(idx), err);
+  emit_instr(comp, chunk, rak_fetch_local_instr(idx), 0, err);
   if (!rak_is_ok(err)) return;
   compile_assign_stmt_cont(comp, chunk, err);
   if (!rak_is_ok(err)) return;
   consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
   if (sym->isRef)
   {
-    emit_instr(comp, chunk, rak_store_local_ref_instr(idx), err);
+    emit_instr(comp, chunk, rak_store_local_ref_instr(idx), 0, err);
     return;
   }
   emit_store_local_instr(comp, chunk, idx, err);
@@ -489,10 +489,11 @@ static inline void compile_assign_stmt_cont(Compiler *comp, RakChunk *chunk, Rak
     consume(comp, RAK_TOKEN_KIND_RBRACKET, err);
     if (match(comp, RAK_TOKEN_KIND_EQ))
     {
+      int line = comp->lex->tok.ln;
       next(comp, err);
       compile_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_set_element_instr(), err);
+      emit_instr(comp, chunk, rak_set_element_instr(), line, err);
       return;
     }
     uint32_t instr = 0;
@@ -500,20 +501,20 @@ static inline void compile_assign_stmt_cont(Compiler *comp, RakChunk *chunk, Rak
     if (!rak_is_ok(err)) return;
     if (instr)
     {
-      emit_instr(comp, chunk, rak_load_element_instr(), err);
+      emit_instr(comp, chunk, rak_load_element_instr(), 0, err);
       if (!rak_is_ok(err)) return;
       compile_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, instr, err);
+      emit_instr(comp, chunk, instr, 0, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_update_element_instr(), err);
+      emit_instr(comp, chunk, rak_update_element_instr(), 0, err);
       return;
     }
-    emit_instr(comp, chunk, rak_fetch_element_instr(), err);
+    emit_instr(comp, chunk, rak_fetch_element_instr(), 0, err);
     if (!rak_is_ok(err)) return;
     compile_assign_stmt_cont(comp, chunk, err);
     if (!rak_is_ok(err)) return;
-    emit_instr(comp, chunk, rak_update_element_instr(), err);
+    emit_instr(comp, chunk, rak_update_element_instr(), 0, err);
     return;
   }
   if (!match(comp, RAK_TOKEN_KIND_DOT))
@@ -540,10 +541,11 @@ static inline void compile_assign_stmt_cont(Compiler *comp, RakChunk *chunk, Rak
   }
   if (match(comp, RAK_TOKEN_KIND_EQ))
   {
+    int line = comp->lex->tok.ln;
     next(comp, err);
     compile_expr(comp, chunk, err);
     if (!rak_is_ok(err)) return;
-    emit_instr(comp, chunk, rak_put_field_instr(idx), err);
+    emit_instr(comp, chunk, rak_put_field_instr(idx), line, err);
     return;
   }
   uint32_t instr = 0;
@@ -551,20 +553,20 @@ static inline void compile_assign_stmt_cont(Compiler *comp, RakChunk *chunk, Rak
   if (!rak_is_ok(err)) return;
   if (instr)
   {
-    emit_instr(comp, chunk, rak_load_field_instr(idx), err);
+    emit_instr(comp, chunk, rak_load_field_instr(idx), 0, err);
     if (!rak_is_ok(err)) return;
     compile_expr(comp, chunk, err);
     if (!rak_is_ok(err)) return;
-    emit_instr(comp, chunk, instr, err);
+    emit_instr(comp, chunk, instr, 0, err);
     if (!rak_is_ok(err)) return;
-    emit_instr(comp, chunk, rak_update_field_instr(), err);
+    emit_instr(comp, chunk, rak_update_field_instr(), 0, err);
     return;
   }
-  emit_instr(comp, chunk, rak_fetch_field_instr(idx), err);
+  emit_instr(comp, chunk, rak_fetch_field_instr(idx), 0, err);
   if (!rak_is_ok(err)) return;
   compile_assign_stmt_cont(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_update_field_instr(), err);
+  emit_instr(comp, chunk, rak_update_field_instr(), 0, err);
 }
 
 static inline void compile_fn_decl(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -598,11 +600,11 @@ static inline void compile_fn_decl(Compiler *comp, RakChunk *chunk, RakError *er
   }
   compile_block(&_comp, _chunk, err);
   if (!rak_is_ok(err)) goto end;
-  emit_instr(&_comp, _chunk, rak_return_nil_instr(), err);
+  emit_instr(&_comp, _chunk, rak_return_nil_instr(), comp->lex->prevTok.ln, err);
   if (!rak_is_ok(err)) goto end;
   uint8_t idx = rak_function_append_nested(comp->fn, _comp.fn, err);
   if (!rak_is_ok(err)) goto end;
-  emit_instr(comp, chunk, rak_new_closure_instr(idx), err);
+  emit_instr(comp, chunk, rak_new_closure_instr(idx), tok.ln, err);
   if (!rak_is_ok(err)) goto end;
   define_local(comp, tok, false, err);
 end:
@@ -651,7 +653,7 @@ static inline void compile_param(Compiler *comp, RakChunk *chunk, RakError *err)
   uint8_t idx = define_local(comp, tok, isRef, err);
   if (!rak_is_ok(err)) return;
   if (!isRef) return;
-  emit_instr(comp, chunk, rak_check_ref_instr(idx), err);
+  emit_instr(comp, chunk, rak_check_ref_instr(idx), tok.ln, err);
 }
 
 static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err)
@@ -665,9 +667,9 @@ static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *of
   }
   compile_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  uint16_t jump1 = emit_instr(comp, chunk, rak_nop_instr(), err);
+  uint16_t jump1 = emit_instr(comp, chunk, rak_nop_instr(), comp->lex->tok.ln, err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_pop_instr(), err);
+  emit_instr(comp, chunk, rak_pop_instr(), comp->lex->tok.ln, err);
   if (!rak_is_ok(err)) return;
   if (!match(comp, RAK_TOKEN_KIND_LBRACE))
   {
@@ -676,12 +678,12 @@ static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *of
   }
   compile_block(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  uint16_t jump2 = emit_instr(comp, chunk, rak_nop_instr(), err);
+  uint16_t jump2 = emit_instr(comp, chunk, rak_nop_instr(), comp->lex->prevTok.ln, err);
   if (!rak_is_ok(err)) return;
   uint32_t instr = rak_jump_if_false_instr((uint16_t) chunk->instrs.len);
   patch_instr(chunk, jump1, instr);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_pop_instr(), err);
+  emit_instr(comp, chunk, rak_pop_instr(), comp->lex->tok.ln, err);
   uint16_t _off;
   compile_if_stmt_cont(comp, chunk, &_off, err);
   if (!rak_is_ok(err)) return;
@@ -727,7 +729,7 @@ static inline void compile_loop_stmt(Compiler *comp, RakChunk *chunk, RakError *
   }
   compile_block(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_jump_instr(loop.off), err);
+  emit_instr(comp, chunk, rak_jump_instr(loop.off), comp->lex->prevTok.ln, err);
   if (!rak_is_ok(err)) return;
   end_loop(comp, chunk);
 }
@@ -745,9 +747,9 @@ static inline void compile_while_stmt(Compiler *comp, RakChunk *chunk, RakError 
   begin_loop(comp, chunk, &loop);
   compile_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), err);
+  uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), comp->lex->tok.ln, err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_pop_instr(), err);
+  emit_instr(comp, chunk, rak_pop_instr(), comp->lex->tok.ln, err);
   if (!rak_is_ok(err)) return;
   if (!match(comp, RAK_TOKEN_KIND_LBRACE))
   {
@@ -756,11 +758,11 @@ static inline void compile_while_stmt(Compiler *comp, RakChunk *chunk, RakError 
   }
   compile_block(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_jump_instr(loop.off), err);
+  emit_instr(comp, chunk, rak_jump_instr(loop.off), comp->lex->prevTok.ln, err);
   if (!rak_is_ok(err)) return;
   uint32_t instr = rak_jump_if_false_instr((uint16_t) chunk->instrs.len);
   patch_instr(chunk, jump, instr);
-  emit_instr(comp, chunk, rak_pop_instr(), err);
+  emit_instr(comp, chunk, rak_pop_instr(), comp->lex->tok.ln, err);
   if (!rak_is_ok(err)) return;
   end_loop(comp, chunk);
   end_scope(comp, chunk, err);
@@ -782,15 +784,15 @@ static inline void compile_do_while_stmt(Compiler *comp, RakChunk *chunk, RakErr
   compile_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
   consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
-  uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), err);
+  uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), 0, err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_pop_instr(), err);
+  emit_instr(comp, chunk, rak_pop_instr(), 0, err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_jump_instr(loop.off), err);
+  emit_instr(comp, chunk, rak_jump_instr(loop.off), 0, err);
   if (!rak_is_ok(err)) return;
   uint32_t instr = rak_jump_if_false_instr((uint16_t) chunk->instrs.len);
   patch_instr(chunk, jump, instr);
-  emit_instr(comp, chunk, rak_pop_instr(), err);
+  emit_instr(comp, chunk, rak_pop_instr(), 0, err);
   if (!rak_is_ok(err)) return;
   end_loop(comp, chunk);
 }
@@ -807,7 +809,7 @@ static inline void compile_break_stmt(Compiler *comp, RakChunk *chunk, RakError 
       tok.ln, tok.col);
     return;
   }
-  uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), err);
+  uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), tok.ln, err);
   if (!rak_is_ok(err)) return;
   if (rak_slice_is_full(&loop->jumps))
   {
@@ -830,39 +832,41 @@ static inline void compile_continue_stmt(Compiler *comp, RakChunk *chunk, RakErr
       tok.ln, tok.col);
     return;
   }
-  emit_instr(comp, chunk, rak_jump_instr(loop->off), err);
+  emit_instr(comp, chunk, rak_jump_instr(loop->off), tok.ln, err);
 }
 
 static inline void compile_yield_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
 {
+  int line = comp->lex->tok.ln;
   next(comp, err);
   if (match(comp, RAK_TOKEN_KIND_SEMICOLON))
   {
     next(comp, err);
-    emit_instr(comp, chunk, rak_push_nil_instr(), err);
+    emit_instr(comp, chunk, rak_push_nil_instr(), line, err);
     if (!rak_is_ok(err)) return;
-    emit_instr(comp, chunk, rak_yield_instr(), err);
+    emit_instr(comp, chunk, rak_yield_instr(), line, err);
     return;
   }
   compile_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
   consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
-  emit_instr(comp, chunk, rak_yield_instr(), err);
+  emit_instr(comp, chunk, rak_yield_instr(), line, err);
 }
 
 static inline void compile_return_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
 {
+  int returnLine = comp->lex->tok.ln;
   next(comp, err);
   if (match(comp, RAK_TOKEN_KIND_SEMICOLON))
   {
     next(comp, err);
-    emit_instr(comp, chunk, rak_return_nil_instr(), err);
+    emit_instr(comp, chunk, rak_return_nil_instr(), returnLine, err);
     return;
   }
   compile_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
   consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
-  emit_return_instr(comp, chunk, err);
+  emit_return_instr(comp, chunk, returnLine, err);
 }
 
 static inline void compile_expr_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -874,8 +878,9 @@ static inline void compile_expr_stmt(Compiler *comp, RakChunk *chunk, RakError *
     unexpected_token_error(err, comp->lex->tok);
     return;
   }
+  int line = comp->lex->tok.ln;
   next(comp, err);
-  emit_instr(comp, chunk, rak_pop_instr(), err);
+  emit_instr(comp, chunk, rak_pop_instr(), line, err);
 }
 
 static inline void compile_expr(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -892,10 +897,11 @@ static inline void compile_expr_cont(Compiler *comp, RakChunk *chunk, uint16_t *
     if (off) *off = (uint16_t) chunk->instrs.len;
     return;
   }
+  int line = comp->lex->tok.ln;
   next(comp, err);
-  uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), err);
+  uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), line, err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_pop_instr(), err);
+  emit_instr(comp, chunk, rak_pop_instr(), line, err);
   if (!rak_is_ok(err)) return;
   compile_and_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
@@ -920,10 +926,11 @@ static inline void compile_and_expr_cont(Compiler *comp, RakChunk *chunk, uint16
     if (off) *off = (uint16_t) chunk->instrs.len;
     return;
   }
+  int line = comp->lex->tok.ln;
   next(comp, err);
-  uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), err);
+  uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), line, err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_pop_instr(), err);
+  emit_instr(comp, chunk, rak_pop_instr(), line, err);
   if (!rak_is_ok(err)) return;
   compile_eq_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
@@ -942,21 +949,23 @@ static inline void compile_eq_expr(Compiler *comp, RakChunk *chunk, RakError *er
   {
     if (match(comp, RAK_TOKEN_KIND_EQEQ))
     {
+      int line = comp->lex->tok.ln;
       next(comp, err);
       compile_cmp_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_eq_instr(), err);
+      emit_instr(comp, chunk, rak_eq_instr(), line, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
     if (match(comp, RAK_TOKEN_KIND_BANGEQ))
     {
+      int line = comp->lex->tok.ln;
       next(comp, err);
       compile_cmp_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_eq_instr(), err);
+      emit_instr(comp, chunk, rak_eq_instr(), line, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_not_instr(), err);
+      emit_instr(comp, chunk, rak_not_instr(), line, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
@@ -972,41 +981,45 @@ static inline void compile_cmp_expr(Compiler *comp, RakChunk *chunk, RakError *e
   {
     if (match(comp, RAK_TOKEN_KIND_GTEQ))
     {
+      int line = comp->lex->tok.ln;
       next(comp, err);
       compile_range_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_lt_instr(), err);
+      emit_instr(comp, chunk, rak_lt_instr(), line, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_not_instr(), err);
+      emit_instr(comp, chunk, rak_not_instr(), line, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
     if (match(comp, RAK_TOKEN_KIND_GT))
     {
+      int line = comp->lex->tok.ln;
       next(comp, err);
       compile_range_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_gt_instr(), err);
+      emit_instr(comp, chunk, rak_gt_instr(), line, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
     if (match(comp, RAK_TOKEN_KIND_LTEQ))
     {
+      int line = comp->lex->tok.ln;
       next(comp, err);
       compile_range_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_gt_instr(), err);
+      emit_instr(comp, chunk, rak_gt_instr(), line, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_not_instr(), err);
+      emit_instr(comp, chunk, rak_not_instr(), line, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
     if (match(comp, RAK_TOKEN_KIND_LT))
     {
+      int line = comp->lex->tok.ln;
       next(comp, err);
       compile_range_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_lt_instr(), err);
+      emit_instr(comp, chunk, rak_lt_instr(), line, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
@@ -1019,10 +1032,11 @@ static inline void compile_range_expr(Compiler *comp, RakChunk *chunk, RakError 
   compile_add_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
   if (!match(comp, RAK_TOKEN_KIND_DOTDOT)) return;
+  int line = comp->lex->tok.ln;
   next(comp, err);
   compile_add_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_new_range_instr(), err);
+  emit_instr(comp, chunk, rak_new_range_instr(), line, err);
 }
 
 static inline void compile_add_expr(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -1033,19 +1047,21 @@ static inline void compile_add_expr(Compiler *comp, RakChunk *chunk, RakError *e
   {
     if (match(comp, RAK_TOKEN_KIND_PLUS))
     {
+      int line = comp->lex->tok.ln;
       next(comp, err);
       compile_mul_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_add_instr(), err);
+      emit_instr(comp, chunk, rak_add_instr(), line, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
     if (match(comp, RAK_TOKEN_KIND_MINUS))
     {
+      int line = comp->lex->tok.ln;
       next(comp, err);
       compile_mul_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_sub_instr(), err);
+      emit_instr(comp, chunk, rak_sub_instr(), line, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
@@ -1061,28 +1077,31 @@ static inline void compile_mul_expr(Compiler *comp, RakChunk *chunk, RakError *e
   {
     if (match(comp, RAK_TOKEN_KIND_STAR))
     {
+      int line = comp->lex->tok.ln;
       next(comp, err);
       compile_unary_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_mul_instr(), err);
+      emit_instr(comp, chunk, rak_mul_instr(), line, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
     if (match(comp, RAK_TOKEN_KIND_SLASH))
     {
+      int line = comp->lex->tok.ln;
       next(comp, err);
       compile_unary_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_div_instr(), err);
+      emit_instr(comp, chunk, rak_div_instr(), line, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
     if (match(comp, RAK_TOKEN_KIND_PERCENT))
     {
+      int line = comp->lex->tok.ln;
       next(comp, err);
       compile_unary_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_mod_instr(), err);
+      emit_instr(comp, chunk, rak_mod_instr(), line, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
@@ -1094,18 +1113,20 @@ static inline void compile_unary_expr(Compiler *comp, RakChunk *chunk, RakError 
 {
   if (match(comp, RAK_TOKEN_KIND_BANG))
   {
+    int line = comp->lex->tok.ln;
     next(comp, err);
     compile_unary_expr(comp, chunk, err);
     if (!rak_is_ok(err)) return;
-    emit_instr(comp, chunk, rak_not_instr(), err);
+    emit_instr(comp, chunk, rak_not_instr(), line, err);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_MINUS))
   {
+    int line = comp->lex->tok.ln;
     next(comp, err);
     compile_unary_expr(comp, chunk, err);
     if (!rak_is_ok(err)) return;
-    emit_instr(comp, chunk, rak_neg_instr(), err);
+    emit_instr(comp, chunk, rak_neg_instr(), line, err);
     return;
   }
   compile_call_expr(comp, chunk, err);
@@ -1135,11 +1156,12 @@ static inline void compile_call(Compiler *comp, RakChunk *chunk, bool *_match, R
     *_match = false;
     return;
   }
+  int callLine = comp->lex->tok.ln;
   next(comp, err);
   if (match(comp, RAK_TOKEN_KIND_RPAREN))
   {
     next(comp, err);
-    emit_instr(comp, chunk, rak_call_instr(0), err);
+    emit_instr(comp, chunk, rak_call_instr(0), callLine, err);
     if (!rak_is_ok(err)) return;
     *_match = true;
     return;
@@ -1161,7 +1183,7 @@ static inline void compile_call(Compiler *comp, RakChunk *chunk, bool *_match, R
       comp->lex->tok.ln, comp->lex->tok.col);
     return;
   }
-  emit_instr(comp, chunk, rak_call_instr((uint8_t) nargs), err);
+  emit_instr(comp, chunk, rak_call_instr((uint8_t) nargs), callLine, err);
   if (!rak_is_ok(err)) return;
   *_match = true;
 }
@@ -1189,7 +1211,7 @@ static inline void compile_arg(Compiler *comp, RakChunk *chunk, RakError *err)
     uint32_t instr = sym->isRef
       ? rak_load_local_instr(idx)
       : rak_ref_local_instr(idx);
-    emit_instr(comp, chunk, instr, err);
+    emit_instr(comp, chunk, instr, tok.ln, err);
     return;
   }
   compile_expr(comp, chunk, err);
@@ -1203,7 +1225,7 @@ static inline void compile_subscr(Compiler *comp, RakChunk *chunk, bool *_match,
     compile_expr(comp, chunk, err);
     if (!rak_is_ok(err)) return;
     consume(comp, RAK_TOKEN_KIND_RBRACKET, err);
-    emit_instr(comp, chunk, rak_get_element_instr(), err);
+    emit_instr(comp, chunk, rak_get_element_instr(), comp->lex->tok.ln, err);
     if (!rak_is_ok(err)) return;
     *_match = true;
     return;
@@ -1227,7 +1249,7 @@ static inline void compile_subscr(Compiler *comp, RakChunk *chunk, bool *_match,
       rak_string_free(str);
       return;
     }
-    emit_instr(comp, chunk, rak_get_field_instr(idx), err);
+    emit_instr(comp, chunk, rak_get_field_instr(idx), tok.ln, err);
     if (!rak_is_ok(err)) return;
     *_match = true;
     return;
@@ -1237,22 +1259,23 @@ static inline void compile_subscr(Compiler *comp, RakChunk *chunk, bool *_match,
 
 static inline void compile_prim_expr(Compiler *comp, RakChunk *chunk, RakError *err)
 {
+  int line = comp->lex->tok.ln;
   if (match(comp, RAK_TOKEN_KIND_NIL_KW))
   {
     next(comp, err);
-    emit_instr(comp, chunk, rak_push_nil_instr(), err);
+    emit_instr(comp, chunk, rak_push_nil_instr(), line, err);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_FALSE_KW))
   {
     next(comp, err);
-    emit_instr(comp, chunk, rak_push_false_instr(), err);
+    emit_instr(comp, chunk, rak_push_false_instr(), line, err);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_TRUE_KW))
   {
     next(comp, err);
-    emit_instr(comp, chunk, rak_push_true_instr(), err);
+    emit_instr(comp, chunk, rak_push_true_instr(), line, err);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_NUMBER))
@@ -1266,12 +1289,12 @@ static inline void compile_prim_expr(Compiler *comp, RakChunk *chunk, RakError *
      && rak_as_integer(val) <= UINT16_MAX)
     {
       uint16_t data = (uint16_t) rak_as_integer(val);
-      emit_instr(comp, chunk, rak_push_int_instr(data), err);
+      emit_instr(comp, chunk, rak_push_int_instr(data), tok.ln, err);
       return;
     }
     uint8_t idx = rak_chunk_append_const(chunk, val, err);
     if (!rak_is_ok(err)) return;
-    emit_instr(comp, chunk, rak_load_const_instr(idx), err);
+    emit_instr(comp, chunk, rak_load_const_instr(idx), tok.ln, err);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_STRING))
@@ -1287,7 +1310,7 @@ static inline void compile_prim_expr(Compiler *comp, RakChunk *chunk, RakError *
       rak_string_free(str);
       return;
     }
-    emit_instr(comp, chunk, rak_load_const_instr(idx), err);
+    emit_instr(comp, chunk, rak_load_const_instr(idx), tok.ln, err);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_IDENT))
@@ -1301,13 +1324,13 @@ static inline void compile_prim_expr(Compiler *comp, RakChunk *chunk, RakError *
       uint32_t instr = sym->isRef
         ? rak_load_local_ref_instr(idx)
         : rak_load_local_instr(idx);
-      emit_instr(comp, chunk, instr, err);
+      emit_instr(comp, chunk, instr,tok.ln,  err);
       return;
     }
     int idx = rak_builtin_resolve_global(tok.len, tok.chars);
     if (idx != -1)
     {
-      emit_instr(comp, chunk, rak_load_global_instr((uint8_t) idx), err);
+      emit_instr(comp, chunk, rak_load_global_instr((uint8_t) idx), tok.ln, err);
       return;
     }
     rak_error_set(err, "undefined symbol '%.*s' at %d:%d", tok.len, tok.chars,
@@ -1347,8 +1370,9 @@ static inline void compile_array(Compiler *comp, RakChunk *chunk, RakError *err)
   next(comp, err);
   if (match(comp, RAK_TOKEN_KIND_RBRACKET))
   {
+    int line = comp->lex->tok.ln;
     next(comp, err);
-    emit_instr(comp, chunk, rak_new_array_instr(0), err);
+    emit_instr(comp, chunk, rak_new_array_instr(0), line, err);
     return;
   }
   compile_expr(comp, chunk, err);
@@ -1368,7 +1392,7 @@ static inline void compile_array(Compiler *comp, RakChunk *chunk, RakError *err)
       comp->lex->tok.ln, comp->lex->tok.col);
     return;
   }
-  emit_instr(comp, chunk, rak_new_array_instr((uint8_t) len), err);
+  emit_instr(comp, chunk, rak_new_array_instr((uint8_t) len), comp->lex->tok.ln, err);
 }
 
 static inline void compile_record(Compiler *comp, RakChunk *chunk, RakError *err)
@@ -1376,8 +1400,9 @@ static inline void compile_record(Compiler *comp, RakChunk *chunk, RakError *err
   next(comp, err);
   if (match(comp, RAK_TOKEN_KIND_RBRACE))
   {
+    int line = comp->lex->tok.ln;
     next(comp, err);
-    emit_instr(comp, chunk, rak_new_record_instr(0), err);
+    emit_instr(comp, chunk, rak_new_record_instr(0), line, err);
     return;
   }
   compile_field(comp, chunk, err);
@@ -1397,11 +1422,12 @@ static inline void compile_record(Compiler *comp, RakChunk *chunk, RakError *err
       comp->lex->tok.ln, comp->lex->tok.col);
     return;
   }
-  emit_instr(comp, chunk, rak_new_record_instr((uint8_t) len), err);
+  emit_instr(comp, chunk, rak_new_record_instr((uint8_t) len), comp->lex->tok.ln, err);
 }
 
 static inline void compile_fn(Compiler *comp, RakChunk *chunk, RakError *err)
 {
+  int fnLine = comp->lex->tok.ln;
   next(comp, err);
   Compiler _comp;
   compiler_init(&_comp, comp, comp->lex, NULL, 0, err);
@@ -1422,13 +1448,13 @@ static inline void compile_fn(Compiler *comp, RakChunk *chunk, RakError *err)
   }
   compile_block(&_comp, _chunk, err);
   if (!rak_is_ok(err)) goto end;
-  emit_instr(&_comp, _chunk, rak_return_nil_instr(), err);
+  emit_instr(&_comp, _chunk, rak_return_nil_instr(), comp->lex->prevTok.ln, err);
   if (!rak_is_ok(err)) goto end;
   end_scope(&_comp, _chunk, err);
   if (!rak_is_ok(err)) goto end;
   uint8_t idx = rak_function_append_nested(comp->fn, _comp.fn, err);
   if (!rak_is_ok(err)) goto end;
-  emit_instr(comp, chunk, rak_new_closure_instr(idx), err);
+  emit_instr(comp, chunk, rak_new_closure_instr(idx), fnLine, err);
 end:
   compiler_deinit(&_comp);
 }
@@ -1452,7 +1478,7 @@ static inline void compile_field(Compiler *comp, RakChunk *chunk, RakError *err)
     rak_string_free(name);
     return;
   }
-  emit_instr(comp, chunk, rak_load_const_instr(idx), err);
+  emit_instr(comp, chunk, rak_load_const_instr(idx), tok.ln, err);
   if (!rak_is_ok(err)) return;
   compile_expr(comp, chunk, err);
 }
@@ -1462,17 +1488,20 @@ static inline void compile_if_expr(Compiler *comp, RakChunk *chunk, uint16_t *of
   next(comp, err);
   compile_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  uint16_t jump1 = emit_instr(comp, chunk, rak_nop_instr(), err);
+  int lineOfEndOfExpr = comp->lex->tok.ln;
+  uint16_t jump1 = emit_instr(comp, chunk, rak_nop_instr(), comp->lex->tok.ln, err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_pop_instr(), err);
+  emit_instr(comp, chunk, rak_pop_instr(), comp->lex->tok.ln, err);
   if (!rak_is_ok(err)) return;
   compile_block_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
-  uint16_t jump2 = emit_instr(comp, chunk, rak_nop_instr(), err);
+  uint16_t jump2 = emit_instr(comp, chunk, rak_nop_instr(), comp->lex->prevTok.ln, err);
   if (!rak_is_ok(err)) return;
   uint32_t instr = rak_jump_if_false_instr((uint16_t) chunk->instrs.len);
   patch_instr(chunk, jump1, instr);
   uint16_t _off;
+  emit_instr(comp, chunk, rak_pop_instr(), lineOfEndOfExpr, err);
+  if (!rak_is_ok(err)) return;
   compile_if_expr_cont(comp, chunk, &_off, err);
   if (!rak_is_ok(err)) return;
   patch_instr(chunk, jump2, rak_jump_instr(_off));
@@ -1489,11 +1518,9 @@ static inline void compile_block_expr(Compiler *comp, RakChunk *chunk, RakError 
 
 static inline void compile_if_expr_cont(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err)
 {
-  emit_instr(comp, chunk, rak_pop_instr(), err);
-  if (!rak_is_ok(err)) return;
   if (!match(comp, RAK_TOKEN_KIND_ELSE_KW))
   {
-    emit_instr(comp, chunk, rak_push_nil_instr(), err);
+    emit_instr(comp, chunk, rak_push_nil_instr(), comp->lex->tok.ln, err);
     if (!rak_is_ok(err)) return;
     *off = (uint16_t) chunk->instrs.len;
     return;
@@ -1530,7 +1557,7 @@ static inline void end_scope(Compiler *comp, RakChunk *chunk, RakError *err)
   {
     Symbol sym = rak_slice_get(&comp->symbols, i);
     if (sym.depth != comp->scopeDepth) break;
-    emit_instr(comp, chunk, rak_pop_instr(), err);
+    emit_instr(comp, chunk, rak_pop_instr(), comp->lex->tok.ln, err);
     if (!rak_is_ok(err)) return;
     ++n;
   }
@@ -1623,10 +1650,10 @@ static inline void emit_store_local_instr(Compiler *comp, RakChunk *chunk, uint8
     rak_slice_set(&chunk->instrs, off, instr);
     return;
   }
-  emit_instr(comp, chunk, rak_store_local_instr(dst), err);
+  emit_instr(comp, chunk, rak_store_local_instr(dst), 0, err);
 }
 
-static inline void emit_return_instr(Compiler *comp, RakChunk *chunk, RakError *err)
+static inline void emit_return_instr(Compiler *comp, RakChunk *chunk, int line, RakError *err)
 {
   int off = chunk->instrs.len - 1;
   uint32_t instr = rak_slice_get(&chunk->instrs, off);
@@ -1637,12 +1664,13 @@ static inline void emit_return_instr(Compiler *comp, RakChunk *chunk, RakError *
     rak_slice_set(&chunk->instrs, off, instr);
     return;
   }
-  emit_instr(comp, chunk, rak_return_instr(), err);
+  emit_instr(comp, chunk, rak_return_instr(), line, err);
 }
 
-static inline uint16_t emit_instr(Compiler *comp, RakChunk *chunk, uint32_t instr, RakError *err)
+static inline uint16_t emit_instr(Compiler *comp, RakChunk *chunk, uint32_t instr, int line, RakError *err)
 {
-  return rak_chunk_append_instr(chunk, instr, comp->lex->ln, err);
+  (void)comp;
+  return rak_chunk_append_instr(chunk, instr, line, err);
 }
 
 static inline void patch_instr(RakChunk *chunk, uint16_t off, uint32_t instr)

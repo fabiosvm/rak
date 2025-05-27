@@ -148,6 +148,10 @@ uint16_t rak_chunk_append_instr(RakChunk *chunk, uint32_t instr, int ln, RakErro
   return line.off;
 }
 
+/** Get the line of an instruction.
+   @param chunk: chunk to search.
+   @param off: instruction offset at the given chunk.
+   @returns the line, or zero if line is unknown */
 int rak_chunk_get_line(const RakChunk *chunk, uint16_t off)
 {
   int len = chunk->lines.len;

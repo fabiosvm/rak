@@ -85,6 +85,7 @@ typedef struct
   int        ln;
   int        col;
   RakToken   tok;
+  RakToken   prevTok;
 } RakLexer;
 
 const char *rak_token_kind_to_cstr(RakTokenKind kind);
