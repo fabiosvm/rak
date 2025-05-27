@@ -1,5 +1,5 @@
 
-- test: function - inout parameters - passing local variable
+- test: function - inout parameters - passing reference to variable
   source: |
     fn f(inout a) {
       &a = 2;
@@ -10,7 +10,7 @@
   out: |
     2
 
-- test: function - inout parameters - passing inout parameter
+- test: function - inout parameters - passing reference forward
   source: |
     fn f(inout a) {
       fn g(inout b) {
@@ -34,3 +34,14 @@
   out:
     regex: "^ERROR: argument #1 must be a reference, got number"
   exit_code: 1
+
+- test: function - inout parameters - assigning to array element of reference
+  source: |
+    fn f(inout a) {
+      &a[0] = 2;
+    }
+    let x = [1, 2];
+    f(&x);
+    println(x);
+  out: |
+    [2, 2]
