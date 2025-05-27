@@ -23,16 +23,16 @@ void rak_dump_function(RakFunction *fn)
   int m = fn->nested.len;
   printf("; %d parameter(s), %d constant(s), %d instruction(s), %d function(s)\n",
     fn->callable.arity, chunk->consts.len, n, m);
-  int ln = 1;
+  int currLine = 0;
   for (uint16_t off = 0; off < n; ++off)
   {
     uint32_t instr = rak_slice_get(&chunk->instrs, off);
     RakOpcode op = rak_instr_opcode(instr);
-    int _ln = rak_chunk_get_line(chunk, off);
-    if (_ln != ln)
+    int instrLine = rak_chunk_get_line(chunk, off);
+    if (instrLine != currLine)
     {
-      ln = _ln;
-      printf("  %-6d %-6d ", off, ln);
+      currLine = instrLine;
+      printf("  %-6d %-6d ", off, currLine);
     }
     else
       printf("  %-6d        ", off);

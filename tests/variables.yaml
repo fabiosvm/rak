@@ -47,7 +47,7 @@
   out: |+
     ; main
     ; 0 parameter(s), 1 constant(s), 7 instruction(s), 0 function(s)
-      0             PUSH_INT        1    
+      0      1      PUSH_INT        1    
       1      2      PUSH_NIL       
       2      3      LOAD_CONST      0    
       3      4      PUSH_NIL       

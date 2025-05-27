@@ -92,6 +92,7 @@ static inline void next_chars(RakLexer *lex, int len)
 static inline bool match_char(RakLexer *lex, char c, RakTokenKind kind)
 {
   if (current_char(lex) != c) return false;
+  lex->prevTok = lex->tok;
   lex->tok = token(lex, kind, 1, lex->curr);
   next_char(lex);
   return true;
@@ -102,6 +103,7 @@ static inline bool match_chars(RakLexer *lex, const char *chars, RakTokenKind ki
   int len = (int) strlen(chars);
   if (memcmp(lex->curr, chars, len))
     return false;
+  lex->prevTok = lex->tok;
   lex->tok = token(lex, kind, len, lex->curr);
   next_chars(lex, len);
   return true;
@@ -145,6 +147,7 @@ static inline bool match_number(RakLexer *lex, RakError *err)
     return false;
   }
 end:
+  lex->prevTok = lex->tok;
   lex->tok = token(lex, RAK_TOKEN_KIND_NUMBER, len, lex->curr);
   next_chars(lex, len);
   return true;
@@ -240,6 +243,7 @@ static bool parse_string(RakLexer *lex, RakError *err)
       rak_error_set(err, "unterminated string at %d,%d", lex->ln, lex->col);
       break;
     case '\"':
+      lex->prevTok = lex->tok;
       lex->tok = token(lex, RAK_TOKEN_KIND_STRING, rak_string_len(text), rak_string_chars(text));
       next_char(lex);
       return true;
@@ -273,6 +277,7 @@ static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kin
    || (isalnum(char_at(lex, len)))
    || (char_at(lex, len) == '_'))
     return false;
+  lex->prevTok = lex->tok;
   lex->tok = token(lex, kind, len, lex->curr);
   next_chars(lex, len);
   return true;
@@ -285,6 +290,7 @@ static inline bool match_ident(RakLexer *lex)
   int len = 1;
   while (isalnum(char_at(lex, len)) || char_at(lex, len) == '_')
     ++len;
+  lex->prevTok = lex->tok;
   lex->tok = token(lex, RAK_TOKEN_KIND_IDENT, len, lex->curr);
   next_chars(lex, len);
   return true;
