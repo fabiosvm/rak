@@ -32,7 +32,7 @@ static void run(RakFiber *fiber, RakError *err)
   }
   if (fiber->status == RAK_FIBER_STATUS_SUSPENDED)
   {
-    rak_vm_pop(fiber);
+    rak_fiber_pop(fiber);
     fiber->status = RAK_FIBER_STATUS_RUNNING;
     run(fiber, err);
     return;
@@ -84,7 +84,7 @@ void rak_fiber_init(RakFiber *fiber, RakArray *globals, int vstkSize, int cstkSi
     rak_stack_deinit(&fiber->vstk);
     return;
   }
-  rak_vm_push_object(fiber, rak_closure_value(cl), err);
+  rak_fiber_push_object(fiber, rak_closure_value(cl), err);
   if (!rak_is_ok(err))
   {
     rak_stack_deinit(&fiber->vstk);
@@ -95,18 +95,18 @@ void rak_fiber_init(RakFiber *fiber, RakArray *globals, int vstkSize, int cstkSi
   for (int i = 0; i < nargs; ++i)
   {
     RakValue val = args[i];
-    rak_vm_push_value(fiber, val, err);
+    rak_fiber_push_value(fiber, val, err);
     if (!rak_is_ok(err)) goto fail;
   }
   int arity = cl->callable->arity;
   while (nargs > arity)
   {
-    rak_vm_pop(fiber);
+    rak_fiber_pop(fiber);
     --nargs;
   }
   while (nargs < arity)
   {
-    rak_vm_push_nil(fiber, err);
+    rak_fiber_push_nil(fiber, err);
     if (!rak_is_ok(err)) goto fail;
     ++nargs;
   }
@@ -128,7 +128,7 @@ void rak_fiber_init(RakFiber *fiber, RakArray *globals, int vstkSize, int cstkSi
   return;
 fail:
   while (!rak_stack_is_empty(&fiber->vstk))
-    rak_vm_pop(fiber);
+    rak_fiber_pop(fiber);
   rak_stack_deinit(&fiber->vstk);
   rak_stack_deinit(&fiber->cstk);
 }
@@ -137,7 +137,7 @@ void rak_fiber_deinit(RakFiber *fiber)
 {
   rak_array_release(fiber->globals);
   while (!rak_stack_is_empty(&fiber->vstk))
-    rak_vm_pop(fiber);
+    rak_fiber_pop(fiber);
   rak_stack_deinit(&fiber->vstk);
   rak_stack_deinit(&fiber->cstk);
 }

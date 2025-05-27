@@ -119,36 +119,36 @@ static void type_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakVa
 {
   (void) state;
   RakValue val = slots[1];
-  rak_vm_push_number(fiber, val.type, err);
+  rak_fiber_push_number(fiber, val.type, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_nil_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
-  rak_vm_push_bool(fiber, rak_is_nil(val), err);
+  rak_fiber_push_bool(fiber, rak_is_nil(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_bool_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
-  rak_vm_push_bool(fiber, rak_is_bool(val), err);
+  rak_fiber_push_bool(fiber, rak_is_bool(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_number_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
-  rak_vm_push_bool(fiber, rak_is_number(val), err);
+  rak_fiber_push_bool(fiber, rak_is_number(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_integer_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
@@ -156,90 +156,90 @@ static void is_integer_native_call(RakFiber *fiber, RakClosure *cl, void *state,
   (void) state;
   RakValue val = slots[1];
   bool data = rak_is_number(val) && rak_is_integer(val);
-  rak_vm_push_bool(fiber, data, err);
+  rak_fiber_push_bool(fiber, data, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_string_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
-  rak_vm_push_bool(fiber, rak_is_string(val), err);
+  rak_fiber_push_bool(fiber, rak_is_string(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_array_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
-  rak_vm_push_bool(fiber, rak_is_array(val), err);
+  rak_fiber_push_bool(fiber, rak_is_array(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_range_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
-  rak_vm_push_bool(fiber, rak_is_range(val), err);
+  rak_fiber_push_bool(fiber, rak_is_range(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_record_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
-  rak_vm_push_bool(fiber, rak_is_record(val), err);
+  rak_fiber_push_bool(fiber, rak_is_record(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_closure_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
-  rak_vm_push_bool(fiber, rak_is_closure(val), err);
+  rak_fiber_push_bool(fiber, rak_is_closure(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_fiber_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
-  rak_vm_push_bool(fiber, rak_is_fiber(val), err);
+  rak_fiber_push_bool(fiber, rak_is_fiber(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_ref_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
-  rak_vm_push_bool(fiber, rak_is_ref(val), err);
+  rak_fiber_push_bool(fiber, rak_is_ref(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_falsy_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
-  rak_vm_push_bool(fiber, rak_is_falsy(val), err);
+  rak_fiber_push_bool(fiber, rak_is_falsy(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_object_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
 {
   (void) state;
   RakValue val = slots[1];
-  rak_vm_push_bool(fiber, rak_is_object(val), err);
+  rak_fiber_push_bool(fiber, rak_is_object(val), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void ptr_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
@@ -247,9 +247,9 @@ static void ptr_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakVal
   (void) state;
   RakValue val = slots[1];
   void *ptr = rak_is_object(val) ? val.opaque.ptr : NULL;
-  rak_vm_push_number(fiber, (double) (uintptr_t) ptr, err);
+  rak_fiber_push_number(fiber, (double) (uintptr_t) ptr, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void ref_count_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
@@ -257,9 +257,9 @@ static void ref_count_native_call(RakFiber *fiber, RakClosure *cl, void *state, 
   (void) state;
   RakValue val = slots[1];
   int refCount = rak_is_object(val) ? rak_as_object(val)->refCount : -1;
-  rak_vm_push_number(fiber, refCount, err);
+  rak_fiber_push_number(fiber, refCount, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void array_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
@@ -271,9 +271,9 @@ static void array_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakV
   {
     RakArray *arr = rak_array_new(err);
     if (!rak_is_ok(err)) return;
-    rak_vm_push_object(fiber, rak_array_value(arr), err);    
+    rak_fiber_push_object(fiber, rak_array_value(arr), err);    
     if (!rak_is_ok(err)) return;
-    rak_vm_return(fiber, cl, slots);
+    rak_fiber_return(fiber, cl, slots);
     return;
   }
   if (!rak_is_number(val2) || !rak_is_integer(val2))
@@ -292,9 +292,9 @@ static void array_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakV
     for (int i = 0; i < len; ++i)
       rak_slice_set(&arr->slice, i, val1);
     arr->slice.len = len;
-    rak_vm_push_object(fiber, rak_array_value(arr), err);
+    rak_fiber_push_object(fiber, rak_array_value(arr), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(fiber, cl, slots);
+    rak_fiber_return(fiber, cl, slots);
     return;
   }
   if (!rak_is_number(val3) || !rak_is_integer(val3))
@@ -310,9 +310,9 @@ static void array_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakV
   for (int i = 0; i < len; ++i)
     rak_slice_set(&arr->slice, i, val1);
   arr->slice.len = len;
-  rak_vm_push_object(fiber, rak_array_value(arr), err);
+  rak_fiber_push_object(fiber, rak_array_value(arr), err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void append_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
@@ -343,16 +343,16 @@ static void append_native_call(RakFiber *fiber, RakClosure *cl, void *state, Rak
     *slot = val3;
     rak_object_retain(&_arr->obj);
     --arr->obj.refCount;
-    rak_vm_push_object(fiber, val3, err);
+    rak_fiber_push_object(fiber, val3, err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(fiber, cl, slots);
+    rak_fiber_return(fiber, cl, slots);
     return;
   }
   rak_array_inplace_append(arr, val2, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_push_object(fiber, _val1, err);
+  rak_fiber_push_object(fiber, _val1, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void cap_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
@@ -362,25 +362,25 @@ static void cap_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakVal
   if (rak_is_string(val))
   {
     RakString *str = rak_as_string(val);
-    rak_vm_push_number(fiber, rak_string_cap(str), err);
+    rak_fiber_push_number(fiber, rak_string_cap(str), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(fiber, cl, slots);
+    rak_fiber_return(fiber, cl, slots);
     return;
   }
   if (rak_is_array(val))
   {
     RakArray *arr = rak_as_array(val);
-    rak_vm_push_number(fiber, rak_array_cap(arr), err);
+    rak_fiber_push_number(fiber, rak_array_cap(arr), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(fiber, cl, slots);
+    rak_fiber_return(fiber, cl, slots);
     return;
   }
   if (rak_is_record(val))
   {
     RakRecord *rec = rak_as_record(val);
-    rak_vm_push_number(fiber, rak_record_cap(rec), err);
+    rak_fiber_push_number(fiber, rak_record_cap(rec), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(fiber, cl, slots);
+    rak_fiber_return(fiber, cl, slots);
     return;
   }
   rak_error_set(err, "%s does not have a capacity", rak_type_to_cstr(val.type));
@@ -393,33 +393,33 @@ static void len_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakVal
   if (rak_is_string(val))
   {
     RakString *str = rak_as_string(val);
-    rak_vm_push_number(fiber, rak_string_len(str), err);
+    rak_fiber_push_number(fiber, rak_string_len(str), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(fiber, cl, slots);
+    rak_fiber_return(fiber, cl, slots);
     return;
   }
   if (rak_is_array(val))
   {
     RakArray *arr = rak_as_array(val);
-    rak_vm_push_number(fiber, rak_array_len(arr), err);
+    rak_fiber_push_number(fiber, rak_array_len(arr), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(fiber, cl, slots);
+    rak_fiber_return(fiber, cl, slots);
     return;
   }
   if (rak_is_range(val))
   {
     RakRange *rng = rak_as_range(val);
-    rak_vm_push_number(fiber, rak_range_len(rng), err);
+    rak_fiber_push_number(fiber, rak_range_len(rng), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(fiber, cl, slots);
+    rak_fiber_return(fiber, cl, slots);
     return;
   }
   if (rak_is_record(val))
   {
     RakRecord *rec = rak_as_record(val);
-    rak_vm_push_number(fiber, rak_record_len(rec), err);
+    rak_fiber_push_number(fiber, rak_record_len(rec), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(fiber, cl, slots);
+    rak_fiber_return(fiber, cl, slots);
     return;
   }
   rak_error_set(err, "%s does not have a length", rak_type_to_cstr(val.type));
@@ -432,25 +432,25 @@ static void is_empty_native_call(RakFiber *fiber, RakClosure *cl, void *state, R
   if (rak_is_string(val))
   {
     RakString *str = rak_as_string(val);
-    rak_vm_push_bool(fiber, rak_string_is_empty(str), err);
+    rak_fiber_push_bool(fiber, rak_string_is_empty(str), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(fiber, cl, slots);
+    rak_fiber_return(fiber, cl, slots);
     return;
   }
   if (rak_is_array(val))
   {
     RakArray *arr = rak_as_array(val);
-    rak_vm_push_bool(fiber, rak_array_is_empty(arr), err);
+    rak_fiber_push_bool(fiber, rak_array_is_empty(arr), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(fiber, cl, slots);
+    rak_fiber_return(fiber, cl, slots);
     return;
   }
   if (rak_is_record(val))
   {
     RakRecord *rec = rak_as_record(val);
-    rak_vm_push_bool(fiber, rak_record_is_empty(rec), err);
+    rak_fiber_push_bool(fiber, rak_record_is_empty(rec), err);
     if (!rak_is_ok(err)) return;
-    rak_vm_return(fiber, cl, slots);
+    rak_fiber_return(fiber, cl, slots);
     return;
   }
   rak_error_set(err, "%s does not have a length", rak_type_to_cstr(val.type));
@@ -492,13 +492,13 @@ end:
   _fiber = rak_fiber_new(fiber->globals, RAK_FIBER_VSTK_DEFAULT_SIZE,
     RAK_FIBER_CSTK_DEFAULT_SIZE, _cl, nargs, args, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_push_object(fiber, rak_fiber_value(_fiber), err);
+  rak_fiber_push_object(fiber, rak_fiber_value(_fiber), err);
   if (!rak_is_ok(err))
   {
     rak_fiber_free(_fiber);
     return;
   }
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_suspended_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
@@ -512,9 +512,9 @@ static void is_suspended_native_call(RakFiber *fiber, RakClosure *cl, void *stat
     return;
   }
   RakFiber *_fiber = rak_as_fiber(val);
-  rak_vm_push_bool(fiber, _fiber->status == RAK_FIBER_STATUS_SUSPENDED, err);
+  rak_fiber_push_bool(fiber, _fiber->status == RAK_FIBER_STATUS_SUSPENDED, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void is_done_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
@@ -528,9 +528,9 @@ static void is_done_native_call(RakFiber *fiber, RakClosure *cl, void *state, Ra
     return;
   }
   RakFiber *_fiber = rak_as_fiber(val);
-  rak_vm_push_bool(fiber, _fiber->status == RAK_FIBER_STATUS_DONE, err);
+  rak_fiber_push_bool(fiber, _fiber->status == RAK_FIBER_STATUS_DONE, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void resume_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
@@ -551,11 +551,11 @@ static void resume_native_call(RakFiber *fiber, RakClosure *cl, void *state, Rak
   }
   rak_fiber_resume(_fiber, err);
   if (!rak_is_ok(err)) return;
-  RakValue res = rak_vm_get(_fiber, 0);
-  rak_vm_push_value(fiber, res, err);
+  RakValue res = rak_fiber_get(_fiber, 0);
+  rak_fiber_push_value(fiber, res, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_pop(_fiber);
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_pop(_fiber);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void print_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
@@ -563,9 +563,9 @@ static void print_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakV
   (void) state;
   RakValue val = slots[1];
   rak_value_print(val);
-  rak_vm_push_nil(fiber, err);
+  rak_fiber_push_nil(fiber, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void println_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
@@ -574,9 +574,9 @@ static void println_native_call(RakFiber *fiber, RakClosure *cl, void *state, Ra
   RakValue val = slots[1];
   rak_value_print(val);
   printf("\n");
-  rak_vm_push_nil(fiber, err);
+  rak_fiber_push_nil(fiber, err);
   if (!rak_is_ok(err)) return;
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 static void panic_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakValue *slots, RakError *err)
@@ -591,7 +591,7 @@ static void panic_native_call(RakFiber *fiber, RakClosure *cl, void *state, RakV
   }
   RakString *str = rak_as_string(val);
   rak_error_set(err, "%.*s", rak_string_len(str), rak_string_chars(str));
-  rak_vm_return(fiber, cl, slots);
+  rak_fiber_return(fiber, cl, slots);
 }
 
 RakArray *rak_builtin_globals(RakError *err)

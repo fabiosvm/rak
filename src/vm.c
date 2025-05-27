@@ -135,384 +135,330 @@ static void do_nop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slot
 
 static void do_push_nil(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_push_nil(fiber, err);
+  rak_vm_push_nil(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_push_false(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_push_bool(fiber, false, err);
+  rak_vm_push_false(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_push_true(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_push_bool(fiber, true, err);
+  rak_vm_push_true(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_push_int(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint16_t data = rak_instr_ab(*ip);
-  rak_vm_push_number(fiber, data, err);
+  rak_vm_push_int(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_load_const(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t idx = rak_instr_a(*ip);
-  RakChunk *chunk = &((RakFunction *) cl->callable)->chunk;
-  rak_vm_load_const(fiber, chunk, idx, err);
+  rak_vm_load_const(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_load_global(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t idx = rak_instr_a(*ip);
-  rak_vm_load_global(fiber, idx, err);
+  rak_vm_load_global(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_load_local(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t idx = rak_instr_a(*ip);
-  rak_vm_load_local(fiber, slots, idx, err);
+  rak_vm_load_local(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_store_local(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t idx = rak_instr_a(*ip);
-  rak_vm_store_local(fiber, slots, idx);
+  rak_vm_store_local(fiber, cl, ip, slots, err);
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_fetch_local(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t idx = rak_instr_a(*ip);
-  rak_vm_fetch_local(fiber, slots, idx, err);
+  rak_vm_fetch_local(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_ref_local(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t idx = rak_instr_a(*ip);
-  rak_vm_ref_local(fiber, slots, idx, err);
+  rak_vm_ref_local(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_load_local_ref(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t idx = rak_instr_a(*ip);
-  rak_vm_load_local_ref(fiber, slots, idx, err);
+  rak_vm_load_local_ref(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_store_local_ref(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t idx = rak_instr_a(*ip);
-  rak_vm_store_local_ref(fiber, slots, idx);
+  rak_vm_store_local_ref(fiber, cl, ip, slots, err);
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_check_ref(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t idx = rak_instr_a(*ip);
-  rak_vm_check_ref(slots, idx, err);
+  rak_vm_check_ref(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_new_array(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t n = rak_instr_a(*ip);
-  rak_vm_new_array(fiber, n, err);
+  rak_vm_new_array(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_new_range(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_new_range(fiber, err);
+  rak_vm_new_range(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_new_record(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t n = rak_instr_a(*ip);
-  rak_vm_new_record(fiber, n, err);
+  rak_vm_new_record(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_new_closure(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t idx = rak_instr_a(*ip);
-  RakFunction *fn = (RakFunction *) cl->callable;
-  rak_vm_new_closure(fiber, fn, idx, err);
+  rak_vm_new_closure(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_move(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t dst = rak_instr_a(*ip);
-  uint8_t src = rak_instr_b(*ip);
-  rak_vm_move(slots, dst, src);
-  if (!rak_is_ok(err)) return;
+  rak_vm_move(fiber, cl, ip, slots, err);
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_dup(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_dup(fiber, err);
+  rak_vm_dup(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_pop(fiber);
+  rak_vm_pop(fiber, cl, ip, slots, err);
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_get_element(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_get_element(fiber, err);
+  rak_vm_get_element(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_set_element(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_set_element(fiber, err);
+  rak_vm_set_element(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_load_element(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_load_element(fiber, err);
+  rak_vm_load_element(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_fetch_element(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_fetch_element(fiber, err);
+  rak_vm_fetch_element(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_update_element(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_update_element(fiber, err);
+  rak_vm_update_element(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_get_field(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t idx = rak_instr_a(*ip);
-  RakChunk *chunk = &((RakFunction *) cl->callable)->chunk;
-  rak_vm_get_field(fiber, chunk, idx, err);
+  rak_vm_get_field(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_put_field(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t idx = rak_instr_a(*ip);
-  RakChunk *chunk = &((RakFunction *) cl->callable)->chunk;
-  rak_vm_put_field(fiber, chunk, idx, err);
+  rak_vm_put_field(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_load_field(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t idx = rak_instr_a(*ip);
-  RakChunk *chunk = &((RakFunction *) cl->callable)->chunk;
-  rak_vm_load_field(fiber, chunk, idx, err);
+  rak_vm_load_field(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_fetch_field(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t idx = rak_instr_a(*ip);
-  RakChunk *chunk = &((RakFunction *) cl->callable)->chunk;
-  rak_vm_fetch_field(fiber, chunk, idx, err);
+  rak_vm_fetch_field(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_update_field(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_update_field(fiber, err);
+  rak_vm_update_field(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_unpack_elements(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t n = rak_instr_a(*ip);
-  rak_vm_unpack_elements(fiber, n, err);
+  rak_vm_unpack_elements(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_unpack_fields(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint8_t n = rak_instr_a(*ip);
-  rak_vm_unpack_fields(fiber, n, err);
+  rak_vm_unpack_fields(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_jump(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint16_t off = rak_instr_ab(*ip);
-  RakChunk *chunk = &((RakFunction *) cl->callable)->chunk;
-  ip = &chunk->instrs.data[off];
-  dispatch(fiber, cl, ip, slots, err);
+  rak_vm_jump(fiber, cl, ip, slots, err);
 }
 
 static void do_jump_if_false(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint16_t off = rak_instr_ab(*ip);
-  RakValue val = rak_vm_get(fiber, 0);
-  RakChunk *chunk = &((RakFunction *) cl->callable)->chunk;
-  ip = rak_is_falsy(val) ? chunk->instrs.data + off : ip + 1;
-  dispatch(fiber, cl, ip, slots, err);
+  rak_vm_jump_if_false(fiber, cl, ip, slots, err);
 }
 
 static void do_jump_if_true(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  uint16_t off = rak_instr_ab(*ip);
-  RakValue val = rak_vm_get(fiber, 0);
-  RakChunk *chunk = &((RakFunction *) cl->callable)->chunk;
-  ip = rak_is_falsy(val) ? ip + 1 : chunk->instrs.data + off;
-  dispatch(fiber, cl, ip, slots, err);
+  rak_vm_jump_if_true(fiber, cl, ip, slots, err);
 }
 
 static void do_eq(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_eq(fiber);
+  rak_vm_eq(fiber, cl, ip, slots, err);
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_gt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_gt(fiber, err);
+  rak_vm_gt(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_lt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_lt(fiber, err);
+  rak_vm_lt(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_add(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_add(fiber, err);
+  rak_vm_add(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_sub(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_sub(fiber, err);
+  rak_vm_sub(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_mul(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_mul(fiber, err);
+  rak_vm_mul(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_div(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_div(fiber, err);
+  rak_vm_div(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_mod(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_mod(fiber, err);
+  rak_vm_mod(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_not(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_not(fiber);
+  rak_vm_not(fiber, cl, ip, slots, err);
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_neg(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  rak_vm_neg(fiber, err);
+  rak_vm_neg(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
 static void do_call(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  (void) cl;
-  (void) slots;
-  uint8_t n = rak_instr_a(*ip);
-  RakCallFrame *frame = &rak_stack_get(&fiber->cstk, 0);
-  frame->state = ip + 1;
-  rak_vm_call(fiber, n, err);
+  rak_vm_call(fiber, cl, ip, slots, err);
 }
 
 static void do_tail_call(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  (void) cl;
-  uint8_t n = rak_instr_a(*ip);
-  rak_vm_tail_call(fiber, slots, n, err);
+  rak_vm_tail_call(fiber, cl, ip, slots, err);
 }
 
 static void do_yield(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  (void) cl;
-  (void) slots;
-  (void) err;
-  RakCallFrame *frame = &rak_stack_get(&fiber->cstk, 0);
-  frame->state = ip + 1;
-  rak_vm_yield(fiber);
+  rak_vm_yield(fiber, cl, ip, slots, err);
 }
 
 static void do_return(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  (void) ip;
-  (void) err;
-  rak_vm_return(fiber, cl, slots);
+  rak_vm_return(fiber, cl, ip, slots, err);
 }
 
 static void do_return_nil(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
-  (void) ip;
-  rak_vm_return_nil(fiber, cl, slots, err);
+  rak_vm_return_nil(fiber, cl, ip, slots, err);
 }
 
 void rak_vm_dispatch(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
