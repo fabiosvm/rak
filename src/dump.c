@@ -29,7 +29,7 @@ void rak_dump_function(RakFunction *fn)
     uint32_t instr = rak_slice_get(&chunk->instrs, off);
     RakOpcode op = rak_instr_opcode(instr);
     int instrLine = rak_chunk_get_line(chunk, off);
-    if (instrLine != 0 && instrLine != currLine)
+    if (instrLine != currLine)
     {
       currLine = instrLine;
       printf("  %-6d %-6d ", off, currLine);

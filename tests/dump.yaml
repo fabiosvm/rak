@@ -79,8 +79,8 @@
       10            POP            
       11     11     LOAD_LOCAL      1    
       12            PUSH_INT        1    
-      13            ADD            
-      14            STORE_LOCAL     1    
+      13     10     ADD            
+      14     9      STORE_LOCAL     1    
       15     13     JUMP            1    
       16     14     POP            
       17     16     LOAD_LOCAL      1    
