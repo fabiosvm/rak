@@ -140,13 +140,14 @@ typedef struct
 {
   uint16_t off;
   int      ln;
-} RakLine;
+  int      col;
+} RakSourceMap;
 
 typedef struct
 {
-  RakSlice(RakValue) consts;
-  RakSlice(uint32_t) instrs;
-  RakSlice(RakLine)  lines;
+  RakSlice(RakValue)     consts;
+  RakSlice(uint32_t)     instrs;
+  RakSlice(RakSourceMap) maps;
 } RakChunk;
 
 const char *rak_opcode_to_cstr(RakOpcode op);
