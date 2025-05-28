@@ -133,7 +133,7 @@ static inline void compiler_init(Compiler *comp, Compiler *parent, RakLexer *lex
   rak_static_slice_init(&comp->symbols);
   comp->scopeDepth = 0;
   comp->loop = NULL;
-  RakFunction *fn = rak_function_new(fnName, arity, err);
+  RakFunction *fn = rak_function_new(fnName, arity, comp->lex->file, err);
   if (!rak_is_ok(err)) return;
   comp->fn = fn;
   rak_object_retain(&fn->callable.obj);

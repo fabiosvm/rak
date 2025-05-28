@@ -10,11 +10,14 @@
 
 #include "rak/function.h"
 
-RakFunction *rak_function_new(RakString *name, int arity, RakError *err)
+RakFunction *rak_function_new(RakString *name, int arity, RakString *file,
+  RakError *err)
 {
   RakFunction *fn = rak_memory_alloc(sizeof(*fn), err);
   if (!rak_is_ok(err)) return NULL;
   rak_callable_init(&fn->callable, name, arity);
+  fn->file = file;
+  rak_object_retain(&file->obj);
   rak_chunk_init(&fn->chunk, err);
   if (!rak_is_ok(err))
   {
@@ -33,6 +36,7 @@ RakFunction *rak_function_new(RakString *name, int arity, RakError *err)
 void rak_function_free(RakFunction *fn)
 {
   rak_callable_deinit(&fn->callable);
+  rak_string_release(fn->file);
   rak_chunk_deinit(&fn->chunk);
   for (int i = 0; i < fn->nested.len; ++i)
   {
@@ -51,7 +55,8 @@ void rak_function_release(RakFunction *fn)
   rak_function_free(fn);
 }
 
-uint8_t rak_function_append_nested(RakFunction *fn, RakFunction *nested, RakError *err)
+uint8_t rak_function_append_nested(RakFunction *fn, RakFunction *nested,
+  RakError *err)
 {
   int len = fn->nested.len;
   if (len == RAK_FUNCTION_MAX_NESTED_FUNCTIONS)

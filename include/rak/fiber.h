@@ -64,6 +64,7 @@ void rak_fiber_free(RakFiber *fiber);
 void rak_fiber_release(RakFiber *fiber);
 void rak_fiber_run(RakFiber *fiber, RakError *err);
 void rak_fiber_resume(RakFiber *fiber, RakError *err);
+void rak_fiber_print_error(RakFiber *fiber, RakError *err);
 
 static inline void rak_fiber_push(RakFiber *fiber, RakValue val, RakError *err)
 {

@@ -16,7 +16,7 @@
 
 #define RAK_ERROR_MAX_LEN (511)
 
-#define rak_is_ok(e) (((RakError *) (e))->ok)
+#define rak_is_ok(e) ((e)->ok)
 
 typedef struct
 {

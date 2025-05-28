@@ -9,6 +9,7 @@
 //
 
 #include "rak/fiber.h"
+#include <stdio.h>
 #include "rak/native.h"
 #include "rak/vm.h"
 
@@ -177,4 +178,33 @@ void rak_fiber_resume(RakFiber *fiber, RakError *err)
 {
   fiber->status = RAK_FIBER_STATUS_RUNNING;
   resume(fiber, err);
+}
+
+void rak_fiber_print_error(RakFiber *fiber, RakError *err)
+{
+  rak_error_print(err);
+  while (!rak_stack_is_empty(&fiber->cstk))
+  {
+    RakCallFrame frame = rak_stack_get(&fiber->cstk, 0);
+    rak_stack_pop(&fiber->cstk);
+    RakClosure *cl = frame.cl;
+    RakCallable *callable = cl->callable;
+    RakString *fnName = callable->name;
+    if (cl->type == RAK_CALLABLE_TYPE_NATIVE_FUNCTION)
+    {
+      fprintf(stderr, "  at %.*s(<native>)\n", rak_string_len(fnName),
+      rak_string_chars(fnName));
+      continue;
+    }
+    RakFunction *fn = (RakFunction *) callable;
+    RakString *file = fn->file;
+    RakChunk *chunk = &fn->chunk;
+    uint32_t *ip = (uint32_t *) frame.state;
+    uint16_t off = (uint16_t) (ip - chunk->instrs.data);
+    int ln = rak_chunk_get_line(chunk, off);
+    fprintf(stderr, "  at %.*s(%.*s:%d)\n", rak_string_len(fnName),
+      rak_string_chars(fnName), rak_string_len(file),
+      rak_string_chars(file), ln);
+  }
+  fprintf(stderr, "\n");
 }

@@ -187,7 +187,7 @@ int main(int argc, const char *argv[])
   rak_fiber_run(&fiber, &err);
   if (!rak_is_ok(&err))
   {
-    rak_error_print(&err);
+    rak_fiber_print_error(&fiber, &err);
     rak_fiber_deinit(&fiber);
     return EXIT_FAILURE;
   }
