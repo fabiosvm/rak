@@ -200,7 +200,7 @@ void rak_fiber_print_error(RakFiber *fiber, RakError *err)
     RakString *file = fn->file;
     RakChunk *chunk = &fn->chunk;
     uint32_t *ip = (uint32_t *) frame.state;
-    uint16_t off = (uint16_t) (ip - chunk->instrs.data);
+    uint16_t off = (uint16_t) (ip - chunk->instrs.data) - 1;
     int ln = rak_chunk_get_line(chunk, off);
     fprintf(stderr, "  at %.*s(%.*s:%d)\n", rak_string_len(fnName),
       rak_string_chars(fnName), rak_string_len(file),
