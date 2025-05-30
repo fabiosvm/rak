@@ -56,7 +56,7 @@
 - test: Wrong hex escape (3)
   source: 'println("a\x4'
   out:
-    regex: "expecting two hexadecimal numbers"
+    regex: "unterminated string"
   exit_code: 1
 
 - test: String over 4k
