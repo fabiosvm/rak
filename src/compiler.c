@@ -13,6 +13,7 @@
 #include "rak/builtin.h"
 #include "rak/function.h"
 #include "rak/lexer.h"
+#include "rak/string.h"
 
 #define match(c, t) ((c)->lex->tok.kind == (t))
 
@@ -1282,7 +1283,7 @@ static inline void compile_prim_expr(Compiler *comp, RakChunk *chunk, RakError *
   {
     RakToken tok = comp->lex->tok;
     next(comp, err);
-    RakString *str = rak_string_new_from_cstr(tok.len, tok.chars, err);
+    RakString *str = rak_string_new_from_cstr_with_escapes(tok.len, tok.chars, err);
     if (!rak_is_ok(err)) return;
     RakValue val = rak_string_value(str);
     uint8_t idx = rak_chunk_append_const(chunk, val, err);

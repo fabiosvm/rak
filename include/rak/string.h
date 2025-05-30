@@ -48,5 +48,7 @@ void rak_string_inplace_clear(RakString *str);
 bool rak_string_equals(RakString *str1, RakString *str2);
 int rak_string_compare(RakString *str1, RakString *str2);
 void rak_string_print(RakString *str);
+void rak_string_init_from_cstr_with_escapes(RakString *str, int len, const char *cstr, RakError *err);
+RakString *rak_string_new_from_cstr_with_escapes(int len, const char *cstr, RakError *err);
 
 #endif // RAK_STRING_H
