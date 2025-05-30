@@ -23,7 +23,7 @@ static inline void next_chars(RakLexer *lex, int len);
 static inline bool match_char(RakLexer *lex, char c, RakTokenKind kind);
 static inline bool match_chars(RakLexer *lex, const char *chars, RakTokenKind kind);
 static inline bool match_number(RakLexer *lex, RakError *err);
-static void check_string(RakLexer *lex, RakError *err);
+static bool check_string(RakLexer *lex, RakError *err);
 static inline bool match_string(RakLexer *lex, RakError *err);
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind);
 static inline bool match_ident(RakLexer *lex);
@@ -147,7 +147,7 @@ end:
   return true;
 }
 
-static void check_string(RakLexer *lex, RakError *err)
+static bool check_string(RakLexer *lex, RakError *err)
 {
   bool isEscape = false;
   char *cstrStart = lex->curr;
@@ -158,7 +158,7 @@ static void check_string(RakLexer *lex, RakError *err)
     case '\0':
     case '\n':
       rak_error_set(err, "unterminated string at %d,%d", lex->ln, lex->col);
-      return;
+      return false;
     case '\"':
       if (isEscape)
       {
@@ -168,7 +168,7 @@ static void check_string(RakLexer *lex, RakError *err)
       }
       lex->tok = token(lex, RAK_TOKEN_KIND_STRING, (int)(lex->curr - cstrStart), cstrStart);
       next_char(lex);
-      return;
+      return true;
     case '\\':
       isEscape = true;
       next_char(lex);
@@ -185,8 +185,7 @@ static inline bool match_string(RakLexer *lex, RakError *err)
 {
   if (current_char(lex) != '\"') return false;
   next_char(lex);
-  check_string(lex, err);
-  return true;
+  return check_string(lex, err);
 }
 
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind)
