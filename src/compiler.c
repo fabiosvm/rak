@@ -76,8 +76,8 @@ static inline void compile_assign_stmt(Compiler *comp, RakChunk *chunk, RakError
 static inline void compile_assign_op(Compiler *comp, uint32_t *instr, RakError *err);
 static inline void compile_assign_stmt_cont(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_fn_decl(Compiler *comp, RakChunk *chunk, RakError *err);
-static inline void compile_params(Compiler *comp, RakChunk *chunk, RakError *err);
-static inline void compile_param(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline void compile_params(Compiler *comp, RakError *err);
+static inline void compile_param(Compiler *comp, bool *isRef, RakError *err);
 static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err);
 static inline void compile_if_stmt_cont(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err);
 static inline void compile_loop_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
@@ -588,7 +588,7 @@ static inline void compile_fn_decl(Compiler *comp, RakChunk *chunk, RakError *er
   define_local(&_comp, tok, false, err);
   if (!rak_is_ok(err)) goto end;
   RakChunk *_chunk = &_comp.fn->chunk;
-  compile_params(&_comp, _chunk, err);
+  compile_params(&_comp, err);
   if (!rak_is_ok(err)) goto end;
   if (!match(&_comp, RAK_TOKEN_KIND_LBRACE))
   {
@@ -608,7 +608,7 @@ end:
   compiler_deinit(&_comp);
 }
 
-static inline void compile_params(Compiler *comp, RakChunk *chunk, RakError *err)
+static inline void compile_params(Compiler *comp, RakError *err)
 {
   consume(comp, RAK_TOKEN_KIND_LPAREN, err);
   RakCallable *callable = &comp->fn->callable;
@@ -618,27 +618,38 @@ static inline void compile_params(Compiler *comp, RakChunk *chunk, RakError *err
     callable->arity = 0;
     return;
   }
-  compile_param(comp, chunk, err);
+  bool isRef = false;
+  compile_param(comp, &isRef, err);
   if (!rak_is_ok(err)) return;
+  if (isRef)
+  {
+    rak_callable_append_inout_param(callable, 1, err);
+    if (!rak_is_ok(err)) return;
+  }
   int arity = 1;
   while (match(comp, RAK_TOKEN_KIND_COMMA))
   {
     next(comp, err);
-    compile_param(comp, chunk, err);
+    compile_param(comp, &isRef, err);
     if (!rak_is_ok(err)) return;
+    if (isRef)
+    {
+      rak_callable_append_inout_param(callable, arity + 1, err);
+      if (!rak_is_ok(err)) return;
+    }
     ++arity;
   }
   consume(comp, RAK_TOKEN_KIND_RPAREN, err);
   callable->arity = arity;
 }
 
-static inline void compile_param(Compiler *comp, RakChunk *chunk, RakError *err)
+static inline void compile_param(Compiler *comp, bool *isRef, RakError *err)
 {
-  bool isRef = false;
+  bool _isRef = false;
   if (match(comp, RAK_TOKEN_KIND_INOUT_KW))
   {
     next(comp, err);
-    isRef = true;
+    _isRef = true;
   }
   if (!match(comp, RAK_TOKEN_KIND_IDENT))
   {
@@ -647,10 +658,9 @@ static inline void compile_param(Compiler *comp, RakChunk *chunk, RakError *err)
   }
   RakToken tok = comp->lex->tok;
   next(comp, err);
-  uint8_t idx = define_local(comp, tok, isRef, err);
+  define_local(comp, tok, _isRef, err);
   if (!rak_is_ok(err)) return;
-  if (!isRef) return;
-  emit_instr(comp, chunk, rak_check_ref_instr(idx), err);
+  *isRef = _isRef;
 }
 
 static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err)
@@ -1383,7 +1393,7 @@ static inline void compile_fn(Compiler *comp, RakChunk *chunk, RakError *err)
   };
   append_local(&_comp, false, tok);
   RakChunk *_chunk = &_comp.fn->chunk;
-  compile_params(&_comp, _chunk, err);
+  compile_params(&_comp, err);
   if (!rak_is_ok(err)) goto end;
   if (!match(&_comp, RAK_TOKEN_KIND_LBRACE))
   {

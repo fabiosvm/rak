@@ -29,7 +29,6 @@ static inline void rak_vm_fetch_local(RakFiber *fiber, RakClosure *cl, uint32_t 
 static inline void rak_vm_ref_local(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_load_local_ref(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_store_local_ref(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
-static inline void rak_vm_check_ref(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_new_array(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_new_range(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_new_record(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -178,17 +177,6 @@ static inline void rak_vm_store_local_ref(RakFiber *fiber, RakClosure *cl, uint3
   rak_value_release(*slot);
   *slot = val;
   rak_stack_pop(&fiber->vstk);
-}
-
-static inline void rak_vm_check_ref(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
-{
-  (void) fiber;
-  (void) cl;
-  uint8_t idx = rak_instr_a(*ip);
-  RakValue val = slots[idx];
-  if (rak_is_ref(val)) return;
-  rak_fiber_set_error(fiber, ip, err, "argument #%d must be a reference, got %s",
-    idx, rak_type_to_cstr(val.type));
 }
 
 static inline void rak_vm_new_array(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
@@ -1144,6 +1132,16 @@ static inline void rak_vm_call(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Ra
     if (!rak_is_ok(err)) return;
     ++nargs;
   }
+  int n = _cl->callable->inouts.len;
+  for (int i = 0; i < n; ++i)
+  {
+    int idx = rak_slice_get(&_cl->callable->inouts, i);
+    RakValue _val = _slots[idx];
+    if (rak_is_ref(_val)) continue;
+    rak_fiber_set_error(fiber, ip, err, "argument #%d must be a reference, got %s",
+      idx, rak_type_to_cstr(_val.type));
+    return;
+  }
   RakCallFrame *frame = &rak_stack_get(&fiber->cstk, 0);
   frame->state = ip + 1;
   RakCallFrame _frame = {
@@ -1183,6 +1181,16 @@ static inline void rak_vm_tail_call(RakFiber *fiber, RakClosure *cl, uint32_t *i
     rak_fiber_push_nil(fiber, err);
     if (!rak_is_ok(err)) return;
     ++nargs;
+  }
+  int n = _cl->callable->inouts.len;
+  for (int i = 0; i < n; ++i)
+  {
+    int idx = rak_slice_get(&_cl->callable->inouts, i);
+    RakValue _val = _slots[idx];
+    if (rak_is_ref(_val)) continue;
+    rak_fiber_set_error(fiber, ip, err, "argument #%d must be a reference, got %s",
+      idx, rak_type_to_cstr(_val.type));
+    return;
   }
   rak_closure_release(cl);
   slots[0] = _slots[0];

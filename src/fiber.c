@@ -111,6 +111,16 @@ void rak_fiber_init(RakFiber *fiber, RakArray *globals, int vstkSize, int cstkSi
     if (!rak_is_ok(err)) goto fail;
     ++nargs;
   }
+  int n = cl->callable->inouts.len;
+  for (int i = 0; i < n; ++i)
+  {
+    int idx = rak_slice_get(&cl->callable->inouts, i);
+    RakValue _val = slots[idx];
+    if (rak_is_ref(_val)) continue;
+    rak_error_set(err, "argument #%d must be a reference, got %s", idx,
+      rak_type_to_cstr(_val.type));
+    return;
+  }
   RakCallFrame frame = {
     .cl = cl,
     .slots = slots

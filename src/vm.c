@@ -27,7 +27,6 @@ static void do_fetch_local(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakVal
 static void do_ref_local(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_load_local_ref(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_store_local_ref(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
-static void do_check_ref(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_array(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_range(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_record(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -80,7 +79,6 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_REF_LOCAL]       = do_ref_local,
   [RAK_OP_LOAD_LOCAL_REF]  = do_load_local_ref,
   [RAK_OP_STORE_LOCAL_REF] = do_store_local_ref,
-  [RAK_OP_CHECK_REF]       = do_check_ref,
   [RAK_OP_NEW_ARRAY]       = do_new_array,
   [RAK_OP_NEW_RANGE]       = do_new_range,
   [RAK_OP_NEW_RECORD]      = do_new_record,
@@ -212,13 +210,6 @@ static void do_load_local_ref(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
 static void do_store_local_ref(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   rak_vm_store_local_ref(fiber, cl, ip, slots, err);
-  dispatch(fiber, cl, ip + 1, slots, err);
-}
-
-static void do_check_ref(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
-{
-  rak_vm_check_ref(fiber, cl, ip, slots, err);
-  if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 

@@ -21,12 +21,15 @@ typedef enum
 
 typedef struct
 {
-  RakObject  obj;
-  RakString *name;
-  int        arity;
+  RakObject      obj;
+  RakString     *name;
+  int            arity;
+  RakSlice(int)  inouts;
 } RakCallable;
 
-void rak_callable_init(RakCallable *callable, RakString *name, int arity);
+void rak_callable_init(RakCallable *callable, RakString *name, int arity,
+  RakError *err);
 void rak_callable_deinit(RakCallable *callable);
+void rak_callable_append_inout_param(RakCallable *callable, int idx, RakError *err);
 
 #endif // RAK_CALLABLE_H

@@ -15,7 +15,12 @@ RakFunction *rak_function_new(RakString *name, int arity, RakString *file,
 {
   RakFunction *fn = rak_memory_alloc(sizeof(*fn), err);
   if (!rak_is_ok(err)) return NULL;
-  rak_callable_init(&fn->callable, name, arity);
+  rak_callable_init(&fn->callable, name, arity, err);
+  if (!rak_is_ok(err))
+  {
+    rak_memory_free(fn);
+    return NULL;
+  }
   fn->file = file;
   rak_object_retain(&file->obj);
   rak_chunk_init(&fn->chunk, err);

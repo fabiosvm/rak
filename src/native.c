@@ -15,7 +15,12 @@ RakNativeFunction *rak_native_function_new(RakString *name, int arity,
 {
   RakNativeFunction *native = rak_memory_alloc(sizeof(*native), err);
   if (!rak_is_ok(err)) return NULL;
-  rak_callable_init(&native->callable, name, arity);
+  rak_callable_init(&native->callable, name, arity, err);
+  if (!rak_is_ok(err))
+  {
+    rak_memory_free(native);
+    return NULL;
+  }
   native->call = call;
   return native;
 }

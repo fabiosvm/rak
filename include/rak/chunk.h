@@ -42,7 +42,6 @@
 #define rak_ref_local_instr(i)       rak_instr_fmt1(RAK_OP_REF_LOCAL, (i))
 #define rak_load_local_ref_instr(i)  rak_instr_fmt1(RAK_OP_LOAD_LOCAL_REF, (i))
 #define rak_store_local_ref_instr(i) rak_instr_fmt1(RAK_OP_STORE_LOCAL_REF, (i))
-#define rak_check_ref_instr(i)       rak_instr_fmt1(RAK_OP_CHECK_REF, (i))
 #define rak_new_array_instr(n)       rak_instr_fmt1(RAK_OP_NEW_ARRAY, (n))
 #define rak_new_range_instr()        rak_instr_fmt0(RAK_OP_NEW_RANGE)
 #define rak_new_record_instr(n)      rak_instr_fmt1(RAK_OP_NEW_RECORD, (n))
@@ -96,7 +95,6 @@ typedef enum
   RAK_OP_REF_LOCAL,
   RAK_OP_LOAD_LOCAL_REF,
   RAK_OP_STORE_LOCAL_REF,
-  RAK_OP_CHECK_REF,
   RAK_OP_NEW_ARRAY,
   RAK_OP_NEW_RANGE,
   RAK_OP_NEW_RECORD,
