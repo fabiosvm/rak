@@ -9,15 +9,93 @@
 //
 
 #include "rak/string.h"
-#include "rak/error.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 
-static inline unsigned char hex2bin (char c);
-static void handle_hex_escape(RakString *str, int len, const char * cstr, int *curr, RakError *err);
-static void handle_escape_sequence(RakString *str, int len, const char * cstr, int *curr, RakError *err);
-static void parse_escaped_string(RakString *str, int len, const char *cstr, RakError *err);
+static inline int hex2bin(char c);
+static inline void handle_hex_escape(RakString *str, int len, const char *cstr, int *curr, RakError *err);
+static inline void handle_escape_sequence(RakString *str, int len, const char *cstr, int *curr, RakError *err);
+static inline void parse_escaped_string(RakString *str, int len, const char *cstr, RakError *err);
+
+static inline int hex2bin(char c)
+{
+  if (c >= '0' && c <= '9')
+    return c - '0' ;
+  if (c >= 'A' && c <= 'F')
+    return c - 'A' + 10 ;
+  if (c >= 'a' && c <= 'f')
+    return c - 'a' + 10 ;
+  return 0;
+}
+
+static inline void handle_hex_escape(RakString *str, int len, const char *cstr, int *curr, RakError *err)
+{
+  if ((*curr) + 1 >= len || !isxdigit(cstr[*curr]) || !isxdigit(cstr[(*curr) + 1]))
+  {
+    rak_error_set(err, "expecting two hexadecimal numbers for escape '\\x'");
+    return;
+  }  
+  int code = (hex2bin(cstr[*curr]) << 4) + hex2bin(cstr[(*curr) + 1]);
+  if (code > 0x7f)
+  {
+    rak_error_set(err, "escape '\\x' is limited to ascii chars (below 0x7f)");
+    return;
+  }
+  rak_string_inplace_append_cstr(str, 1, (char *) &code, err);
+  *curr += 1;
+  return;
+}
+
+static inline void handle_escape_sequence(RakString *str, int len, const char *cstr, int *curr, RakError *err)
+{
+  switch (cstr[*curr])
+  {
+  case 'n':
+    rak_string_inplace_append_cstr(str, 1, "\n", err);
+    break;
+  case 'r':
+    rak_string_inplace_append_cstr(str, 1, "\r", err);
+    break;
+  case 't':
+    rak_string_inplace_append_cstr(str, 1, "\t", err);
+    break;
+  case '"':
+    rak_string_inplace_append_cstr(str, 1, "\"", err);
+    break;
+  case '\\':
+    rak_string_inplace_append_cstr(str, 1, "\\", err);
+    break;
+  case '0':
+    rak_string_inplace_append_cstr(str, 1, "\0", err);
+    break;
+  case 'x':
+    ++(*curr);
+    handle_hex_escape(str, len, cstr, curr, err);
+    break;
+  default:
+    rak_error_set(err, "unknown escape sequence '\\%c'",
+      isprint(cstr[*curr]) ? cstr[*curr] : '?'
+    );
+    break;
+  }
+}
+
+static inline void parse_escaped_string(RakString *str, int len, const char *cstr, RakError *err)
+{
+  for (int curr = 0; curr < len; ++curr)
+  {
+    if (cstr[curr] == '\\')
+    {
+      ++curr;
+      handle_escape_sequence(str, len, cstr, &curr, err);
+      if (!rak_is_ok(err)) return;
+      continue;
+    }
+    rak_string_inplace_append_cstr(str, 1, &cstr[curr], err);
+    if (!rak_is_ok(err)) return;
+  }
+}
 
 void rak_string_init(RakString *str, RakError *err)
 {
@@ -38,6 +116,16 @@ void rak_string_init_from_cstr(RakString *str, int len, const char *cstr, RakErr
   if (!rak_is_ok(err)) return;
   memcpy(rak_string_chars(str), cstr, len);
   str->slice.len = len;
+}
+
+void rak_string_init_from_cstr_with_escapes(RakString *str, int len, const char *cstr, RakError *err)
+{
+  if (len < 0) len = (int) strlen(cstr);
+  rak_string_init_with_capacity(str, len, err);
+  if (!rak_is_ok(err)) return;
+  parse_escaped_string(str, len, cstr, err);
+  if (rak_is_ok(err)) return;
+  rak_string_deinit(str);
 }
 
 void rak_string_init_copy(RakString *str1, RakString *str2, RakError *err)
@@ -79,6 +167,16 @@ RakString *rak_string_new_from_cstr(int len, const char *cstr, RakError *err)
   RakString *str = rak_memory_alloc(sizeof(*str), err);
   if (!rak_is_ok(err)) return NULL;
   rak_string_init_from_cstr(str, len, cstr, err);
+  if (rak_is_ok(err)) return str;
+  rak_memory_free(str);
+  return NULL;
+}
+
+RakString *rak_string_new_from_cstr_with_escapes(int len, const char *cstr, RakError *err)
+{
+  RakString *str = rak_memory_alloc(sizeof(*str), err);
+  if (!rak_is_ok(err)) return NULL;
+  rak_string_init_from_cstr_with_escapes(str, len, cstr, err);
   if (rak_is_ok(err)) return str;
   rak_memory_free(str);
   return NULL;
@@ -203,105 +301,4 @@ int rak_string_compare(RakString *str1, RakString *str2)
 void rak_string_print(RakString *str)
 {
   fwrite(rak_string_chars(str), 1, rak_string_len(str), stdout);
-}
-
-void rak_string_init_from_cstr_with_escapes(RakString *str, int len, const char *cstr, RakError *err)
-{
-  if (len < 0) len = (int) strlen(cstr);
-  rak_string_init_with_capacity(str, len, err);
-  if (!rak_is_ok(err)) return;
-  parse_escaped_string(str, len, cstr, err);
-  if (rak_is_ok(err)) return;
-  rak_string_deinit(str);
-}
-
-RakString *rak_string_new_from_cstr_with_escapes(int len, const char *cstr, RakError *err)
-{
-  RakString *str = rak_memory_alloc(sizeof(*str), err);
-  if (!rak_is_ok(err)) return NULL;
-  rak_string_init_from_cstr_with_escapes(str, len, cstr, err);
-  if (rak_is_ok(err)) return str;
-  rak_memory_free(str);
-  return NULL;
-}
-
-static inline unsigned char hex2bin (char c)
-{
-  if (c >= '0' && c <= '9')
-    return c - '0' ;
-  if (c >= 'A' && c <= 'F')
-    return c - 'A' + 10 ;
-  if (c >= 'a' && c <= 'f')
-    return c - 'a' + 10 ;
-  return 0;
-}
-
-static void handle_hex_escape(RakString *str, int len, const char *cstr, int *curr, RakError *err)
-{
-  if ((*curr) + 1 >= len || !isxdigit(cstr[*curr]) || !isxdigit(cstr[(*curr) + 1]))
-  {
-    rak_error_set(err,"expecting two hexadecimal numbers for escape '\\x'");
-    return;
-  }  
-  unsigned char code = hex2bin(cstr[*curr]) * 16 + hex2bin(cstr[(*curr) + 1]);
-  if (code > 0x7f)
-  {
-    rak_error_set(err, "escape '\\x' is limited to ascii chars (below 0x7f)");
-    return;
-  }
-  rak_string_inplace_append_cstr(str, 1, (char *) &code, err);
-  *curr += 1;
-  return;
-}
-
-static void handle_escape_sequence(RakString *str, int len, const char *cstr, int *curr, RakError *err)
-{
-  switch (cstr[*curr]) {
-  case 'n':
-    rak_string_inplace_append_cstr(str, 1, "\n", err);
-    break;
-  case 'r':
-    rak_string_inplace_append_cstr(str, 1, "\r", err);
-    break;
-  case 't':
-    rak_string_inplace_append_cstr(str, 1, "\t", err);
-    break;
-  case '"':
-    rak_string_inplace_append_cstr(str, 1, "\"", err);
-    break;
-  case '\\':
-    rak_string_inplace_append_cstr(str, 1, "\\", err);
-    break;
-  case '0':
-    rak_string_inplace_append_cstr(str, 1, "\0", err);
-    break;
-  case 'x':
-    ++(*curr);
-    handle_hex_escape(str, len, cstr, curr, err);
-    return;
-  default:
-    rak_error_set(
-      err,
-      "unknown escape sequence '\\%c'",
-      isprint(cstr[*curr]) ? cstr[*curr] : '?'
-    );
-    return;
-  }
-  return;
-}
-
-static void parse_escaped_string(RakString *str, int len, const char *cstr, RakError *err)
-{
-  for (int curr = 0; curr < len; curr++)
-  {
-    if (cstr[curr] == '\\')
-    {
-      curr++;
-      handle_escape_sequence(str, len, cstr, &curr, err);
-      if (!rak_is_ok(err)) return;
-      continue;
-    }
-    rak_string_inplace_append_cstr(str, 1, &cstr[curr], err);
-    if (!rak_is_ok(err)) return;
-  }
 }

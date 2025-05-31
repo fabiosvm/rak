@@ -187,8 +187,8 @@ static inline void rak_vm_check_ref(RakFiber *fiber, RakClosure *cl, uint32_t *i
   uint8_t idx = rak_instr_a(*ip);
   RakValue val = slots[idx];
   if (rak_is_ref(val)) return;
-  rak_error_set(err, "argument #%d must be a reference, got %s", idx,
-    rak_type_to_cstr(val.type));
+  rak_fiber_set_error(fiber, ip, err, "argument #%d must be a reference, got %s",
+    idx, rak_type_to_cstr(val.type));
 }
 
 static inline void rak_vm_new_array(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
@@ -224,7 +224,7 @@ static inline void rak_vm_new_range(RakFiber *fiber, RakClosure *cl, uint32_t *i
   if (!rak_is_number(val1) || !rak_is_number(val2)
    || !rak_is_integer(val1) || !rak_is_integer(val2))
   {
-    rak_error_set(err, "range must be of type integer numbers");
+    rak_fiber_set_error(fiber, ip, err, "range must be of type integer numbers");
     return;
   }
   double start = rak_as_number(val1);
@@ -339,7 +339,7 @@ static inline void rak_vm_get_element(RakFiber *fiber, RakClosure *cl, uint32_t 
     RakString *str = rak_as_string(val1);
     if (!rak_is_range(val2))
     {
-      rak_error_set(err, "cannot index string with value of type %s",
+      rak_fiber_set_error(fiber, ip, err, "cannot index string with value of type %s",
         rak_type_to_cstr(val2.type));
       return;
     }
@@ -360,13 +360,13 @@ static inline void rak_vm_get_element(RakFiber *fiber, RakClosure *cl, uint32_t 
     {
       if (!rak_is_integer(val2))
       {
-        rak_error_set(err, "cannot index array with non-integer number");
+        rak_fiber_set_error(fiber, ip, err, "cannot index array with non-integer number");
         return;
       }
       int64_t idx = rak_as_integer(val2);
       if (idx < 0 || idx >= rak_array_len(arr))
       {
-        rak_error_set(err, "index out of bounds");
+        rak_fiber_set_error(fiber, ip, err, "index out of bounds");
         return;
       }
       RakValue res = rak_array_get(arr, (int) idx);
@@ -376,7 +376,7 @@ static inline void rak_vm_get_element(RakFiber *fiber, RakClosure *cl, uint32_t 
     }
     if (!rak_is_range(val2))
     {
-      rak_error_set(err, "cannot index array with value of type %s",
+      rak_fiber_set_error(fiber, ip, err, "cannot index array with value of type %s",
         rak_type_to_cstr(val2.type));
       return;
     }
@@ -395,13 +395,13 @@ static inline void rak_vm_get_element(RakFiber *fiber, RakClosure *cl, uint32_t 
     RakRange *range = rak_as_range(val1);
     if (!rak_is_number(val2) || !rak_is_integer(val2))
     {
-      rak_error_set(err, "cannot index range with non-integer number");
+      rak_fiber_set_error(fiber, ip, err, "cannot index range with non-integer number");
       return;
     }
     int64_t idx = rak_as_integer(val2);
     if (idx < 0 || idx >= rak_range_len(range))
     {
-      rak_error_set(err, "index out of bounds");
+      rak_fiber_set_error(fiber, ip, err, "index out of bounds");
       return;
     }
     RakValue res = rak_number_value(rak_range_get(range, (int) idx));
@@ -411,14 +411,14 @@ static inline void rak_vm_get_element(RakFiber *fiber, RakClosure *cl, uint32_t 
   }
   if (!rak_is_record(val1))
   {
-    rak_error_set(err, "cannot index value of type %s",
+    rak_fiber_set_error(fiber, ip, err, "cannot index value of type %s",
       rak_type_to_cstr(val1.type));
     return;
   }
   RakRecord *rec = rak_as_record(val1);
   if (!rak_is_string(val2))
   {
-    rak_error_set(err, "cannot index record with value of type %s",
+    rak_fiber_set_error(fiber, ip, err, "cannot index record with value of type %s",
       rak_type_to_cstr(val2.type));
     return;
   }
@@ -426,7 +426,7 @@ static inline void rak_vm_get_element(RakFiber *fiber, RakClosure *cl, uint32_t 
   int idx = rak_record_index_of(rec, name);
   if (idx == -1)
   {
-    rak_error_set(err, "record has no field named '%.*s'",
+    rak_fiber_set_error(fiber, ip, err, "record has no field named '%.*s'",
       rak_string_len(name), rak_string_chars(name));
     return;
   }
@@ -448,13 +448,13 @@ static inline void rak_vm_set_element(RakFiber *fiber, RakClosure *cl, uint32_t 
     RakArray *arr = rak_as_array(val1);
     if (!rak_is_number(val2) || !rak_is_integer(val2))
     {
-      rak_error_set(err, "cannot index array with non-integer number");
+      rak_fiber_set_error(fiber, ip, err, "cannot index array with non-integer number");
       return;
     }
     int64_t idx = rak_as_integer(val2);
     if (idx < 0 || idx >= rak_array_len(arr))
     {
-      rak_error_set(err, "index out of bounds");
+      rak_fiber_set_error(fiber, ip, err, "index out of bounds");
       return;
     }
     if (rak_is_shared(val1))
@@ -474,14 +474,14 @@ static inline void rak_vm_set_element(RakFiber *fiber, RakClosure *cl, uint32_t 
   }
   if (!rak_is_record(val1))
   {
-    rak_error_set(err, "cannot index value of type %s",
+    rak_fiber_set_error(fiber, ip, err, "cannot index value of type %s",
       rak_type_to_cstr(val1.type));
     return;
   }
   RakRecord *rec = rak_as_record(val1);
   if (!rak_is_string(val2))
   {
-    rak_error_set(err, "cannot index record with value of type %s",
+    rak_fiber_set_error(fiber, ip, err, "cannot index record with value of type %s",
       rak_type_to_cstr(val2.type));
     return;
   }
@@ -514,13 +514,13 @@ static inline void rak_vm_load_element(RakFiber *fiber, RakClosure *cl, uint32_t
     RakArray *arr = rak_as_array(val1);
     if (!rak_is_number(val2) || !rak_is_integer(val2))
     {
-      rak_error_set(err, "cannot index array with non-integer number");
+      rak_fiber_set_error(fiber, ip, err, "cannot index array with non-integer number");
       return;
     }
     int64_t idx = rak_as_integer(val2);
     if (idx < 0 || idx >= rak_array_len(arr))
     {
-      rak_error_set(err, "index out of bounds");
+      rak_fiber_set_error(fiber, ip, err, "index out of bounds");
       return;
     }
     RakValue res = rak_array_get(arr, (int) idx);
@@ -529,13 +529,14 @@ static inline void rak_vm_load_element(RakFiber *fiber, RakClosure *cl, uint32_t
   }
   if (!rak_is_record(val1))
   {
-    rak_error_set(err, "cannot index value of type %s", rak_type_to_cstr(val1.type));
+    rak_fiber_set_error(fiber, ip, err, "cannot index value of type %s",
+      rak_type_to_cstr(val1.type));
     return;
   }
   RakRecord *rec = rak_as_record(val1);
   if (!rak_is_string(val2))
   {
-    rak_error_set(err, "cannot index record with value of type %s",
+    rak_fiber_set_error(fiber, ip, err, "cannot index record with value of type %s",
       rak_type_to_cstr(val2.type));
     return;
   }
@@ -543,7 +544,7 @@ static inline void rak_vm_load_element(RakFiber *fiber, RakClosure *cl, uint32_t
   int idx = rak_record_index_of(rec, name);
   if (idx == -1)
   {
-    rak_error_set(err, "record has no field named '%.*s'",
+    rak_fiber_set_error(fiber, ip, err, "record has no field named '%.*s'",
       rak_string_len(name), rak_string_chars(name));
     return;
   }
@@ -565,13 +566,13 @@ static inline void rak_vm_fetch_element(RakFiber *fiber, RakClosure *cl, uint32_
     RakArray *arr = rak_as_array(val1);
     if (!rak_is_number(val2) || !rak_is_integer(val2))
     {
-      rak_error_set(err, "cannot index array with non-integer number");
+      rak_fiber_set_error(fiber, ip, err, "cannot index array with non-integer number");
       return;
     }
     int64_t idx = rak_as_integer(val2);
     if (idx < 0 || idx >= rak_array_len(arr))
     {
-      rak_error_set(err, "index out of bounds");
+      rak_fiber_set_error(fiber, ip, err, "index out of bounds");
       return;
     }
     RakValue res = rak_array_get(arr, (int) idx);
@@ -582,13 +583,14 @@ static inline void rak_vm_fetch_element(RakFiber *fiber, RakClosure *cl, uint32_
   }
   if (!rak_is_record(val1))
   {
-    rak_error_set(err, "cannot index value of type %s", rak_type_to_cstr(val1.type));
+    rak_fiber_set_error(fiber, ip, err, "cannot index value of type %s",
+      rak_type_to_cstr(val1.type));
     return;
   }
   RakRecord *rec = rak_as_record(val1);
   if (!rak_is_string(val2))
   {
-    rak_error_set(err, "cannot index record with value of type %s",
+    rak_fiber_set_error(fiber, ip, err, "cannot index record with value of type %s",
       rak_type_to_cstr(val2.type));
     return;
   }
@@ -596,7 +598,7 @@ static inline void rak_vm_fetch_element(RakFiber *fiber, RakClosure *cl, uint32_
   int idx = rak_record_index_of(rec, name);
   if (idx == -1)
   {
-    rak_error_set(err, "record has no field named '%.*s'",
+    rak_fiber_set_error(fiber, ip, err, "record has no field named '%.*s'",
       rak_string_len(name), rak_string_chars(name));
     return;
   }
@@ -658,7 +660,7 @@ static inline void rak_vm_get_field(RakFiber *fiber, RakClosure *cl, uint32_t *i
   RakValue val = rak_fiber_get(fiber, 0);
   if (!rak_is_record(val))
   {
-    rak_error_set(err, "cannot index value of type %s",
+    rak_fiber_set_error(fiber, ip, err, "cannot index value of type %s",
       rak_type_to_cstr(val.type));
     return;
   }
@@ -668,7 +670,7 @@ static inline void rak_vm_get_field(RakFiber *fiber, RakClosure *cl, uint32_t *i
   int _idx = rak_record_index_of(rec, name);
   if (_idx == -1)
   {
-    rak_error_set(err, "record has no field named '%.*s'",
+    rak_fiber_set_error(fiber, ip, err, "record has no field named '%.*s'",
       rak_string_len(name), rak_string_chars(name));
     return;
   }
@@ -684,7 +686,7 @@ static inline void rak_vm_put_field(RakFiber *fiber, RakClosure *cl, uint32_t *i
   RakValue val2 = rak_fiber_get(fiber, 0);
   if (!rak_is_record(val1))
   {
-    rak_error_set(err, "cannot index value of type %s",
+    rak_fiber_set_error(fiber, ip, err, "cannot index value of type %s",
       rak_type_to_cstr(val1.type));
     return;
   }
@@ -714,7 +716,7 @@ static inline void rak_vm_load_field(RakFiber *fiber, RakClosure *cl, uint32_t *
   RakValue val = rak_fiber_get(fiber, 0);
   if (!rak_is_record(val))
   {
-    rak_error_set(err, "cannot index value of type %s",
+    rak_fiber_set_error(fiber, ip, err, "cannot index value of type %s",
       rak_type_to_cstr(val.type));
     return;
   }
@@ -724,7 +726,7 @@ static inline void rak_vm_load_field(RakFiber *fiber, RakClosure *cl, uint32_t *
   int _idx = rak_record_index_of(rec, name);
   if (_idx == -1)
   {
-    rak_error_set(err, "record has no field named '%.*s'",
+    rak_fiber_set_error(fiber, ip, err, "record has no field named '%.*s'",
       rak_string_len(name), rak_string_chars(name));
     return;
   }
@@ -741,7 +743,7 @@ static inline void rak_vm_fetch_field(RakFiber *fiber, RakClosure *cl, uint32_t 
   RakValue val = rak_fiber_get(fiber, 0);
   if (!rak_is_record(val))
   {
-    rak_error_set(err, "cannot index value of type %s",
+    rak_fiber_set_error(fiber, ip, err, "cannot index value of type %s",
       rak_type_to_cstr(val.type));
     return;
   }
@@ -751,7 +753,7 @@ static inline void rak_vm_fetch_field(RakFiber *fiber, RakClosure *cl, uint32_t 
   int _idx = rak_record_index_of(rec, name);
   if (_idx == -1)
   {
-    rak_error_set(err, "record has no field named '%.*s'",
+    rak_fiber_set_error(fiber, ip, err, "record has no field named '%.*s'",
       rak_string_len(name), rak_string_chars(name));
     return;
   }
@@ -797,7 +799,7 @@ static inline void rak_vm_unpack_elements(RakFiber *fiber, RakClosure *cl, uint3
   RakValue val = _slots[0];
   if (!rak_is_array(val))
   {
-    rak_error_set(err, "cannot unpack elements from value of type %s",
+    rak_fiber_set_error(fiber, ip, err, "cannot unpack elements from value of type %s",
       rak_type_to_cstr(val.type));
     return;
   }
@@ -825,7 +827,7 @@ static inline void rak_vm_unpack_fields(RakFiber *fiber, RakClosure *cl, uint32_
   RakValue val = _slots[0];
   if (!rak_is_record(val))
   {
-    rak_error_set(err, "cannot unpack fields from value of type %s",
+    rak_fiber_set_error(fiber, ip, err, "cannot unpack fields from value of type %s",
       rak_type_to_cstr(val.type));
     return;
   }
@@ -834,7 +836,7 @@ static inline void rak_vm_unpack_fields(RakFiber *fiber, RakClosure *cl, uint32_
   int idx = rak_record_index_of(rec, name);
   if (idx == -1)
   {
-    rak_error_set(err, "record has no field named '%.*s'",
+    rak_fiber_set_error(fiber, ip, err, "record has no field named '%.*s'",
       rak_string_len(name), rak_string_chars(name));
     return;
   }
@@ -847,7 +849,7 @@ static inline void rak_vm_unpack_fields(RakFiber *fiber, RakClosure *cl, uint32_
     idx = rak_record_index_of(rec, name);
     if (idx == -1)
     {
-      rak_error_set(err, "record has no field named '%.*s'",
+      rak_fiber_set_error(fiber, ip, err, "record has no field named '%.*s'",
         rak_string_len(name), rak_string_chars(name));
       rak_record_release(rec);
       return;
@@ -948,7 +950,8 @@ static inline void rak_vm_add(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
   {
     if (!rak_is_number(val2))
     {
-      rak_error_set(err, "cannot add number and %s", rak_type_to_cstr(val2.type));
+      rak_fiber_set_error(fiber, ip, err, "cannot add number and %s",
+        rak_type_to_cstr(val2.type));
       return;
     }
     double num1 = rak_as_number(val1);
@@ -962,7 +965,8 @@ static inline void rak_vm_add(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
   {
     if (!rak_is_string(val2))
     {
-      rak_error_set(err, "cannot add string and %s", rak_type_to_cstr(val2.type));
+      rak_fiber_set_error(fiber, ip, err, "cannot add string and %s",
+        rak_type_to_cstr(val2.type));
       return;
     }
     RakString *str1 = rak_as_string(val1);
@@ -984,7 +988,8 @@ static inline void rak_vm_add(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
   {
     if (!rak_is_array(val2))
     {
-      rak_error_set(err, "cannot add array and %s", rak_type_to_cstr(val2.type));
+      rak_fiber_set_error(fiber, ip, err, "cannot add array and %s",
+        rak_type_to_cstr(val2.type));
       return;
     }
     RakArray *arr1 = rak_as_array(val1);
@@ -1002,8 +1007,8 @@ static inline void rak_vm_add(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
     rak_fiber_pop(fiber);
     return;
   }
-  rak_error_set(err, "cannot add %s and %s", rak_type_to_cstr(val1.type),
-    rak_type_to_cstr(val2.type));
+  rak_fiber_set_error(fiber, ip, err, "cannot add %s and %s",
+    rak_type_to_cstr(val1.type), rak_type_to_cstr(val2.type));
 }
 
 static inline void rak_vm_sub(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
@@ -1015,7 +1020,7 @@ static inline void rak_vm_sub(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
   RakValue val2 = rak_fiber_get(fiber, 0);
   if (!rak_is_number(val1) || !rak_is_number(val2))
   {
-    rak_error_set(err, "cannot subtract non-number values");
+    rak_fiber_set_error(fiber, ip, err, "cannot subtract non-number values");
     return;
   }
   double num1 = rak_as_number(val1);
@@ -1034,7 +1039,7 @@ static inline void rak_vm_mul(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
   RakValue val2 = rak_fiber_get(fiber, 0);
   if (!rak_is_number(val1) || !rak_is_number(val2))
   {
-    rak_error_set(err, "cannot multiply non-number values");
+    rak_fiber_set_error(fiber, ip, err, "cannot multiply non-number values");
     return;
   }
   double num1 = rak_as_number(val1);
@@ -1053,7 +1058,7 @@ static inline void rak_vm_div(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
   RakValue val2 = rak_fiber_get(fiber, 0);
   if (!rak_is_number(val1) || !rak_is_number(val2))
   {
-    rak_error_set(err, "cannot divide non-number values");
+    rak_fiber_set_error(fiber, ip, err, "cannot divide non-number values");
     return;
   }
   double num1 = rak_as_number(val1);
@@ -1072,7 +1077,7 @@ static inline void rak_vm_mod(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
   RakValue val2 = rak_fiber_get(fiber, 0);
   if (!rak_is_number(val1) || !rak_is_number(val2))
   {
-    rak_error_set(err, "cannot calculate modulo of non-number values");
+    rak_fiber_set_error(fiber, ip, err, "cannot calculate modulo of non-number values");
     return;
   }
   double num1 = rak_as_number(val1);
@@ -1101,7 +1106,7 @@ static inline void rak_vm_neg(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
   RakValue val = rak_fiber_get(fiber, 0);
   if (!rak_is_number(val))
   {
-    rak_error_set(err, "cannot negate a non-number value");
+    rak_fiber_set_error(fiber, ip, err, "cannot negate a non-number value");
     return;
   }
   double num = rak_as_number(val);
@@ -1118,12 +1123,12 @@ static inline void rak_vm_call(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Ra
   RakValue val = _slots[0];
   if (!rak_is_closure(val))
   {
-    rak_error_set(err, "cannot call non-closure value");
+    rak_fiber_set_error(fiber, ip, err, "cannot call non-closure value");
     return;
   }
   if (rak_stack_is_full(&fiber->cstk))
   {
-    rak_error_set(err, "too many nested calls");
+    rak_fiber_set_error(fiber, ip, err, "too many nested calls");
     return;
   }
   RakClosure *_cl = rak_as_closure(val);
@@ -1163,7 +1168,7 @@ static inline void rak_vm_tail_call(RakFiber *fiber, RakClosure *cl, uint32_t *i
   RakValue val = _slots[0];
   if (!rak_is_closure(val))
   {
-    rak_error_set(err, "cannot call non-closure value");
+    rak_fiber_set_error(fiber, ip, err, "cannot call non-closure value");
     return;
   }
   RakClosure *_cl = rak_as_closure(val);

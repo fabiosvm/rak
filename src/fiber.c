@@ -24,8 +24,8 @@ static void run(RakFiber *fiber, RakError *err)
   if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
     rak_vm_dispatch(fiber, cl, (uint32_t *) frame.state, slots, err);
   else
-   ((RakNativeFunction *) cl->callable)->call(fiber, cl,
-      frame.state, slots, err);
+    ((RakNativeFunction *) cl->callable)->call(fiber, cl, frame.state,
+      slots, err);
   if (!rak_is_ok(err))
   {
     fiber->status = RAK_FIBER_STATUS_DONE;
@@ -54,8 +54,8 @@ static void resume(RakFiber *fiber, RakError *err)
   if (cl->type == RAK_CALLABLE_TYPE_FUNCTION)
     rak_vm_dispatch(fiber, cl, (uint32_t *) frame.state, slots, err);
   else
-   ((RakNativeFunction *) cl->callable)->call(fiber, cl,
-      frame.state, slots, err);
+    ((RakNativeFunction *) cl->callable)->call(fiber, cl, frame.state,
+      slots, err);
   if (!rak_is_ok(err))
   {
     fiber->status = RAK_FIBER_STATUS_DONE;

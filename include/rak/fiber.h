@@ -54,6 +54,8 @@ static inline void rak_fiber_set_object(RakFiber *fiber, uint8_t idx, RakValue v
 static inline void rak_fiber_pop(RakFiber *fiber);
 static inline void rak_fiber_yield(RakFiber *fiber, uint32_t *ip);
 static inline void rak_fiber_return(RakFiber *fiber, RakClosure *cl, RakValue *slots);
+static inline void rak_fiber_set_error(RakFiber *fiber, uint32_t *ip, RakError *err,
+  const char *fmt, ...);
 
 void rak_fiber_init(RakFiber *fiber, RakArray *globals, int vstkSize, int cstkSize,
   RakClosure *cl, uint8_t nargs, RakValue *args, RakError *err);
@@ -151,6 +153,17 @@ static inline void rak_fiber_return(RakFiber *fiber, RakClosure *cl, RakValue *s
   while (fiber->vstk.top > slots)
     rak_fiber_pop(fiber);
   rak_stack_pop(&fiber->cstk);
+}
+
+static inline void rak_fiber_set_error(RakFiber *fiber, uint32_t *ip, RakError *err,
+  const char *fmt, ...)
+{
+  va_list args;
+  va_start(args, fmt);
+  rak_error_set_with_args(err, fmt, args);
+  va_end(args);
+  RakCallFrame *frame = &rak_stack_get(&fiber->cstk, 0);
+  frame->state = ip + 1;
 }
 
 #endif // RAK_FIBER_H

@@ -9,7 +9,6 @@
 //
 
 #include "rak/lexer.h"
-#include "rak/string.h"
 #include <ctype.h>
 #include <string.h>
 
@@ -23,7 +22,6 @@ static inline void next_chars(RakLexer *lex, int len);
 static inline bool match_char(RakLexer *lex, char c, RakTokenKind kind);
 static inline bool match_chars(RakLexer *lex, const char *chars, RakTokenKind kind);
 static inline bool match_number(RakLexer *lex, RakError *err);
-static bool check_string(RakLexer *lex, RakError *err);
 static inline bool match_string(RakLexer *lex, RakError *err);
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind);
 static inline bool match_ident(RakLexer *lex);
@@ -147,11 +145,13 @@ end:
   return true;
 }
 
-static bool check_string(RakLexer *lex, RakError *err)
+static inline bool match_string(RakLexer *lex, RakError *err)
 {
+  if (current_char(lex) != '\"') return false;
+  next_char(lex);
   bool isEscape = false;
-  char *cstrStart = lex->curr;
-  while (true)
+  char *_curr = lex->curr;
+  for (;;)
   {
     switch (current_char(lex))
     {
@@ -166,7 +166,7 @@ static bool check_string(RakLexer *lex, RakError *err)
         next_char(lex);
         continue;
       }
-      lex->tok = token(lex, RAK_TOKEN_KIND_STRING, (int)(lex->curr - cstrStart), cstrStart);
+      lex->tok = token(lex, RAK_TOKEN_KIND_STRING, (int) (lex->curr - _curr), _curr);
       next_char(lex);
       return true;
     case '\\':
@@ -179,13 +179,6 @@ static bool check_string(RakLexer *lex, RakError *err)
       continue;
     }
   }
-}
-
-static inline bool match_string(RakLexer *lex, RakError *err)
-{
-  if (current_char(lex) != '\"') return false;
-  next_char(lex);
-  return check_string(lex, err);
 }
 
 static inline bool match_keyword(RakLexer *lex, const char *kw, RakTokenKind kind)
