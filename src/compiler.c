@@ -82,7 +82,6 @@ static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *of
 static inline void compile_if_stmt_cont(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err);
 static inline void compile_loop_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_while_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
-static inline void compile_do_while_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_break_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_continue_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void compile_yield_stmt(Compiler *comp, RakChunk *chunk, RakError *err);
@@ -190,11 +189,6 @@ static inline void compile_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
   if (match(comp, RAK_TOKEN_KIND_WHILE_KW))
   {
     compile_while_stmt(comp, chunk, err);
-    return;
-  }
-  if (match(comp, RAK_TOKEN_KIND_DO_KW))
-  {
-    compile_do_while_stmt(comp, chunk, err);
     return;
   }
   if (match(comp, RAK_TOKEN_KIND_BREAK_KW))
@@ -769,35 +763,6 @@ static inline void compile_while_stmt(Compiler *comp, RakChunk *chunk, RakError 
   if (!rak_is_ok(err)) return;
   end_loop(comp, chunk);
   end_scope(comp, chunk, err);
-}
-
-static inline void compile_do_while_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
-{
-  next(comp, err);
-  Loop loop;
-  begin_loop(comp, chunk, &loop);
-  if (!match(comp, RAK_TOKEN_KIND_LBRACE))
-  {
-    expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex->tok);
-    return;
-  }
-  compile_block(comp, chunk, err);
-  if (!rak_is_ok(err)) return;
-  consume(comp, RAK_TOKEN_KIND_WHILE_KW, err);
-  compile_expr(comp, chunk, err);
-  if (!rak_is_ok(err)) return;
-  consume(comp, RAK_TOKEN_KIND_SEMICOLON, err);
-  uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), err);
-  if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_pop_instr(), err);
-  if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_jump_instr(loop.off), err);
-  if (!rak_is_ok(err)) return;
-  uint32_t instr = rak_jump_if_false_instr((uint16_t) chunk->instrs.len);
-  patch_instr(chunk, jump, instr);
-  emit_instr(comp, chunk, rak_pop_instr(), err);
-  if (!rak_is_ok(err)) return;
-  end_loop(comp, chunk);
 }
 
 static inline void compile_break_stmt(Compiler *comp, RakChunk *chunk, RakError *err)

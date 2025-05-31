@@ -62,7 +62,6 @@ The following keywords are reserved and cannot be used as identifiers:
 
 - `break`
 - `continue`
-- `do`
 - `else`
 - `false`
 - `fn`
@@ -392,18 +391,6 @@ while let i = 0; i < 10 {
   println(i);
   &i += 1;
 }
-```
-
-## Do-while statements
-
-Do-while statements are used to execute a block of code at least once and then repeatedly while a condition is true.
-
-```rs
-let i = 0;
-do {
-  println(i);
-  &i += 1;
-} while i < 10;
 ```
 
 ## Strings

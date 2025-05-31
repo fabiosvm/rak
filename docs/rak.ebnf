@@ -8,7 +8,6 @@ stmt              ::= block
                     | if_stmt
                     | loop_stmt
                     | while_stmt
-                    | do_while_stmt
                     | break_stmt
                     | continue_stmt
                     | yield_stmt
@@ -46,8 +45,6 @@ if_stmt_cont      ::= ( "else" ( if_stmt | block ) )?
 loop_stmt         ::= "loop" block
 
 while_stmt        ::= "while" let_decl? expr block
-
-do_while_stmt     ::= "do" block "while" expr ";"
 
 break_stmt        ::= "break" ";"
 
