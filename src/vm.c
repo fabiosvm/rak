@@ -51,7 +51,9 @@ static void do_jump_if_false(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakV
 static void do_jump_if_true(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_eq(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_gt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_ge(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_lt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_le(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_add(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_sub(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_mul(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -103,7 +105,9 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_JUMP_IF_TRUE]    = do_jump_if_true,
   [RAK_OP_EQ]              = do_eq,
   [RAK_OP_GT]              = do_gt,
+  [RAK_OP_GE]              = do_ge,
   [RAK_OP_LT]              = do_lt,
+  [RAK_OP_LE]              = do_le,
   [RAK_OP_ADD]             = do_add,
   [RAK_OP_SUB]             = do_sub,
   [RAK_OP_MUL]             = do_mul,
@@ -372,9 +376,23 @@ static void do_gt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
+static void do_ge(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_ge(fiber, cl, ip, slots, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(fiber, cl, ip + 1, slots, err);
+}
+
 static void do_lt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   rak_vm_lt(fiber, cl, ip, slots, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(fiber, cl, ip + 1, slots, err);
+}
+
+static void do_le(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_le(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }

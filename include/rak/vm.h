@@ -53,7 +53,9 @@ static inline void rak_vm_jump_if_false(RakFiber *fiber, RakClosure *cl, uint32_
 static inline void rak_vm_jump_if_true(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_eq(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_gt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static inline void rak_vm_ge(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_lt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static inline void rak_vm_le(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_add(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_sub(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_mul(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -913,6 +915,20 @@ static inline void rak_vm_gt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakV
   rak_fiber_pop(fiber);
 }
 
+static inline void rak_vm_ge(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) cl;
+  (void) ip;
+  (void) slots;
+  RakValue val1 = rak_fiber_get(fiber, 1);
+  RakValue val2 = rak_fiber_get(fiber, 0);
+  int cmp = rak_value_compare(val1, val2, err);
+  if (!rak_is_ok(err)) return;
+  RakValue res = rak_bool_value(cmp >= 0);
+  rak_fiber_set(fiber, 1, res);
+  rak_fiber_pop(fiber);
+}
+
 static inline void rak_vm_lt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   (void) cl;
@@ -923,6 +939,20 @@ static inline void rak_vm_lt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakV
   int cmp = rak_value_compare(val1, val2, err);
   if (!rak_is_ok(err)) return;
   RakValue res = rak_bool_value(cmp < 0);
+  rak_fiber_set(fiber, 1, res);
+  rak_fiber_pop(fiber);
+}
+
+static inline void rak_vm_le(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) cl;
+  (void) ip;
+  (void) slots;
+  RakValue val1 = rak_fiber_get(fiber, 1);
+  RakValue val2 = rak_fiber_get(fiber, 0);
+  int cmp = rak_value_compare(val1, val2, err);
+  if (!rak_is_ok(err)) return;
+  RakValue res = rak_bool_value(cmp <= 0);
   rak_fiber_set(fiber, 1, res);
   rak_fiber_pop(fiber);
 }

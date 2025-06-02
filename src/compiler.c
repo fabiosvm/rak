@@ -955,9 +955,7 @@ static inline void compile_cmp_expr(Compiler *comp, RakChunk *chunk, RakError *e
       next(comp, err);
       compile_range_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_lt_instr(), err);
-      if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_not_instr(), err);
+      emit_instr(comp, chunk, rak_ge_instr(), err);
       if (!rak_is_ok(err)) return;
       continue;
     }
@@ -975,9 +973,7 @@ static inline void compile_cmp_expr(Compiler *comp, RakChunk *chunk, RakError *e
       next(comp, err);
       compile_range_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_gt_instr(), err);
-      if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_not_instr(), err);
+      emit_instr(comp, chunk, rak_le_instr(), err);
       if (!rak_is_ok(err)) return;
       continue;
     }
