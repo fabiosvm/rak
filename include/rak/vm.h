@@ -34,7 +34,6 @@ static inline void rak_vm_new_range(RakFiber *fiber, RakClosure *cl, uint32_t *i
 static inline void rak_vm_new_record(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_new_closure(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_move(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
-static inline void rak_vm_dup(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_get_element(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_set_element(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -306,16 +305,6 @@ static inline void rak_vm_move(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Ra
   rak_value_release(slots[dst]);
   slots[dst] = val;
   rak_value_retain(val);
-}
-
-static inline void rak_vm_dup(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
-{
-  (void) fiber;
-  (void) cl;
-  (void) ip;
-  (void) slots;
-  RakValue val = rak_fiber_get(fiber, 0);
-  rak_fiber_push_value(fiber, val, err);
 }
 
 static inline void rak_vm_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)

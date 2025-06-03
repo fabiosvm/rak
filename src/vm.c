@@ -32,7 +32,6 @@ static void do_new_range(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue
 static void do_new_record(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_new_closure(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_move(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
-static void do_dup(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_get_element(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_set_element(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -96,7 +95,6 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_NEW_RECORD]      = do_new_record,
   [RAK_OP_NEW_CLOSURE]     = do_new_closure,
   [RAK_OP_MOVE]            = do_move,
-  [RAK_OP_DUP]             = do_dup,
   [RAK_OP_POP]             = do_pop,
   [RAK_OP_GET_ELEMENT]     = do_get_element,
   [RAK_OP_SET_ELEMENT]     = do_set_element,
@@ -268,13 +266,6 @@ static void do_new_closure(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakVal
 static void do_move(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   rak_vm_move(fiber, cl, ip, slots, err);
-  dispatch(fiber, cl, ip + 1, slots, err);
-}
-
-static void do_dup(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
-{
-  rak_vm_dup(fiber, cl, ip, slots, err);
-  if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 

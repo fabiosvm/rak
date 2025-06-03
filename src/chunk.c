@@ -45,7 +45,6 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   case RAK_OP_NEW_RECORD:      cstr = "NEW_RECORD";      break;
   case RAK_OP_NEW_CLOSURE:     cstr = "NEW_CLOSURE";     break;
   case RAK_OP_MOVE:            cstr = "MOVE";            break;
-  case RAK_OP_DUP:             cstr = "DUP";             break;
   case RAK_OP_POP:             cstr = "POP";             break;
   case RAK_OP_GET_ELEMENT:     cstr = "GET_ELEMENT";     break;
   case RAK_OP_SET_ELEMENT:     cstr = "SET_ELEMENT";     break;

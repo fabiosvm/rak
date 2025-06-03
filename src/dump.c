@@ -43,7 +43,6 @@ void rak_dump_function(RakFunction *fn)
     case RAK_OP_PUSH_FALSE:
     case RAK_OP_PUSH_TRUE:
     case RAK_OP_NEW_RANGE:
-    case RAK_OP_DUP:
     case RAK_OP_POP:
     case RAK_OP_GET_ELEMENT:
     case RAK_OP_SET_ELEMENT:
