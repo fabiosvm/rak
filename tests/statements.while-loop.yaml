@@ -9,15 +9,19 @@
     9876->Out
     5
 
-- test: while and let
+- test: while with let
   source: |
-    let a=9;
-    while let a=1; a<5 { print(a); &a+=1;}
-    println("->Out");
-    println(a);
+    let a = 0;
+    while let b = a; b < 5 {
+      println(a);
+      &a += 1;
+    }
   out: |
-    1234->Out
-    9
+    0
+    1
+    2
+    3
+    4
 
 - test: while, continue and break
   source: |

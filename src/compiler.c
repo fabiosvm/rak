@@ -112,6 +112,7 @@ static inline void compile_if_expr_cont(Compiler *comp, RakChunk *chunk, uint16_
 static inline void compile_group(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void begin_scope(Compiler *comp);
 static inline void end_scope(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline int discard_scope(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline void begin_loop(Compiler *comp, RakChunk *chunk, Loop *loop);
 static inline void end_loop(Compiler *comp, RakChunk *chunk);
 static inline uint8_t define_local(Compiler *comp, RakToken tok, bool isRef, RakError *err);
@@ -749,14 +750,14 @@ static inline void compile_loop_stmt(Compiler *comp, RakChunk *chunk, RakError *
 static inline void compile_while_stmt(Compiler *comp, RakChunk *chunk, RakError *err)
 {
   next(comp, err);
+  Loop loop;
+  begin_loop(comp, chunk, &loop);
   begin_scope(comp);
   if (match(comp, RAK_TOKEN_KIND_LET_KW))
   {
     compile_let_decl(comp, chunk, err);
     if (!rak_is_ok(err)) return;
   }
-  Loop loop;
-  begin_loop(comp, chunk, &loop);
   compile_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
   uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), err);
@@ -769,6 +770,8 @@ static inline void compile_while_stmt(Compiler *comp, RakChunk *chunk, RakError 
     return;
   }
   compile_block(comp, chunk, err);
+  if (!rak_is_ok(err)) return;
+  discard_scope(comp, chunk, err);
   if (!rak_is_ok(err)) return;
   emit_instr(comp, chunk, rak_jump_instr(loop.off), err);
   if (!rak_is_ok(err)) return;
@@ -1505,6 +1508,14 @@ static inline void begin_scope(Compiler *comp)
 
 static inline void end_scope(Compiler *comp, RakChunk *chunk, RakError *err)
 {
+  int n = discard_scope(comp, chunk, err);
+  if (!rak_is_ok(err)) return;
+  comp->symbols.len -= n;
+  --comp->scopeDepth;
+}
+
+static inline int discard_scope(Compiler *comp, RakChunk *chunk, RakError *err)
+{
   int len = comp->symbols.len;
   int n = 0;
   for (int i = len - 1; i >= 0; --i)
@@ -1512,11 +1523,10 @@ static inline void end_scope(Compiler *comp, RakChunk *chunk, RakError *err)
     Symbol sym = rak_slice_get(&comp->symbols, i);
     if (sym.depth != comp->scopeDepth) break;
     emit_instr(comp, chunk, rak_pop_instr(), err);
-    if (!rak_is_ok(err)) return;
+    if (!rak_is_ok(err)) return 0;
     ++n;
   }
-  comp->symbols.len -= n;
-  --comp->scopeDepth;
+  return n;
 }
 
 static inline void begin_loop(Compiler *comp, RakChunk *chunk, Loop *loop)
