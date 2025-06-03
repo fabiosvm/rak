@@ -57,10 +57,20 @@ static inline void rak_vm_ge(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakV
 static inline void rak_vm_lt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_le(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_add(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static inline void rak_vm_add2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static inline void rak_vm_add3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_sub(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static inline void rak_vm_sub2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static inline void rak_vm_sub3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_mul(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static inline void rak_vm_mul2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static inline void rak_vm_mul3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_div(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static inline void rak_vm_div2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static inline void rak_vm_div3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_mod(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static inline void rak_vm_mod2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static inline void rak_vm_mod3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_not(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_neg(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_call(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -1029,6 +1039,150 @@ static inline void rak_vm_add(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
     rak_type_to_cstr(val1.type), rak_type_to_cstr(val2.type));
 }
 
+static inline void rak_vm_add2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) cl;
+  uint8_t lhs = rak_instr_a(*ip);
+  uint8_t rhs = rak_instr_b(*ip);
+  RakValue val1 = slots[lhs];
+  RakValue val2 = slots[rhs];
+  if (rak_is_number(val1))
+  {
+    if (!rak_is_number(val2))
+    {
+      rak_fiber_set_error(fiber, ip, err, "cannot add number and %s",
+        rak_type_to_cstr(val2.type));
+      return;
+    }
+    double num1 = rak_as_number(val1);
+    double num2 = rak_as_number(val2);
+    RakValue res = rak_number_value(num1 + num2);
+    rak_fiber_push(fiber, res, err);
+    return;
+  }
+  if (rak_is_string(val1))
+  {
+    if (!rak_is_string(val2))
+    {
+      rak_fiber_set_error(fiber, ip, err, "cannot add string and %s",
+        rak_type_to_cstr(val2.type));
+      return;
+    }
+    RakString *str1 = rak_as_string(val1);
+    RakString *str2 = rak_as_string(val2);
+    RakString *str3 = rak_string_new_copy(str1, err);
+    if (!rak_is_ok(err)) return;
+    rak_string_inplace_concat(str3, str2, err);
+    if (!rak_is_ok(err))
+    {
+      rak_string_free(str3);
+      return;
+    }
+    RakValue res = rak_string_value(str3);
+    rak_fiber_push_object(fiber, res, err);
+    return;
+  }
+  if (rak_is_array(val1))
+  {
+    if (!rak_is_array(val2))
+    {
+      rak_fiber_set_error(fiber, ip, err, "cannot add array and %s",
+        rak_type_to_cstr(val2.type));
+      return;
+    }
+    RakArray *arr1 = rak_as_array(val1);
+    RakArray *arr2 = rak_as_array(val2);
+    RakArray *arr3 = rak_array_new_copy(arr1, err);
+    if (!rak_is_ok(err)) return;
+    rak_array_inplace_concat(arr3, arr2, err);
+    if (!rak_is_ok(err))
+    {
+      rak_array_free(arr3);
+      return;
+    }
+    RakValue res = rak_array_value(arr3);
+    rak_fiber_push_object(fiber, res, err);
+    return;
+  }
+  rak_fiber_set_error(fiber, ip, err, "cannot add %s and %s",
+    rak_type_to_cstr(val1.type), rak_type_to_cstr(val2.type));
+}
+
+static inline void rak_vm_add3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) cl;
+  uint8_t dst = rak_instr_a(*ip);
+  uint8_t lhs = rak_instr_b(*ip);
+  uint8_t rhs = rak_instr_c(*ip);
+  RakValue val1 = slots[lhs];
+  RakValue val2 = slots[rhs];
+  if (rak_is_number(val1))
+  {
+    if (!rak_is_number(val2))
+    {
+      rak_fiber_set_error(fiber, ip, err, "cannot add number and %s",
+        rak_type_to_cstr(val2.type));
+      return;
+    }
+    double num1 = rak_as_number(val1);
+    double num2 = rak_as_number(val2);
+    RakValue res = rak_number_value(num1 + num2);
+    rak_value_release(slots[dst]);
+    slots[dst] = res;
+    return;
+  }
+  if (rak_is_string(val1))
+  {
+    if (!rak_is_string(val2))
+    {
+      rak_fiber_set_error(fiber, ip, err, "cannot add string and %s",
+        rak_type_to_cstr(val2.type));
+      return;
+    }
+    RakString *str1 = rak_as_string(val1);
+    RakString *str2 = rak_as_string(val2);
+    RakString *str3 = rak_string_new_copy(str1, err);
+    if (!rak_is_ok(err)) return;
+    rak_string_inplace_concat(str3, str2, err);
+    if (!rak_is_ok(err))
+    {
+      rak_string_free(str3);
+      return;
+    }
+    RakValue res = rak_string_value(str3);
+    rak_value_release(slots[dst]);
+    slots[dst] = res;
+    rak_value_retain(res);
+    return;
+  }
+  if (rak_is_array(val1))
+  {
+    if (!rak_is_array(val2))
+    {
+      rak_fiber_set_error(fiber, ip, err, "cannot add array and %s",
+        rak_type_to_cstr(val2.type));
+      return;
+    }
+    RakArray *arr1 = rak_as_array(val1);
+    RakArray *arr2 = rak_as_array(val2);
+    RakArray *arr3 = rak_array_new_copy(arr1, err);
+    if (!rak_is_ok(err)) return;
+    rak_array_inplace_concat(arr3, arr2, err);
+    if (!rak_is_ok(err))
+    {
+      rak_array_free(arr3);
+      return;
+    }
+    RakValue res = rak_array_value(arr3);
+    rak_value_release(slots[dst]);
+    slots[dst] = res;
+    rak_value_retain(res);
+    return;
+  }
+  rak_fiber_set_error(fiber, ip, err, "cannot add %s and %s",
+    rak_type_to_cstr(val1.type), rak_type_to_cstr(val2.type));
+}
+
 static inline void rak_vm_sub(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   (void) cl;
@@ -1046,6 +1200,44 @@ static inline void rak_vm_sub(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
   RakValue res = rak_number_value(num1 - num2);
   rak_fiber_set(fiber, 1, res);
   rak_fiber_pop(fiber);
+}
+
+static inline void rak_vm_sub2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) cl;
+  uint8_t lhs = rak_instr_a(*ip);
+  uint8_t rhs = rak_instr_b(*ip);
+  RakValue val1 = slots[lhs];
+  RakValue val2 = slots[rhs];
+  if (!rak_is_number(val1) || !rak_is_number(val2))
+  {
+    rak_fiber_set_error(fiber, ip, err, "cannot subtract non-number values");
+    return;
+  }
+  double num1 = rak_as_number(val1);
+  double num2 = rak_as_number(val2);
+  RakValue res = rak_number_value(num1 - num2);
+  rak_fiber_push(fiber, res, err);
+}
+
+static inline void rak_vm_sub3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) cl;
+  uint8_t dst = rak_instr_a(*ip);
+  uint8_t lhs = rak_instr_b(*ip);
+  uint8_t rhs = rak_instr_c(*ip);
+  RakValue val1 = slots[lhs];
+  RakValue val2 = slots[rhs];
+  if (!rak_is_number(val1) || !rak_is_number(val2))
+  {
+    rak_fiber_set_error(fiber, ip, err, "cannot subtract non-number values");
+    return;
+  }
+  double num1 = rak_as_number(val1);
+  double num2 = rak_as_number(val2);
+  RakValue res = rak_number_value(num1 - num2);
+  rak_value_release(slots[dst]);
+  slots[dst] = res;
 }
 
 static inline void rak_vm_mul(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
@@ -1067,6 +1259,44 @@ static inline void rak_vm_mul(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
   rak_fiber_pop(fiber);
 }
 
+static inline void rak_vm_mul2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) cl;
+  uint8_t lhs = rak_instr_a(*ip);
+  uint8_t rhs = rak_instr_b(*ip);
+  RakValue val1 = slots[lhs];
+  RakValue val2 = slots[rhs];
+  if (!rak_is_number(val1) || !rak_is_number(val2))
+  {
+    rak_fiber_set_error(fiber, ip, err, "cannot multiply non-number values");
+    return;
+  }
+  double num1 = rak_as_number(val1);
+  double num2 = rak_as_number(val2);
+  RakValue res = rak_number_value(num1 * num2);
+  rak_fiber_push(fiber, res, err);
+}
+
+static inline void rak_vm_mul3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) cl;
+  uint8_t dst = rak_instr_a(*ip);
+  uint8_t lhs = rak_instr_b(*ip);
+  uint8_t rhs = rak_instr_c(*ip);
+  RakValue val1 = slots[lhs];
+  RakValue val2 = slots[rhs];
+  if (!rak_is_number(val1) || !rak_is_number(val2))
+  {
+    rak_fiber_set_error(fiber, ip, err, "cannot multiply non-number values");
+    return;
+  }
+  double num1 = rak_as_number(val1);
+  double num2 = rak_as_number(val2);
+  RakValue res = rak_number_value(num1 * num2);
+  rak_value_release(slots[dst]);
+  slots[dst] = res;
+}
+
 static inline void rak_vm_div(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   (void) cl;
@@ -1086,6 +1316,44 @@ static inline void rak_vm_div(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
   rak_fiber_pop(fiber);
 }
 
+static inline void rak_vm_div2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) cl;
+  uint8_t lhs = rak_instr_a(*ip);
+  uint8_t rhs = rak_instr_b(*ip);
+  RakValue val1 = slots[lhs];
+  RakValue val2 = slots[rhs];
+  if (!rak_is_number(val1) || !rak_is_number(val2))
+  {
+    rak_fiber_set_error(fiber, ip, err, "cannot divide non-number values");
+    return;
+  }
+  double num1 = rak_as_number(val1);
+  double num2 = rak_as_number(val2);
+  RakValue res = rak_number_value(num1 / num2);
+  rak_fiber_push(fiber, res, err);
+}
+
+static inline void rak_vm_div3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) cl;
+  uint8_t dst = rak_instr_a(*ip);
+  uint8_t lhs = rak_instr_b(*ip);
+  uint8_t rhs = rak_instr_c(*ip);
+  RakValue val1 = slots[lhs];
+  RakValue val2 = slots[rhs];
+  if (!rak_is_number(val1) || !rak_is_number(val2))
+  {
+    rak_fiber_set_error(fiber, ip, err, "cannot divide non-number values");
+    return;
+  }
+  double num1 = rak_as_number(val1);
+  double num2 = rak_as_number(val2);
+  RakValue res = rak_number_value(num1 / num2);
+  rak_value_release(slots[dst]);
+  slots[dst] = res;
+}
+
 static inline void rak_vm_mod(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   (void) cl;
@@ -1103,6 +1371,44 @@ static inline void rak_vm_mod(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Rak
   RakValue res = rak_number_value(fmod(num1, num2));
   rak_fiber_set(fiber, 1, res);
   rak_fiber_pop(fiber);
+}
+
+static inline void rak_vm_mod2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) cl;
+  uint8_t lhs = rak_instr_a(*ip);
+  uint8_t rhs = rak_instr_b(*ip);
+  RakValue val1 = slots[lhs];
+  RakValue val2 = slots[rhs];
+  if (!rak_is_number(val1) || !rak_is_number(val2))
+  {
+    rak_fiber_set_error(fiber, ip, err, "cannot calculate modulo of non-number values");
+    return;
+  }
+  double num1 = rak_as_number(val1);
+  double num2 = rak_as_number(val2);
+  RakValue res = rak_number_value(fmod(num1, num2));
+  rak_fiber_push(fiber, res, err);
+}
+
+static inline void rak_vm_mod3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) cl;
+  uint8_t dst = rak_instr_a(*ip);
+  uint8_t lhs = rak_instr_b(*ip);
+  uint8_t rhs = rak_instr_c(*ip);
+  RakValue val1 = slots[lhs];
+  RakValue val2 = slots[rhs];
+  if (!rak_is_number(val1) || !rak_is_number(val2))
+  {
+    rak_fiber_set_error(fiber, ip, err, "cannot calculate modulo of non-number values");
+    return;
+  }
+  double num1 = rak_as_number(val1);
+  double num2 = rak_as_number(val2);
+  RakValue res = rak_number_value(fmod(num1, num2));
+  rak_value_release(slots[dst]);
+  slots[dst] = res;
 }
 
 static inline void rak_vm_not(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)

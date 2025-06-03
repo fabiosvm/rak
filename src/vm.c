@@ -55,10 +55,20 @@ static void do_ge(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots
 static void do_lt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_le(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_add(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_add2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_add3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_sub(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_sub2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_sub3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_mul(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_mul2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_mul3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_div(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_div2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_div3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_mod(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_mod2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_mod3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_not(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_neg(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_call(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -109,10 +119,20 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_LT]              = do_lt,
   [RAK_OP_LE]              = do_le,
   [RAK_OP_ADD]             = do_add,
+  [RAK_OP_ADD2]            = do_add2,
+  [RAK_OP_ADD3]            = do_add3,
   [RAK_OP_SUB]             = do_sub,
+  [RAK_OP_SUB2]            = do_sub2,
+  [RAK_OP_SUB3]            = do_sub3,
   [RAK_OP_MUL]             = do_mul,
+  [RAK_OP_MUL2]            = do_mul2,
+  [RAK_OP_MUL3]            = do_mul3,
   [RAK_OP_DIV]             = do_div,
+  [RAK_OP_DIV2]            = do_div2,
+  [RAK_OP_DIV3]            = do_div3,
   [RAK_OP_MOD]             = do_mod,
+  [RAK_OP_MOD2]            = do_mod2,
+  [RAK_OP_MOD3]            = do_mod3,
   [RAK_OP_NOT]             = do_not,
   [RAK_OP_NEG]             = do_neg,
   [RAK_OP_CALL]            = do_call,
@@ -404,9 +424,37 @@ static void do_add(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slot
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
+static void do_add2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_add2(fiber, cl, ip, slots, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(fiber, cl, ip + 1, slots, err);
+}
+
+static void do_add3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_add3(fiber, cl, ip, slots, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(fiber, cl, ip + 1, slots, err);
+}
+
 static void do_sub(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   rak_vm_sub(fiber, cl, ip, slots, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(fiber, cl, ip + 1, slots, err);
+}
+
+static void do_sub2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_sub2(fiber, cl, ip, slots, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(fiber, cl, ip + 1, slots, err);
+}
+
+static void do_sub3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_sub3(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }
@@ -418,6 +466,20 @@ static void do_mul(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slot
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
+static void do_mul2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_mul2(fiber, cl, ip, slots, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(fiber, cl, ip + 1, slots, err);
+}
+
+static void do_mul3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_mul3(fiber, cl, ip, slots, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(fiber, cl, ip + 1, slots, err);
+}
+
 static void do_div(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   rak_vm_div(fiber, cl, ip, slots, err);
@@ -425,9 +487,37 @@ static void do_div(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slot
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 
+static void do_div2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_div2(fiber, cl, ip, slots, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(fiber, cl, ip + 1, slots, err);
+}
+
+static void do_div3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_div3(fiber, cl, ip, slots, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(fiber, cl, ip + 1, slots, err);
+}
+
 static void do_mod(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   rak_vm_mod(fiber, cl, ip, slots, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(fiber, cl, ip + 1, slots, err);
+}
+
+static void do_mod2(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_mod2(fiber, cl, ip, slots, err);
+  if (!rak_is_ok(err)) return;
+  dispatch(fiber, cl, ip + 1, slots, err);
+}
+
+static void do_mod3(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_mod3(fiber, cl, ip, slots, err);
   if (!rak_is_ok(err)) return;
   dispatch(fiber, cl, ip + 1, slots, err);
 }

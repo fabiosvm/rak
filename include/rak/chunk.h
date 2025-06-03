@@ -70,10 +70,20 @@
 #define rak_lt_instr()               rak_instr_fmt0(RAK_OP_LT)
 #define rak_le_instr()               rak_instr_fmt0(RAK_OP_LE)
 #define rak_add_instr()              rak_instr_fmt0(RAK_OP_ADD)
+#define rak_add2_instr(l, r)         rak_instr_fmt2(RAK_OP_ADD2, (l), (r))
+#define rak_add3_instr(d, l, r)      rak_instr_fmt3(RAK_OP_ADD3, (d), (l), (r))
 #define rak_sub_instr()              rak_instr_fmt0(RAK_OP_SUB)
+#define rak_sub2_instr(l, r)         rak_instr_fmt2(RAK_OP_SUB2, (l), (r))
+#define rak_sub3_instr(d, l, r)      rak_instr_fmt3(RAK_OP_SUB3, (d), (l), (r))
 #define rak_mul_instr()              rak_instr_fmt0(RAK_OP_MUL)
+#define rak_mul2_instr(l, r)         rak_instr_fmt2(RAK_OP_MUL2, (l), (r))
+#define rak_mul3_instr(d, l, r)      rak_instr_fmt3(RAK_OP_MUL3, (d), (l), (r))
 #define rak_div_instr()              rak_instr_fmt0(RAK_OP_DIV)
+#define rak_div2_instr(l, r)         rak_instr_fmt2(RAK_OP_DIV2, (l), (r))
+#define rak_div3_instr(d, l, r)      rak_instr_fmt3(RAK_OP_DIV3, (d), (l), (r))
 #define rak_mod_instr()              rak_instr_fmt0(RAK_OP_MOD)
+#define rak_mod2_instr(l, r)         rak_instr_fmt2(RAK_OP_MOD2, (l), (r))
+#define rak_mod3_instr(d, l, r)      rak_instr_fmt3(RAK_OP_MOD3, (d), (l), (r))
 #define rak_not_instr()              rak_instr_fmt0(RAK_OP_NOT)
 #define rak_neg_instr()              rak_instr_fmt0(RAK_OP_NEG)
 #define rak_call_instr(n)            rak_instr_fmt1(RAK_OP_CALL, (n))
@@ -125,10 +135,20 @@ typedef enum
   RAK_OP_LT,
   RAK_OP_LE,
   RAK_OP_ADD,
+  RAK_OP_ADD2,
+  RAK_OP_ADD3,
   RAK_OP_SUB,
+  RAK_OP_SUB2,
+  RAK_OP_SUB3,
   RAK_OP_MUL,
+  RAK_OP_MUL2,
+  RAK_OP_MUL3,
   RAK_OP_DIV,
+  RAK_OP_DIV2,
+  RAK_OP_DIV3,
   RAK_OP_MOD,
+  RAK_OP_MOD2,
+  RAK_OP_MOD3,
   RAK_OP_NOT,
   RAK_OP_NEG,
   RAK_OP_CALL,

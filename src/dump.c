@@ -93,10 +93,27 @@ void rak_dump_function(RakFunction *fn)
       }
       break;
     case RAK_OP_MOVE:
+    case RAK_OP_ADD2:
+    case RAK_OP_SUB2:
+    case RAK_OP_MUL2:
+    case RAK_OP_DIV2:
+    case RAK_OP_MOD2:
       {
         uint8_t a = rak_instr_a(instr);
         uint8_t b = rak_instr_b(instr);
         printf("%-15s %-5d %d\n", rak_opcode_to_cstr(op), a, b);
+      }
+      break;
+    case RAK_OP_ADD3:
+    case RAK_OP_SUB3:
+    case RAK_OP_MUL3:
+    case RAK_OP_DIV3:
+    case RAK_OP_MOD3:
+      {
+        uint8_t a = rak_instr_a(instr);
+        uint8_t b = rak_instr_b(instr);
+        uint8_t c = rak_instr_c(instr);
+        printf("%-15s %-5d %-5d %d\n", rak_opcode_to_cstr(op), a, b, c);
       }
       break;
     case RAK_OP_PUSH_INT:

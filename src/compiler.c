@@ -120,6 +120,11 @@ static inline Symbol *resolve_local(Compiler *comp, RakToken tok);
 static inline bool ident_equals(RakToken tok1, RakToken tok2);
 static inline void emit_store_local_instr(Compiler *comp, RakChunk *chunk, uint8_t dst, RakError *err);
 static inline void emit_return_instr(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline void emit_add_instr(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline void emit_sub_instr(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline void emit_mul_instr(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline void emit_div_instr(Compiler *comp, RakChunk *chunk, RakError *err);
+static inline void emit_mod_instr(Compiler *comp, RakChunk *chunk, RakError *err);
 static inline uint16_t emit_instr(Compiler *comp, RakChunk *chunk, uint32_t instr, RakError *err);
 static inline void patch_instr(RakChunk *chunk, uint16_t off, uint32_t instr);
 static inline void unexpected_token_error(RakError *err, RakToken tok);
@@ -1012,7 +1017,7 @@ static inline void compile_add_expr(Compiler *comp, RakChunk *chunk, RakError *e
       next(comp, err);
       compile_mul_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_add_instr(), err);
+      emit_add_instr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
@@ -1021,7 +1026,7 @@ static inline void compile_add_expr(Compiler *comp, RakChunk *chunk, RakError *e
       next(comp, err);
       compile_mul_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_sub_instr(), err);
+      emit_sub_instr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
@@ -1040,7 +1045,7 @@ static inline void compile_mul_expr(Compiler *comp, RakChunk *chunk, RakError *e
       next(comp, err);
       compile_unary_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_mul_instr(), err);
+      emit_mul_instr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
@@ -1049,7 +1054,7 @@ static inline void compile_mul_expr(Compiler *comp, RakChunk *chunk, RakError *e
       next(comp, err);
       compile_unary_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_div_instr(), err);
+      emit_div_instr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
@@ -1058,7 +1063,7 @@ static inline void compile_mul_expr(Compiler *comp, RakChunk *chunk, RakError *e
       next(comp, err);
       compile_unary_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_mod_instr(), err);
+      emit_mod_instr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
       continue;
     }
@@ -1599,6 +1604,46 @@ static inline void emit_store_local_instr(Compiler *comp, RakChunk *chunk, uint8
     rak_slice_set(&chunk->instrs, off, instr);
     return;
   }
+  if (rak_instr_opcode(instr) == RAK_OP_ADD2)
+  {
+    uint8_t lhs = rak_instr_a(instr);
+    uint8_t rhs = rak_instr_b(instr);
+    instr = rak_add3_instr(dst, lhs, rhs);
+    rak_slice_set(&chunk->instrs, off, instr);
+    return;
+  }
+  if (rak_instr_opcode(instr) == RAK_OP_SUB2)
+  {
+    uint8_t lhs = rak_instr_a(instr);
+    uint8_t rhs = rak_instr_b(instr);
+    instr = rak_sub3_instr(dst, lhs, rhs);
+    rak_slice_set(&chunk->instrs, off, instr);
+    return;
+  }
+  if (rak_instr_opcode(instr) == RAK_OP_MUL2)
+  {
+    uint8_t lhs = rak_instr_a(instr);
+    uint8_t rhs = rak_instr_b(instr);
+    instr = rak_mul3_instr(dst, lhs, rhs);
+    rak_slice_set(&chunk->instrs, off, instr);
+    return;
+  }
+  if (rak_instr_opcode(instr) == RAK_OP_DIV2)
+  {
+    uint8_t lhs = rak_instr_a(instr);
+    uint8_t rhs = rak_instr_b(instr);
+    instr = rak_div3_instr(dst, lhs, rhs);
+    rak_slice_set(&chunk->instrs, off, instr);
+    return;
+  }
+  if (rak_instr_opcode(instr) == RAK_OP_MOD2)
+  {
+    uint8_t lhs = rak_instr_a(instr);
+    uint8_t rhs = rak_instr_b(instr);
+    instr = rak_mod3_instr(dst, lhs, rhs);
+    rak_slice_set(&chunk->instrs, off, instr);
+    return;
+  }
   emit_instr(comp, chunk, rak_store_local_instr(dst), err);
 }
 
@@ -1614,6 +1659,96 @@ static inline void emit_return_instr(Compiler *comp, RakChunk *chunk, RakError *
     return;
   }
   emit_instr(comp, chunk, rak_return_instr(), err);
+}
+
+static inline void emit_add_instr(Compiler *comp, RakChunk *chunk, RakError *err)
+{
+  int len = chunk->instrs.len;
+  uint32_t instr1 = rak_slice_get(&chunk->instrs, len - 2);
+  uint32_t instr2 = rak_slice_get(&chunk->instrs, len - 1);
+  if (rak_instr_opcode(instr1) == RAK_OP_LOAD_LOCAL
+   && rak_instr_opcode(instr2) == RAK_OP_LOAD_LOCAL)
+  {
+    uint8_t lhs = rak_instr_a(instr1);
+    uint8_t rhs = rak_instr_a(instr2);
+    uint32_t instr = rak_add2_instr(lhs, rhs);
+    rak_slice_set(&chunk->instrs, len - 2, instr);
+    --chunk->instrs.len;
+    return;
+  }
+  emit_instr(comp, chunk, rak_add_instr(), err);
+}
+
+static inline void emit_sub_instr(Compiler *comp, RakChunk *chunk, RakError *err)
+{
+  int len = chunk->instrs.len;
+  uint32_t instr1 = rak_slice_get(&chunk->instrs, len - 2);
+  uint32_t instr2 = rak_slice_get(&chunk->instrs, len - 1);
+  if (rak_instr_opcode(instr1) == RAK_OP_LOAD_LOCAL
+   && rak_instr_opcode(instr2) == RAK_OP_LOAD_LOCAL)
+  {
+    uint8_t lhs = rak_instr_a(instr1);
+    uint8_t rhs = rak_instr_a(instr2);
+    uint32_t instr = rak_sub2_instr(lhs, rhs);
+    rak_slice_set(&chunk->instrs, len - 2, instr);
+    --chunk->instrs.len;
+    return;
+  }
+  emit_instr(comp, chunk, rak_sub_instr(), err);
+}
+
+static inline void emit_mul_instr(Compiler *comp, RakChunk *chunk, RakError *err)
+{
+  int len = chunk->instrs.len;
+  uint32_t instr1 = rak_slice_get(&chunk->instrs, len - 2);
+  uint32_t instr2 = rak_slice_get(&chunk->instrs, len - 1);
+  if (rak_instr_opcode(instr1) == RAK_OP_LOAD_LOCAL
+   && rak_instr_opcode(instr2) == RAK_OP_LOAD_LOCAL)
+  {
+    uint8_t lhs = rak_instr_a(instr1);
+    uint8_t rhs = rak_instr_a(instr2);
+    uint32_t instr = rak_mul2_instr(lhs, rhs);
+    rak_slice_set(&chunk->instrs, len - 2, instr);
+    --chunk->instrs.len;
+    return;
+  }
+  emit_instr(comp, chunk, rak_mul_instr(), err);
+}
+
+static inline void emit_div_instr(Compiler *comp, RakChunk *chunk, RakError *err)
+{
+  int len = chunk->instrs.len;
+  uint32_t instr1 = rak_slice_get(&chunk->instrs, len - 2);
+  uint32_t instr2 = rak_slice_get(&chunk->instrs, len - 1);
+  if (rak_instr_opcode(instr1) == RAK_OP_LOAD_LOCAL
+   && rak_instr_opcode(instr2) == RAK_OP_LOAD_LOCAL)
+  {
+    uint8_t lhs = rak_instr_a(instr1);
+    uint8_t rhs = rak_instr_a(instr2);
+    uint32_t instr = rak_div2_instr(lhs, rhs);
+    rak_slice_set(&chunk->instrs, len - 2, instr);
+    --chunk->instrs.len;
+    return;
+  }
+  emit_instr(comp, chunk, rak_div_instr(), err);
+}
+
+static inline void emit_mod_instr(Compiler *comp, RakChunk *chunk, RakError *err)
+{
+  int len = chunk->instrs.len;
+  uint32_t instr1 = rak_slice_get(&chunk->instrs, len - 2);
+  uint32_t instr2 = rak_slice_get(&chunk->instrs, len - 1);
+  if (rak_instr_opcode(instr1) == RAK_OP_LOAD_LOCAL
+   && rak_instr_opcode(instr2) == RAK_OP_LOAD_LOCAL)
+  {
+    uint8_t lhs = rak_instr_a(instr1);
+    uint8_t rhs = rak_instr_a(instr2);
+    uint32_t instr = rak_mod2_instr(lhs, rhs);
+    rak_slice_set(&chunk->instrs, len - 2, instr);
+    --chunk->instrs.len;
+    return;
+  }
+  emit_instr(comp, chunk, rak_mod_instr(), err);
 }
 
 static inline uint16_t emit_instr(Compiler *comp, RakChunk *chunk, uint32_t instr, RakError *err)
