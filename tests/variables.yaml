@@ -35,6 +35,27 @@
     20
     30
 
+- test: Blank in let declaration (No error.)
+  source: |
+    let _ = 10;
+    let _;
+  out: ""
+
+- test: Invalid let declaration.
+  source: |
+    let
+  out:
+    regex: "unexpected end of file"
+  exit_code: 1
+
+- test: Error - duplicate variable.
+  source: |
+    let a;
+    let a=32;
+  out:
+    regex: "duplicate local variable 'a'"
+  exit_code: 1
+
 - test: variables - Using MOVE instruction
   source: |
     let a=1;
