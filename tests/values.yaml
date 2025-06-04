@@ -10,7 +10,7 @@
     true
     false
 
-- test: Number
+- test: Number (1)
   source: |
     let a=5; println(a);
     &a=5.5; println(a);
@@ -27,6 +27,44 @@
     -120
     0.01
     -0.012
+
+- test: Number (2)
+  source: |
+    let a=5; println(a);
+    &a=1.2E+20; println(a);
+    &a=-1.25e-20; println(a);
+  out: |
+    5
+    1.2e+20
+    -1.25e-20
+
+- test: Error - Number with _
+  source: |
+    let a=5_000; println(a);
+  out:
+    regex: "unexpected character"
+  exit_code: 1
+
+- test: Error - Number hex
+  source: |
+    let a=0x05; println(a);
+  out:
+    regex: "unexpected character"
+  exit_code: 1
+
+- test: Error - Number is incomplete
+  source: let a=5e
+  out:
+    regex: "unexpected end of file"
+  exit_code: 1
+
+- test: Error - Number with newline
+  source: |
+    let a=5e
+    1; println(a);
+  out:
+    regex: "unexpected newline"
+  exit_code: 1
 
 - test: String
   source: |

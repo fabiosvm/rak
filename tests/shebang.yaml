@@ -5,3 +5,15 @@
     println("Hello, world!");
   out: |
     Hello, world!
+
+- test: shebang (no code)
+  source: "#!/usr/bin/env rak"
+  out: ""
+
+- test: Error - shebang
+  source: |
+    #/usr/bin/env rak
+    println("Hello, world!");
+  out:
+    regex: "unexpected character"
+  exit_code: 1
