@@ -102,3 +102,27 @@
     10
     20
     30
+
+- test: fiber - function with yield without returning value.
+  source: |
+    fn f(a, b, c) {
+      print("f->");println(a);
+      yield;
+      print("f->");println(b);
+      yield;
+      print("f->");println(c);
+      return;
+    }
+    let fi = fiber(f, [1, 2, 3]);
+    while !is_done(fi) {
+      println("In main");
+      let ret = resume(fi);
+      if !is_nil(ret) { println("Wrong!"); }
+    }
+  out: |
+    In main
+    f->1
+    In main
+    f->2
+    In main
+    f->3

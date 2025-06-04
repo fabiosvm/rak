@@ -80,3 +80,31 @@
   out: |
     9 7.5 ->Out
     7
+
+- test: Wrong loop statement.
+  source: |
+    loop [ println("Yes")];
+  out:
+    regex: "expected '{', but got"
+  exit_code: 1
+
+- test: Wrong while statement.
+  source: |
+    while true [ println("Yes")];
+  out:
+    regex: "expected '{', but got"
+  exit_code: 1
+
+- test: Wrong break statement.
+  source: |
+    break;
+  out:
+    regex: "break statement not in loop"
+  exit_code: 1
+
+- test: Wrong continue statement.
+  source: |
+    continue;
+  out:
+    regex: "continue statement not in loop"
+  exit_code: 1

@@ -33,3 +33,17 @@
   out:
     regex: "record has no field named"
   exit_code: 1
+
+- test: destruct record (error identifier) (1)
+  source: |
+    let {2, z} = {x: 1, y: 2, z: 3};
+  out:
+    regex: "expected identifier, but got '2'"
+  exit_code: 1
+
+- test: destruct record (error identifier) (2)
+  source: |
+    let {y, 2} = {x: 1, y: 2, z: 3};
+  out:
+    regex: "expected identifier, but got '2'"
+  exit_code: 1

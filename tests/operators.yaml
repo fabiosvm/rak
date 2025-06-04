@@ -34,6 +34,49 @@
     63
     3
 
+- test: Assignment cont operator
+  source: |
+    let a=[1,2,3];
+    let b=1;
+    &a[0] += 11;
+    &a[b] *= 2;
+    &a[a[2]-1] = 9;
+    println(a);
+  out: |
+    [12, 4, 9]
+
+- test: Invalid assignment (1)
+  source: |
+    let a = 10;
+    &!=10;
+  out:
+    regex: "expected identifier, but got"
+  exit_code: 1
+
+- test: Invalid assignment (2)
+  source: |
+    let a = 10;
+    &!=10;
+  out:
+    regex: "expected identifier, but got"
+  exit_code: 1
+
+- test: Invalid assignment (3)
+  source: |
+    let a = 10;
+    &a&=10;
+  out:
+    regex: "unexpected token"
+  exit_code: 1
+
+- test: Invalid assignment (3)
+  source: |
+    let a = [1,2];
+    &a.5=10;
+  out:
+    regex: "expected identifier, but got"
+  exit_code: 1
+
 - test: Unary
   source: |
     let a = false;

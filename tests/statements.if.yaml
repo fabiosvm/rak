@@ -178,3 +178,18 @@
     Success
     Success
     Success
+
+- test: Wrong if statement.
+  source: |
+    if 3 < 4 [ println("Yes")];
+  out:
+    regex: "expected '{', but got"
+  exit_code: 1
+
+- test: Wrong else statement.
+  source: |
+    if 1 < 2 { println("Nice"); }else [ println("Yes")];
+  out:
+    regex: "expected '{', but got"
+  exit_code: 1
+
