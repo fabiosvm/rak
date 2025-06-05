@@ -942,9 +942,7 @@ static inline void compile_eq_expr(Compiler *comp, RakChunk *chunk, RakError *er
       next(comp, err);
       compile_cmp_expr(comp, chunk, err);
       if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_eq_instr(), err);
-      if (!rak_is_ok(err)) return;
-      emit_instr(comp, chunk, rak_not_instr(), err);
+      emit_instr(comp, chunk, rak_ne_instr(), err);
       if (!rak_is_ok(err)) return;
       continue;
     }

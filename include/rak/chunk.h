@@ -64,6 +64,7 @@
 #define rak_jump_if_false_instr(o)   rak_instr_fmt4(RAK_OP_JUMP_IF_FALSE, (o))
 #define rak_jump_if_true_instr(o)    rak_instr_fmt4(RAK_OP_JUMP_IF_TRUE, (o))
 #define rak_eq_instr()               rak_instr_fmt0(RAK_OP_EQ)
+#define rak_ne_instr()               rak_instr_fmt0(RAK_OP_NE)
 #define rak_gt_instr()               rak_instr_fmt0(RAK_OP_GT)
 #define rak_ge_instr()               rak_instr_fmt0(RAK_OP_GE)
 #define rak_lt_instr()               rak_instr_fmt0(RAK_OP_LT)
@@ -128,6 +129,7 @@ typedef enum
   RAK_OP_JUMP_IF_FALSE,
   RAK_OP_JUMP_IF_TRUE,
   RAK_OP_EQ,
+  RAK_OP_NE,
   RAK_OP_GT,
   RAK_OP_GE,
   RAK_OP_LT,

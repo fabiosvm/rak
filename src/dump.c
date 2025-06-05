@@ -51,6 +51,7 @@ void rak_dump_function(RakFunction *fn)
     case RAK_OP_UPDATE_ELEMENT:
     case RAK_OP_UPDATE_FIELD:
     case RAK_OP_EQ:
+    case RAK_OP_NE:
     case RAK_OP_GT:
     case RAK_OP_GE:
     case RAK_OP_LT:

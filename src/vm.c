@@ -49,6 +49,7 @@ static void do_jump(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slo
 static void do_jump_if_false(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump_if_true(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_eq(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_ne(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_gt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_ge(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_lt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -112,6 +113,7 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_JUMP_IF_FALSE]   = do_jump_if_false,
   [RAK_OP_JUMP_IF_TRUE]    = do_jump_if_true,
   [RAK_OP_EQ]              = do_eq,
+  [RAK_OP_NE]              = do_ne,
   [RAK_OP_GT]              = do_gt,
   [RAK_OP_GE]              = do_ge,
   [RAK_OP_LT]              = do_lt,
@@ -377,6 +379,12 @@ static void do_jump_if_true(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakVa
 static void do_eq(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   rak_vm_eq(fiber, cl, ip, slots, err);
+  dispatch(fiber, cl, ip + 1, slots, err);
+}
+
+static void do_ne(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_ne(fiber, cl, ip, slots, err);
   dispatch(fiber, cl, ip + 1, slots, err);
 }
 

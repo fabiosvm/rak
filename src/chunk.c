@@ -62,6 +62,7 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   case RAK_OP_JUMP_IF_FALSE:   cstr = "JUMP_IF_FALSE";   break;
   case RAK_OP_JUMP_IF_TRUE:    cstr = "JUMP_IF_TRUE";    break;
   case RAK_OP_EQ:              cstr = "EQ";              break;
+  case RAK_OP_NE:              cstr = "NE";              break;
   case RAK_OP_GT:              cstr = "GT";              break;
   case RAK_OP_GE:              cstr = "GE";              break;
   case RAK_OP_LT:              cstr = "LT";              break;
