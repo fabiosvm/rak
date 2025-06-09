@@ -120,6 +120,8 @@ void rak_dump_function(RakFunction *fn)
     case RAK_OP_JUMP:
     case RAK_OP_JUMP_IF_FALSE:
     case RAK_OP_JUMP_IF_TRUE:
+    case RAK_OP_JUMP_IF_FALSE_OR_POP:
+    case RAK_OP_JUMP_IF_TRUE_OR_POP:
       {
         uint16_t ab = rak_instr_ab(instr);
         printf("%-15s %-5d\n", rak_opcode_to_cstr(op), ab);

@@ -50,6 +50,8 @@ static inline void rak_vm_unpack_fields(RakFiber *fiber, RakClosure *cl, uint32_
 static inline void rak_vm_jump(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_jump_if_false(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_jump_if_true(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static inline void rak_vm_jump_if_false_or_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static inline void rak_vm_jump_if_true_or_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_eq(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_ne(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static inline void rak_vm_gt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -886,6 +888,40 @@ static inline void rak_vm_jump_if_true(RakFiber *fiber, RakClosure *cl, uint32_t
   RakChunk *chunk = &((RakFunction *) cl->callable)->chunk;
   RakCallFrame *frame = &rak_stack_get(&fiber->cstk, 0);
   frame->state = rak_is_falsy(val) ? ip + 1 : &rak_slice_get(&chunk->instrs, off);
+}
+
+static inline void rak_vm_jump_if_false_or_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) slots;
+  (void) err;
+  uint16_t off = rak_instr_ab(*ip);
+  RakValue val = rak_fiber_get(fiber, 0);
+  RakChunk *chunk = &((RakFunction *) cl->callable)->chunk;
+  RakCallFrame *frame = &rak_stack_get(&fiber->cstk, 0);
+  if (rak_is_falsy(val))
+  {
+    frame->state = &rak_slice_get(&chunk->instrs, off);
+    return;
+  }
+  rak_fiber_pop(fiber);
+  frame->state = ip + 1;
+}
+
+static inline void rak_vm_jump_if_true_or_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  (void) slots;
+  (void) err;
+  uint16_t off = rak_instr_ab(*ip);
+  RakValue val = rak_fiber_get(fiber, 0);
+  RakChunk *chunk = &((RakFunction *) cl->callable)->chunk;
+  RakCallFrame *frame = &rak_stack_get(&fiber->cstk, 0);
+  if (rak_is_falsy(val))
+  {
+    rak_fiber_pop(fiber);
+    frame->state = ip + 1;
+    return;
+  }
+  frame->state = &rak_slice_get(&chunk->instrs, off);
 }
 
 static inline void rak_vm_eq(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)

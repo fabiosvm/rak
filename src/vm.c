@@ -48,6 +48,8 @@ static void do_unpack_fields(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakV
 static void do_jump(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump_if_false(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump_if_true(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_jump_if_false_or_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
+static void do_jump_if_true_or_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_eq(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_ne(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_gt(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -78,68 +80,70 @@ static void do_return(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *s
 static void do_return_nil(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 
 static InstrHandler dispatchTable[] = {
-  [RAK_OP_NOP]             = do_nop,
-  [RAK_OP_PUSH_NIL]        = do_push_nil,
-  [RAK_OP_PUSH_FALSE]      = do_push_false,
-  [RAK_OP_PUSH_TRUE]       = do_push_true,
-  [RAK_OP_PUSH_INT]        = do_push_int,
-  [RAK_OP_LOAD_CONST]      = do_load_const,
-  [RAK_OP_LOAD_GLOBAL]     = do_load_global,
-  [RAK_OP_LOAD_LOCAL]      = do_load_local,
-  [RAK_OP_STORE_LOCAL]     = do_store_local,
-  [RAK_OP_FETCH_LOCAL]     = do_fetch_local,
-  [RAK_OP_REF_LOCAL]       = do_ref_local,
-  [RAK_OP_LOAD_LOCAL_REF]  = do_load_local_ref,
-  [RAK_OP_STORE_LOCAL_REF] = do_store_local_ref,
-  [RAK_OP_NEW_ARRAY]       = do_new_array,
-  [RAK_OP_NEW_RANGE]       = do_new_range,
-  [RAK_OP_NEW_RECORD]      = do_new_record,
-  [RAK_OP_NEW_CLOSURE]     = do_new_closure,
-  [RAK_OP_MOVE]            = do_move,
-  [RAK_OP_POP]             = do_pop,
-  [RAK_OP_GET_ELEMENT]     = do_get_element,
-  [RAK_OP_SET_ELEMENT]     = do_set_element,
-  [RAK_OP_LOAD_ELEMENT]    = do_load_element,
-  [RAK_OP_FETCH_ELEMENT]   = do_fetch_element,
-  [RAK_OP_UPDATE_ELEMENT]  = do_update_element,
-  [RAK_OP_GET_FIELD]       = do_get_field,
-  [RAK_OP_PUT_FIELD]       = do_put_field,
-  [RAK_OP_LOAD_FIELD]      = do_load_field,
-  [RAK_OP_FETCH_FIELD]     = do_fetch_field,
-  [RAK_OP_UPDATE_FIELD]    = do_update_field,
-  [RAK_OP_UNPACK_ELEMENTS] = do_unpack_elements,
-  [RAK_OP_UNPACK_FIELDS]   = do_unpack_fields,
-  [RAK_OP_JUMP]            = do_jump,
-  [RAK_OP_JUMP_IF_FALSE]   = do_jump_if_false,
-  [RAK_OP_JUMP_IF_TRUE]    = do_jump_if_true,
-  [RAK_OP_EQ]              = do_eq,
-  [RAK_OP_NE]              = do_ne,
-  [RAK_OP_GT]              = do_gt,
-  [RAK_OP_GE]              = do_ge,
-  [RAK_OP_LT]              = do_lt,
-  [RAK_OP_LE]              = do_le,
-  [RAK_OP_ADD]             = do_add,
-  [RAK_OP_ADD2]            = do_add2,
-  [RAK_OP_ADD3]            = do_add3,
-  [RAK_OP_SUB]             = do_sub,
-  [RAK_OP_SUB2]            = do_sub2,
-  [RAK_OP_SUB3]            = do_sub3,
-  [RAK_OP_MUL]             = do_mul,
-  [RAK_OP_MUL2]            = do_mul2,
-  [RAK_OP_MUL3]            = do_mul3,
-  [RAK_OP_DIV]             = do_div,
-  [RAK_OP_DIV2]            = do_div2,
-  [RAK_OP_DIV3]            = do_div3,
-  [RAK_OP_MOD]             = do_mod,
-  [RAK_OP_MOD2]            = do_mod2,
-  [RAK_OP_MOD3]            = do_mod3,
-  [RAK_OP_NOT]             = do_not,
-  [RAK_OP_NEG]             = do_neg,
-  [RAK_OP_CALL]            = do_call,
-  [RAK_OP_TAIL_CALL]       = do_tail_call,
-  [RAK_OP_YIELD]           = do_yield,
-  [RAK_OP_RETURN]          = do_return,
-  [RAK_OP_RETURN_NIL]      = do_return_nil
+  [RAK_OP_NOP]                  = do_nop,
+  [RAK_OP_PUSH_NIL]             = do_push_nil,
+  [RAK_OP_PUSH_FALSE]           = do_push_false,
+  [RAK_OP_PUSH_TRUE]            = do_push_true,
+  [RAK_OP_PUSH_INT]             = do_push_int,
+  [RAK_OP_LOAD_CONST]           = do_load_const,
+  [RAK_OP_LOAD_GLOBAL]          = do_load_global,
+  [RAK_OP_LOAD_LOCAL]           = do_load_local,
+  [RAK_OP_STORE_LOCAL]          = do_store_local,
+  [RAK_OP_FETCH_LOCAL]          = do_fetch_local,
+  [RAK_OP_REF_LOCAL]            = do_ref_local,
+  [RAK_OP_LOAD_LOCAL_REF]       = do_load_local_ref,
+  [RAK_OP_STORE_LOCAL_REF]      = do_store_local_ref,
+  [RAK_OP_NEW_ARRAY]            = do_new_array,
+  [RAK_OP_NEW_RANGE]            = do_new_range,
+  [RAK_OP_NEW_RECORD]           = do_new_record,
+  [RAK_OP_NEW_CLOSURE]          = do_new_closure,
+  [RAK_OP_MOVE]                 = do_move,
+  [RAK_OP_POP]                  = do_pop,
+  [RAK_OP_GET_ELEMENT]          = do_get_element,
+  [RAK_OP_SET_ELEMENT]          = do_set_element,
+  [RAK_OP_LOAD_ELEMENT]         = do_load_element,
+  [RAK_OP_FETCH_ELEMENT]        = do_fetch_element,
+  [RAK_OP_UPDATE_ELEMENT]       = do_update_element,
+  [RAK_OP_GET_FIELD]            = do_get_field,
+  [RAK_OP_PUT_FIELD]            = do_put_field,
+  [RAK_OP_LOAD_FIELD]           = do_load_field,
+  [RAK_OP_FETCH_FIELD]          = do_fetch_field,
+  [RAK_OP_UPDATE_FIELD]         = do_update_field,
+  [RAK_OP_UNPACK_ELEMENTS]      = do_unpack_elements,
+  [RAK_OP_UNPACK_FIELDS]        = do_unpack_fields,
+  [RAK_OP_JUMP]                 = do_jump,
+  [RAK_OP_JUMP_IF_FALSE]        = do_jump_if_false,
+  [RAK_OP_JUMP_IF_TRUE]         = do_jump_if_true,
+  [RAK_OP_JUMP_IF_FALSE_OR_POP] = do_jump_if_false_or_pop,
+  [RAK_OP_JUMP_IF_TRUE_OR_POP]  = do_jump_if_true_or_pop,
+  [RAK_OP_EQ]                   = do_eq,
+  [RAK_OP_NE]                   = do_ne,
+  [RAK_OP_GT]                   = do_gt,
+  [RAK_OP_GE]                   = do_ge,
+  [RAK_OP_LT]                   = do_lt,
+  [RAK_OP_LE]                   = do_le,
+  [RAK_OP_ADD]                  = do_add,
+  [RAK_OP_ADD2]                 = do_add2,
+  [RAK_OP_ADD3]                 = do_add3,
+  [RAK_OP_SUB]                  = do_sub,
+  [RAK_OP_SUB2]                 = do_sub2,
+  [RAK_OP_SUB3]                 = do_sub3,
+  [RAK_OP_MUL]                  = do_mul,
+  [RAK_OP_MUL2]                 = do_mul2,
+  [RAK_OP_MUL3]                 = do_mul3,
+  [RAK_OP_DIV]                  = do_div,
+  [RAK_OP_DIV2]                 = do_div2,
+  [RAK_OP_DIV3]                 = do_div3,
+  [RAK_OP_MOD]                  = do_mod,
+  [RAK_OP_MOD2]                 = do_mod2,
+  [RAK_OP_MOD3]                 = do_mod3,
+  [RAK_OP_NOT]                  = do_not,
+  [RAK_OP_NEG]                  = do_neg,
+  [RAK_OP_CALL]                 = do_call,
+  [RAK_OP_TAIL_CALL]            = do_tail_call,
+  [RAK_OP_YIELD]                = do_yield,
+  [RAK_OP_RETURN]               = do_return,
+  [RAK_OP_RETURN_NIL]           = do_return_nil
 };
 
 static inline void dispatch(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
@@ -374,6 +378,16 @@ static void do_jump_if_false(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakV
 static void do_jump_if_true(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   rak_vm_jump_if_true(fiber, cl, ip, slots, err);
+}
+
+static void do_jump_if_false_or_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_jump_if_false_or_pop(fiber, cl, ip, slots, err);
+}
+
+static void do_jump_if_true_or_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
+{
+  rak_vm_jump_if_true_or_pop(fiber, cl, ip, slots, err);
 }
 
 static void do_eq(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)

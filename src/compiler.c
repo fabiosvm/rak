@@ -697,6 +697,7 @@ static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *of
   patch_instr(chunk, jump1, instr);
   if (!rak_is_ok(err)) return;
   emit_instr(comp, chunk, rak_pop_instr(), err);
+  if (!rak_is_ok(err)) return;
   uint16_t _off;
   compile_if_stmt_cont(comp, chunk, &_off, err);
   if (!rak_is_ok(err)) return;
@@ -883,14 +884,12 @@ static inline void compile_expr_cont(Compiler *comp, RakChunk *chunk, uint16_t *
   next(comp, err);
   uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_pop_instr(), err);
-  if (!rak_is_ok(err)) return;
   compile_and_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
   uint16_t _off;
   compile_expr_cont(comp, chunk, &_off, err);
   if (!rak_is_ok(err)) return;
-  patch_instr(chunk, jump, rak_jump_if_true_instr(_off));
+  patch_instr(chunk, jump, rak_jump_if_true_or_pop_instr(_off));
   if (off) *off = _off;
 }
 
@@ -911,14 +910,12 @@ static inline void compile_and_expr_cont(Compiler *comp, RakChunk *chunk, uint16
   next(comp, err);
   uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_pop_instr(), err);
-  if (!rak_is_ok(err)) return;
   compile_eq_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
   uint16_t _off;
   compile_and_expr_cont(comp, chunk, &_off, err);
   if (!rak_is_ok(err)) return;
-  patch_instr(chunk, jump, rak_jump_if_false_instr(_off));
+  patch_instr(chunk, jump, rak_jump_if_false_or_pop_instr(_off));
   if (off) *off = _off;
 }
 
