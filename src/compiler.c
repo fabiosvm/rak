@@ -682,8 +682,6 @@ static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *of
   if (!rak_is_ok(err)) return;
   uint16_t jump1 = emit_instr(comp, chunk, rak_nop_instr(), err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_pop_instr(), err);
-  if (!rak_is_ok(err)) return;
   if (!match(comp, RAK_TOKEN_KIND_LBRACE))
   {
     expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex->tok);
@@ -695,9 +693,6 @@ static inline void compile_if_stmt(Compiler *comp, RakChunk *chunk, uint16_t *of
   if (!rak_is_ok(err)) return;
   uint32_t instr = rak_jump_if_false_instr((uint16_t) chunk->instrs.len);
   patch_instr(chunk, jump1, instr);
-  if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_pop_instr(), err);
-  if (!rak_is_ok(err)) return;
   uint16_t _off;
   compile_if_stmt_cont(comp, chunk, &_off, err);
   if (!rak_is_ok(err)) return;
@@ -763,8 +758,6 @@ static inline void compile_while_stmt(Compiler *comp, RakChunk *chunk, RakError 
   if (!rak_is_ok(err)) return;
   uint16_t jump = emit_instr(comp, chunk, rak_nop_instr(), err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_pop_instr(), err);
-  if (!rak_is_ok(err)) return;
   if (!match(comp, RAK_TOKEN_KIND_LBRACE))
   {
     expected_token_error(err, RAK_TOKEN_KIND_LBRACE, comp->lex->tok);
@@ -778,8 +771,6 @@ static inline void compile_while_stmt(Compiler *comp, RakChunk *chunk, RakError 
   if (!rak_is_ok(err)) return;
   uint32_t instr = rak_jump_if_false_instr((uint16_t) chunk->instrs.len);
   patch_instr(chunk, jump, instr);
-  emit_instr(comp, chunk, rak_pop_instr(), err);
-  if (!rak_is_ok(err)) return;
   end_loop(comp, chunk);
   end_scope(comp, chunk, err);
 }
@@ -1443,8 +1434,6 @@ static inline void compile_if_expr(Compiler *comp, RakChunk *chunk, uint16_t *of
   if (!rak_is_ok(err)) return;
   uint16_t jump1 = emit_instr(comp, chunk, rak_nop_instr(), err);
   if (!rak_is_ok(err)) return;
-  emit_instr(comp, chunk, rak_pop_instr(), err);
-  if (!rak_is_ok(err)) return;
   compile_block_expr(comp, chunk, err);
   if (!rak_is_ok(err)) return;
   uint16_t jump2 = emit_instr(comp, chunk, rak_nop_instr(), err);
@@ -1468,8 +1457,6 @@ static inline void compile_block_expr(Compiler *comp, RakChunk *chunk, RakError 
 
 static inline void compile_if_expr_cont(Compiler *comp, RakChunk *chunk, uint16_t *off, RakError *err)
 {
-  emit_instr(comp, chunk, rak_pop_instr(), err);
-  if (!rak_is_ok(err)) return;
   if (!match(comp, RAK_TOKEN_KIND_ELSE_KW))
   {
     emit_instr(comp, chunk, rak_push_nil_instr(), err);

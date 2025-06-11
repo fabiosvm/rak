@@ -60,7 +60,6 @@ const char *rak_opcode_to_cstr(RakOpcode op)
   case RAK_OP_UNPACK_FIELDS:        cstr = "UNPACK_FIELDS";        break;
   case RAK_OP_JUMP:                 cstr = "JUMP";                 break;
   case RAK_OP_JUMP_IF_FALSE:        cstr = "JUMP_IF_FALSE";        break;
-  case RAK_OP_JUMP_IF_TRUE:         cstr = "JUMP_IF_TRUE";         break;
   case RAK_OP_JUMP_IF_FALSE_OR_POP: cstr = "JUMP_IF_FALSE_OR_POP"; break;
   case RAK_OP_JUMP_IF_TRUE_OR_POP:  cstr = "JUMP_IF_TRUE_OR_POP";  break;
   case RAK_OP_EQ:                   cstr = "EQ";                   break;

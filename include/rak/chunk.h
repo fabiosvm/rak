@@ -62,7 +62,6 @@
 #define rak_unpack_fields_instr(n)        rak_instr_fmt1(RAK_OP_UNPACK_FIELDS, (n))
 #define rak_jump_instr(o)                 rak_instr_fmt4(RAK_OP_JUMP, (o))
 #define rak_jump_if_false_instr(o)        rak_instr_fmt4(RAK_OP_JUMP_IF_FALSE, (o))
-#define rak_jump_if_true_instr(o)         rak_instr_fmt4(RAK_OP_JUMP_IF_TRUE, (o))
 #define rak_jump_if_false_or_pop_instr(o) rak_instr_fmt4(RAK_OP_JUMP_IF_FALSE_OR_POP, (o))
 #define rak_jump_if_true_or_pop_instr(o)  rak_instr_fmt4(RAK_OP_JUMP_IF_TRUE_OR_POP, (o))
 #define rak_eq_instr()                    rak_instr_fmt0(RAK_OP_EQ)
@@ -129,7 +128,6 @@ typedef enum
   RAK_OP_UNPACK_FIELDS,
   RAK_OP_JUMP,
   RAK_OP_JUMP_IF_FALSE,
-  RAK_OP_JUMP_IF_TRUE,
   RAK_OP_JUMP_IF_FALSE_OR_POP,
   RAK_OP_JUMP_IF_TRUE_OR_POP,
   RAK_OP_EQ,

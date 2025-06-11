@@ -47,7 +47,6 @@ static void do_unpack_elements(RakFiber *fiber, RakClosure *cl, uint32_t *ip, Ra
 static void do_unpack_fields(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump_if_false(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
-static void do_jump_if_true(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump_if_false_or_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_jump_if_true_or_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
 static void do_eq(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err);
@@ -113,7 +112,6 @@ static InstrHandler dispatchTable[] = {
   [RAK_OP_UNPACK_FIELDS]        = do_unpack_fields,
   [RAK_OP_JUMP]                 = do_jump,
   [RAK_OP_JUMP_IF_FALSE]        = do_jump_if_false,
-  [RAK_OP_JUMP_IF_TRUE]         = do_jump_if_true,
   [RAK_OP_JUMP_IF_FALSE_OR_POP] = do_jump_if_false_or_pop,
   [RAK_OP_JUMP_IF_TRUE_OR_POP]  = do_jump_if_true_or_pop,
   [RAK_OP_EQ]                   = do_eq,
@@ -373,11 +371,6 @@ static void do_jump(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slo
 static void do_jump_if_false(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
 {
   rak_vm_jump_if_false(fiber, cl, ip, slots, err);
-}
-
-static void do_jump_if_true(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)
-{
-  rak_vm_jump_if_true(fiber, cl, ip, slots, err);
 }
 
 static void do_jump_if_false_or_pop(RakFiber *fiber, RakClosure *cl, uint32_t *ip, RakValue *slots, RakError *err)

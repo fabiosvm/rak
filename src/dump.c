@@ -119,7 +119,6 @@ void rak_dump_function(RakFunction *fn)
     case RAK_OP_PUSH_INT:
     case RAK_OP_JUMP:
     case RAK_OP_JUMP_IF_FALSE:
-    case RAK_OP_JUMP_IF_TRUE:
     case RAK_OP_JUMP_IF_FALSE_OR_POP:
     case RAK_OP_JUMP_IF_TRUE_OR_POP:
       {
